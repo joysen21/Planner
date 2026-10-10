@@ -12,7 +12,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
     Die **Lizenz-ID** wird automatisch fortlaufend vergeben: `JK.PLANNER.001`, `JK.PLANNER.002`, …
     Danach werden die Zugangsdaten zum Kopieren und Weitergeben angezeigt.
   - *Bearbeiten*: Name, Anzahl Anmeldungen, Laufzeit, Notiz, Lizenz **aktiv/gesperrt**.
-  - *Admin-Passwort*: setzt das Passwort des Firmen-Admins neu.
+  - *Benutzer*: Benutzername und Passwort jedes Mitarbeiters mit Anmeldung ändern (auch des Firmen-Admins).
   - *Löschen*: Firma mit allen Daten (zur Sicherheit muss die Lizenz-ID eingegeben werden).
 - **Firmen-Admin und Mitarbeiter** melden sich mit **Lizenz-ID + Benutzername + Passwort** an.
   Die Lizenz-ID kann auch kurz eingegeben werden (`001` oder `1`); das Gerät merkt sie sich.
@@ -22,6 +22,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
   - **ohne Anmeldung** („Dummy“): werden nur verplant, unbegrenzt, zählen nicht zur Lizenz.
     Später kann ihnen per *＋ Anmeldung* ein Login gegeben werden – alle Termine bleiben erhalten.
   - *Anmeldung entfernen* macht einen Mitarbeiter wieder zum Dummy und gibt den Lizenzplatz frei.
+  - *Benutzername* ändert den Benutzernamen eines Mitarbeiters (Passwort bleibt).
 - **Lizenz**: Anzahl Mitarbeiter **mit Anmeldung** (inkl. Admin) ist begrenzt. Nach Ablauf ist der Plan
   nur noch lesbar; eine gesperrte Firma kann sich gar nicht mehr anmelden (Daten bleiben erhalten).
 - **Passwörter**: Firmen-Admins mindestens 10, Mitarbeiter mindestens 8 Zeichen. Passwort vergessen:
@@ -37,7 +38,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 1. Projekt anlegen auf <https://supabase.com>.
 2. **SQL Editor** → die Dateien aus `supabase/migrations/` der Reihe nach einfügen und *Run*
    (`20261009000000_init.sql`, `20261010000000_firmen_lizenzen_mitarbeiter.sql`,
-   dann `20261011000000_loeschrechte_darstellung.sql`).
+   `20261011000000_loeschrechte_darstellung.sql`, dann `20261012000000_besitzer_benutzerverwaltung.sql`).
 3. **Authentication → Sign In / Providers → Email**:
    - *Allow new users to sign up* **ausschalten** (Konten entstehen nur über die App).
    - *Minimum password length* auf **8** setzen.

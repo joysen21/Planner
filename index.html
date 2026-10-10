@@ -279,6 +279,9 @@ html:has(dialog[open]){overflow:hidden}
 .thm button .i{width:16px;height:16px}
 /* Bearbeiten-Dialog im Breitbild zweispaltig */
 @media (min-width:900px){dialog:has(.eg){max-width:920px}.eg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}.eg>div>.sec:first-child{border-top:0;padding-top:0;margin-top:8px}}
+/* Termin-Dialog „Wer“: angemeldeter Benutzer als großer Knopf, die übrigen kleiner */
+#s_wer .mew{flex:1 1 100%;min-height:52px;font-size:16px;font-weight:700}
+#s_wer button:not(.mew){flex:1 1 28%;min-height:38px;font-size:14px}
 /* Duotone-Icons */
 .i{width:1.2em;height:1.2em;vertical-align:-.22em;flex:none;overflow:visible}
 nav span .i{width:26px;height:26px;display:block;margin:0 auto 2px;vertical-align:0}
@@ -482,7 +485,7 @@ function ownerPage(){var td=fmt(new Date());
   '<div class="sub"><b>'+esc(c.name)+'</b>'+(c.note?' · '+esc(c.note):'')+'</div>'+
   '<div class="sub">Anmeldungen <b>'+c.logins+' / '+c.max_users+'</b> · Mitarbeiter gesamt '+c.employees+' · gültig '+(c.valid_until?'bis '+dDE(c.valid_until):'unbegrenzt')+'</div>'+
   '<div class="sub">Admin: '+esc(c.admin_username||'–')+'</div>'+
-  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">'+ic('edit')+' Bearbeiten</button><button class="b" onclick="coPw('+q+')">'+ic('key')+' Admin-Passwort</button><button class="b d" style="flex:none" onclick="coDel('+q+')" title="Löschen">'+ic('trash')+'</button></div></div>'}).join('')+'</div>'
+  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">'+ic('edit')+' Bearbeiten</button><button class="b" onclick="coUsers('+q+')">'+ic('users')+' Benutzer</button><button class="b d" style="flex:none" onclick="coDel('+q+')" title="Löschen">'+ic('trash')+'</button></div></div>'}).join('')+'</div>'
  :'<div class="empty big">Noch keine Firmen.<br><small>Mit „Neue Firma“ die erste Lizenz vergeben.</small></div>')+'</div>')}
 function genPw(){var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789',r=new Uint32Array(12),s='';crypto.getRandomValues(r);for(var i=0;i<12;i++)s+=a[r[i]%a.length];return s}
 function coEdit(id){var c=id?coById(id):null,d=document.getElementById('dlg'),y=new Date();y.setFullYear(y.getFullYear()+1);
@@ -510,9 +513,26 @@ function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Pla
  '<textarea id="cr" rows="6" readonly style="margin-top:10px">'+esc(txt)+'</textarea><div class="row ft"><button class="b p" onclick="copyCr(this)">'+ic('copy')+' Kopieren</button></div>';
  if(!d.open)d.showModal()}
 function copyCr(b){var a=document.getElementById('cr');a.select();try{navigator.clipboard.writeText(a.value)}catch(e){}b.innerHTML=ic('check')+' Kopiert'}
-function coPw(id){var c=coById(id);if(!c.admin_username){alert('Diese Firma hat keinen Admin mit Anmeldung.');return}
- var p=prompt('Neues Passwort für den Admin „'+c.admin_username+'“ von '+c.name+' (mind. 10 Zeichen):',genPw());if(p==null)return;if(p.length<10){alert('Passwort: mindestens 10 Zeichen.');return}
- sb.rpc('owner_set_admin_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))showCreds('Admin-Passwort geändert',c.name,c.license_id,c.admin_username,p)})}
+// Besitzer: Benutzernamen und Passwörter aller Anmeldungen einer Firma (auch des Firmen-Admins)
+var CU=[];
+function coUsers(id){var c=coById(id),d=document.getElementById('dlg');
+ sb.rpc('owner_company_users',{p_org:id}).then(function(r){if(rpcErr(r))return;CU=(r.data||[]).filter(function(u){return u.has_login});
+  d.innerHTML='<div class="dt2"><b>Benutzer · '+esc(c.name)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
+  '<div class="sub">Anmeldung mit Lizenz-ID <b>'+esc(c.license_id)+'</b>, Benutzername und Passwort. Ein geänderter Benutzername gilt ab dem nächsten Anmelden.</div>'+
+  (CU.length?'<div class="ul" style="margin-top:10px">'+CU.map(function(u){var q='\''+u.id+'\',\''+id+'\'';
+   return '<div class="ur"><div class="nm">'+esc(u.display_name)+'<small>'+(u.role=='admin'?'Admin':'Mitarbeiter')+'</small></div><input id="cu_'+u.id+'" value="'+esc(u.username||'')+'"'+NC+' style="flex:1 1 140px;width:auto" aria-label="Benutzername">'+
+   '<button class="b" onclick="coUname('+q+')">'+ic('check')+' Speichern</button><button class="b" onclick="coUpw('+q+')">'+ic('key')+' Passwort</button></div>'}).join('')+'</div>'
+   :'<div class="sub" style="margin-top:10px">Diese Firma hat keine Mitarbeiter mit Anmeldung.</div>');
+  // nach dem Schließen die Firmenliste aktualisieren (Admin-Benutzername)
+  d.onclose=function(){d.onclose=null;if(!ME)sb.rpc('owner_companies').then(function(x){if(x.error)return;OWN=x.data;if(!d.open)ownerPage()})};
+  if(!d.open)d.showModal()})}
+function coUname(emp,org){var v=document.getElementById('cu_'+emp).value.trim().toLowerCase(),u=CU.filter(function(x){return x.id==emp})[0];
+ if(u&&u.username==v)return;
+ if(!/^[a-z0-9][a-z0-9._-]{1,29}$/.test(v)){alert('Benutzername: 2–30 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich.');return}
+ sb.rpc('owner_set_username',{p_emp:emp,p_username:v}).then(function(r){if(rpcErr(r))return;alert('Benutzername von '+u.display_name+' ist jetzt „'+v+'“.');coUsers(org)})}
+function coUpw(emp,org){var c=coById(org),u=CU.filter(function(x){return x.id==emp})[0],min=u.role=='admin'?10:8;
+ var p=prompt('Neues Passwort für '+u.display_name+' (mind. '+min+' Zeichen):',genPw());if(p==null)return;if(p.length<min){alert('Passwort: mindestens '+min+' Zeichen.');return}
+ sb.rpc('owner_set_password',{p_emp:emp,p_password:p}).then(function(r){if(!rpcErr(r))showCreds('Passwort geändert',c.name,c.license_id,u.username,p)})}
 function coDel(id){var c=coById(id),x=prompt('Firma „'+c.name+'“ mit ALLEN Mitarbeitern, Anmeldungen und Aufträgen endgültig löschen?\n\nZur Bestätigung die Lizenz-ID eingeben: '+c.license_id);if(x==null)return;
  sb.rpc('owner_delete_company',{p_id:id,p_confirm:x}).then(function(r){if(!rpcErr(r))ownerLoad()})}
 async function loadAll(){
@@ -534,6 +554,8 @@ function save(j){if(j)sb.from('jobs').upsert(toRow(j)).then(function(r){if(r.err
 function subscribe(){if(CH)sb.removeChannel(CH);CH=sb.channel('planer');[['jobs','org_id'],['holidays','org_id'],['employees','org_id'],['organizations','id']].forEach(function(t){CH.on('postgres_changes',{event:'*',schema:'public',table:t[0],filter:t[1]+'=eq.'+ORG.id},rt)});CH.subscribe()}
 // Änderungen anderer Benutzer nachladen, aber nicht mitten im Ziehen oder im offenen Dialog
 function rt(){clearTimeout(rtT);rtT=setTimeout(function(){if(DG||RZ||document.getElementById('dlg').open||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('main input,main textarea')){rt();return}reload()},500)}
+// Reihenfolge der Mitarbeiter: zuerst der angemeldete Benutzer, dann die übrigen alphabetisch
+function usersSorted(){return USERS.filter(function(u){return ME&&u.id==ME.id}).concat(USERS.filter(function(u){return !ME||u.id!=ME.id}).sort(function(a,b){return a.display_name.localeCompare(b.display_name,'de')}))}
 function uById(id){return USERS.filter(function(u){return u.id==id})[0]}
 function uName(id){var u=uById(id);return u?u.display_name:'?'}
 function wer(j){return (j.wer||[]).filter(uById)}
@@ -611,7 +633,7 @@ function lsec(){var n=nLogins(),p=Math.min(100,Math.round(n*100/ORG.max_users));
 function usec(){var full=nLogins()>=ORG.max_users;
  return '<div class="sub">Mitarbeiter <b>mit Anmeldung</b> melden sich mit Lizenz-ID <b>'+esc(ORG.license_id)+'</b>, Benutzername und Passwort an. Mitarbeiter <b>ohne Anmeldung</b> werden nur verplant und zählen nicht zur Lizenz.</div><div class="ul">'+USERS.map(function(u){var me=u.id==ME.id,q='\''+u.id+'\'';
   return '<div class="ur"><input type="color" value="'+esc(u.color)+'" onchange="uUpd('+q+',{color:this.value})" title="Farbe im Kalender"><div class="nm"><input value="'+esc(u.display_name)+'" onchange="uUpd('+q+',{display_name:this.value.trim()||this.defaultValue})"><small>'+(u.role=='admin'?'Admin · Benutzername: <b>'+esc(u.username||'–')+'</b>':u.user_id?'Benutzername: <b>'+esc(u.username)+'</b>':'Ohne Anmeldung (nur Planung)')+'</small></div>'+
-  (u.role=='admin'?'':u.user_id?'<button class="b" onclick="uPw('+q+')">'+ic('key')+' Passwort</button><button class="b" onclick="uNoLogin('+q+')">Anmeldung entfernen</button>':'<button class="b" onclick="uLogin('+q+')"'+(full?' disabled title="Lizenzlimit erreicht"':'')+'>'+ic('plus')+' Anmeldung</button>')+
+  (u.role=='admin'?'':u.user_id?'<button class="b" onclick="uUname('+q+')">'+ic('edit')+' Benutzername</button><button class="b" onclick="uPw('+q+')">'+ic('key')+' Passwort</button><button class="b" onclick="uNoLogin('+q+')">Anmeldung entfernen</button>':'<button class="b" onclick="uLogin('+q+')"'+(full?' disabled title="Lizenzlimit erreicht"':'')+'>'+ic('plus')+' Anmeldung</button>')+
   (me?'':'<button class="b d" onclick="uDel('+q+')" title="Löschen">'+ic('trash')+'</button>')+'</div>'}).join('')+'</div>'+
   '<div class="sec">Neuer Mitarbeiter</div><div class="g2"><div><label>Name (Anzeige)</label><input id="u_n" placeholder="z. B. Stefan"></div><div><label>Farbe</label><input id="u_c" type="color" value="'+COLORS[USERS.length%COLORS.length]+'"></div></div>'+
   '<label class="chk"><input id="u_l" type="checkbox" onchange="document.getElementById(\'u_lb\').style.display=this.checked?\'\':\'none\'"'+(full?' disabled':' checked')+'> Darf sich anmelden'+(full?' (Lizenzlimit erreicht)':'')+'</label>'+
@@ -636,6 +658,10 @@ function uLogin(id){var s=uName(id).toLowerCase().normalize('NFD').replace(/[̀-
 function uNoLogin(id){if(!confirm(uName(id)+': Anmeldung entfernen?\n\nDie Person bleibt mit allen Terminen als Mitarbeiter erhalten, kann sich aber nicht mehr anmelden. Der Lizenzplatz wird frei.'))return;
  sb.rpc('admin_remove_login',{p_id:id}).then(function(r){if(!rpcErr(r))reload()})}
 function uUpd(id,ch){var u=uById(id);Object.assign(u,ch);sb.from('employees').update(ch).eq('id',id).then(function(r){if(r.error)fail(r.error);else render()})}
+// Firmen-Admin: Benutzername eines Mitarbeiters ändern (neue Anmeldung: Lizenz-ID + neuer Benutzername)
+function uUname(id){var u=uById(id),v=prompt('Neuer Benutzername für '+u.display_name+' (a–z, 0–9, Punkt, Minus, Unterstrich):',u.username||'');if(v==null)return;v=v.trim().toLowerCase();if(v==u.username)return;
+ if(!/^[a-z0-9][a-z0-9._-]{1,29}$/.test(v)){alert('Benutzername: 2–30 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich (keine Umlaute, keine Leerzeichen).');return}
+ sb.rpc('admin_set_username',{p_id:id,p_username:v}).then(function(r){if(rpcErr(r))return;alert('Benutzername geändert.\n\n'+loginMsg(v).replace('Passwort: das eben vergebene','Passwort: unverändert'));reload()})}
 function uPw(id){var p=prompt('Neues Passwort für '+uName(id)+' (mind. 8 Zeichen):');if(p==null)return;if(p.length<8){alert('Passwort: mindestens 8 Zeichen.');return}
  sb.rpc('admin_set_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))alert('Passwort geändert.')})}
 function uDel(id){if(!confirm(uName(id)+' wirklich löschen? Die Person wird aus allen Aufträgen entfernt'+(uById(id).user_id?' und kann sich nicht mehr anmelden':'')+'.'))return;
@@ -771,7 +797,7 @@ function dayCols(days){var td=fmt(new Date());return days.map(function(ds){var d
 function weekGrid(w){var days=[];for(var i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}return timeGrid(dayCols(days))}
 // Team wie Outlook „Nebeneinander“: ein Tag, eine Spalte pro Mitarbeiter
 function teamGrid(ds){
- var cols=USERS.map(function(u){return {ds:ds,emp:u.id,head:'<div class="wh2 tmh" style="--uc:'+esc(u.color)+'"><b>'+esc(u.display_name)+'</b>'+(u.user_id?'':'<em class="hn">ohne Anmeldung</em>')+'</div>'}});
+ var cols=usersSorted().map(function(u){return {ds:ds,emp:u.id,head:'<div class="wh2 tmh" style="--uc:'+esc(u.color)+'"><b>'+esc(u.display_name)+'</b>'+(u.user_id?'':'<em class="hn">ohne Anmeldung</em>')+'</div>'}});
  if((dm[ds]||[]).some(function(j){return !wer(j).length}))cols.push({ds:ds,emp:'-',head:'<div class="wh2 tmh"><b>Nicht zugeteilt</b></div>'});
  return timeGrid(cols,true)}
 function colJobs(c){return (dm[c.ds]||[]).filter(function(j){if(!c.emp)return true;var w=wer(j);return c.emp=='-'?!w.length:w.indexOf(c.emp)>-1})}
@@ -976,7 +1002,7 @@ function edit(id,ds,t,te,emp){
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="eg"><div><div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'">'+
- '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+USERS.map(function(u){return '<button data-v="'+u.id+'">'+esc(u.display_name)+'</button>'}).join('')+'</div>'+
+ '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+usersSorted().map(function(u){var me=ME&&u.id==ME.id;return '<button data-v="'+u.id+'"'+(me?' class="mew"':'')+'>'+(me?ic('user')+' ':'')+esc(u.display_name)+(me?' (ich)':'')+'</button>'}).join('')+'</div>'+
  '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">'+ic('pv')+' Provisorisch</button><button data-v="1">'+ic('pin')+' Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> '+ic('starf','starx')+' Wichtiger Termin</label>'+
  '</div><div><div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags</button><button data-v="1">Uhrzeit</button></div>'+
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
