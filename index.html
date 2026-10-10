@@ -850,7 +850,7 @@ function edit(id,ds,t,te){
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
  '<div id="db"><label>Dauer in Tagen</label><input id="f_d" oninput="sug()" type="number" min="1" max="60" value="'+j.tage+'"></div>'+
  '<div id="sg"></div><label>Datum (leer = noch offen)</label><input id="f_s" type="date" value="'+j.start+'">'+
- (id&&span(byId(id)).length>1?'<div class="sec">Aufteilen</div><div class="sub">Den mehrtägigen Auftrag in einzelne Einträge teilen – danach lässt sich jeder Teil einzeln verschieben und zuteilen.</div><div class="row" style="margin-top:8px">'+splitUI(byId(id))+'</div>':'')+
+ (id&&nDays(byId(id))>1?'<div class="sec">Aufteilen</div><div class="sub">Den mehrtägigen Auftrag in einzelne Einträge teilen – danach lässt sich jeder Teil einzeln verschieben und zuteilen.</div><div class="row" style="margin-top:8px">'+splitUI(byId(id))+'</div>':'')+
  '<div class="sec">Details</div><label>Adresse</label><input id="f_a" value="'+esc(j.adresse)+'"><label>Telefon</label><input id="f_t" type="tel" value="'+esc(j.tel)+'">'+
  '<label class="chk"><input id="f_m" type="checkbox"'+(j.material?' checked':'')+'> Material ist da</label><label>Notiz</label><textarea id="f_n" rows="3">'+esc(j.notiz)+'</textarea>'+
  '<div class="row ft"><button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="sv()">Speichern</button></div>';
@@ -863,13 +863,15 @@ function edit(id,ds,t,te){
  var fb=d.querySelectorAll('#s_fx button');function fv(){fb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.fx)})}fb.forEach(function(b){b.onclick=function(){cur.fx=b.dataset.v=='1';fv()}});fv();sug();
  d.showModal()}
 // Mehrtägigen Auftrag aufteilen: k=0 = jeder Tag einzeln, sonst nach Tag k in zwei Teile
-function splitUI(j){var n=span(j).length,o='';for(var k=1;k<n;k++)o+='<option value="'+k+'">nach Tag '+k+' ('+k+' + '+(n-k)+' Tage)</option>';
+// Anzahl Tage; ohne Datum ("Offen") zählt nur die eingetragene Dauer
+function nDays(j){return j.start?span(j).length:Math.max(1,j.tage||1)}
+function splitUI(j){var n=nDays(j),o='';for(var k=1;k<n;k++)o+='<option value="'+k+'">nach Tag '+k+' ('+k+' + '+(n-k)+' Tage)</option>';
  return '<button class="b" onclick="splitJ(\''+j.id+'\',0)">'+ic('split')+' In '+n+' Einzeltage</button>'+
   (n>2?'<select id="f_sp" style="flex:1 1 200px">'+o+'</select><button class="b" style="flex:none" onclick="splitJ(\''+j.id+'\',+document.getElementById(\'f_sp\').value)">Teilen</button>':'')}
-function splitJ(id,k){var j=byId(id),days=span(j),n=days.length,parts=k?[k,n-k]:days.map(function(){return 1});
+function splitJ(id,k){var j=byId(id),n=nDays(j),days=j.start?span(j):[],parts=[];if(k)parts=[k,n-k];else for(var x=0;x<n;x++)parts.push(1);
  if(!confirm('„'+(j.kunde||'Auftrag')+'“ in '+parts.length+' Einträge aufteilen ('+parts.join(' + ')+' Tage)?\n\nNicht gespeicherte Änderungen in diesem Dialog gehen dabei verloren.'))return;
  var o=0,neu=[];
- parts.forEach(function(len,i){var p=i?Object.assign({},j,{id:uuid(),wer:(j.wer||[]).slice()}):j;p.start=days[o];p.tage=len;o+=len;if(i)neu.push(p);save(p)});
+ parts.forEach(function(len,i){var p=i?Object.assign({},j,{id:uuid(),wer:(j.wer||[]).slice()}):j;p.start=j.start?days[o]:'';p.tage=len;o+=len;if(i)neu.push(p);save(p)});
  S.jobs=S.jobs.concat(neu);document.getElementById('dlg').close();render()}
 function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g('f_s').value;
  if(st&&R(j.art)&&isWE(st)){alert(WEMSG);return}
