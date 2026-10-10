@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Auftragsplaner</title>
-<link rel="icon" type="image/svg+xml" href="joke-icon.svg">
+<title>Planner</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<!-- Installierbare App (PWA) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Planner">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="application-name" content="Planner">
 <meta name="theme-color" content="#f5f2ec">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -395,6 +404,7 @@ logout:'<path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5" fill="currentCo
 split:'<circle cx="6" cy="6" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.3 8L20 19.5M8.3 16L20 4.5"/>',
 moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
 info:'<circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+download:'<rect x="4" y="14" width="16" height="6" rx="2" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/>',
 copy:'<rect x="8" y="8" width="12.5" height="12.5" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="8" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
 function ic(n,c){return '<svg class="i'+(c?' '+c:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>'}
 function boot(){
@@ -415,7 +425,7 @@ function curTheme(){return (ME&&ME.theme)||lsGet('planer_theme')||'auto'}
 var THP=null;
 function setTheme(t){THP=t;applyTheme(t);if(ME){ME.theme=t;sb.rpc('set_my_theme',{p_theme:t}).then(function(r){if(r.error)console.warn(r.error.message);setTimeout(function(){if(THP==t)THP=null},1500)})}render()}
 var NC=' autocapitalize="none" autocorrect="off" spellcheck="false"';
-function authHead(t){return '<div class="lo">'+LOGO_H+'</div><h1>Auftragsplaner<small>'+t+'</small></h1>'}
+function authHead(t){return '<div class="lo">'+LOGO_H+'</div><h1>Planner<small>'+t+'</small></h1>'}
 function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();document.getElementById('main').innerHTML=h}
 // Anmeldung für alle Firmen-Konten: Lizenz-ID + Benutzername (intern benutzername@001.planer.local).
 // Der Besitzer der Seite meldet sich mit E-Mail an (Lizenz-ID leer) und sieht die Firmenverwaltung.
@@ -479,7 +489,7 @@ function coSave(id,b){var g=function(i){var x=document.getElementById(i);return 
  b.disabled=true;sb.rpc('owner_create_company',{p_name:n,p_max_users:m,p_valid_until:v,p_admin_name:g('c_an'),p_admin_username:u,p_admin_password:p,p_note:g('c_o')}).then(function(r){b.disabled=false;if(rpcErr(r))return;
   sb.rpc('owner_companies').then(function(x){if(!x.error)OWN=x.data;ownerPage();showCreds('Firma angelegt',n,r.data,u,p)})})}
 // Zugangsdaten zum Weitergeben anzeigen (das Passwort wird danach nirgends mehr angezeigt)
-function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Auftragsplaner – Zugang für '+name+'\nAdresse: '+location.origin+location.pathname+'\nLizenz-ID: '+lic+'\nBenutzername: '+u+'\nPasswort: '+p;
+function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Planner – Zugang für '+name+'\nAdresse: '+location.origin+location.pathname+'\nLizenz-ID: '+lic+'\nBenutzername: '+u+'\nPasswort: '+p;
  d.innerHTML='<div class="dt2"><b>'+esc(t)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="sub">Zugangsdaten für den Admin – jetzt kopieren und weitergeben. Das Passwort wird später nicht mehr angezeigt.</div>'+
  '<textarea id="cr" rows="6" readonly style="margin-top:10px">'+esc(txt)+'</textarea><div class="row ft"><button class="b p" onclick="copyCr(this)">'+ic('copy')+' Kopieren</button></div>';
  if(!d.open)d.showModal()}
@@ -554,13 +564,26 @@ function render0(){mkH();
   ma:adm?pnl(ic('users')+'Mitarbeiter',usec(),'wide'):'',
   hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
   done:!adm?'':pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
+  app:appSec(),
   bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
    '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
   // Breitbild: zwei Spalten, in denen sich die Kästen lückenlos stapeln; Mitarbeiter über die volle Breite
-  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol,P.bk+P.done):cols(P.konto,P.hol+P.bk))+
-  '<div class="mfoot">'+LOGO_H+'<span>Auftragsplaner</span></div>'
+  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol+P.app,P.bk+P.done):cols(P.konto+P.app,P.hol+P.bk))+
+  '<div class="mfoot">'+LOGO_H+'<span>Planner</span></div>'
  }
 }
+// Als App installieren: Android/Chrome über den Installations-Dialog, iPhone über „Zum Home-Bildschirm“
+var IP=null;
+addEventListener('beforeinstallprompt',function(e){e.preventDefault();IP=e;if(ME&&tab=='mehr')render()});
+addEventListener('appinstalled',function(){IP=null;if(ME&&tab=='mehr')render()});
+function isApp(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1}
+function appSec(){if(isApp())return '';
+ return pnl(ic('download')+'App installieren','<div class="sub">Planner als App auf diesem Gerät installieren – mit eigenem Symbol auf dem Home-Bildschirm und ohne Browserleiste.</div>'+
+  (IP?'<div class="row" style="margin-top:10px"><button class="b p" style="flex:none" onclick="instApp()">'+ic('download')+' App installieren</button></div>'
+   :isIOS()?'<div class="sub" style="margin-top:8px">Auf dem iPhone/iPad: in <b>Safari</b> unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.</div>'
+   :'<div class="sub" style="margin-top:8px">Im Browser-Menü <b>„App installieren“</b> bzw. <b>„Zum Startbildschirm hinzufügen“</b> wählen.</div>'))}
+function instApp(){if(!IP)return;IP.prompt();IP.userChoice.then(function(){IP=null;render()})}
 function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
 function cols(a,b,eq){return '<div class="pgrid'+(eq?' eq':'')+'"><div class="pcol">'+a+'</div><div class="pcol">'+b+'</div></div>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)
@@ -976,6 +999,7 @@ document.querySelector('nav').insertAdjacentHTML('afterbegin','<div class="nlg" 
 document.querySelectorAll('nav [data-i]').forEach(function(x){x.innerHTML=ic(x.dataset.i)});
 document.querySelectorAll('nav button').forEach(function(b){b.onclick=function(){tab=b.dataset.t;window.scrollTo(0,0);render()}});
 boot();
+if('serviceWorker' in navigator&&(location.protocol=='https:'||location.hostname=='localhost'))navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('Service Worker:',e)});
 </script>
 </body>
 </html>

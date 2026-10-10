@@ -1,6 +1,6 @@
-# Auftragsplaner
+# Planner
 
-Tischler-Auftragsplaner als einzelne Web-Seite (`index.html`), Daten in **Supabase**, Hosting auf **Vercel**.
+Auftrags- und Einsatzplaner (JoKe Smart Solutions) als einzelne Web-Seite (`index.html`), Daten in **Supabase**, Hosting auf **Vercel**.
 Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 
 ## Firmen, Lizenzen & Anmeldung
@@ -61,6 +61,16 @@ geschützt wird über RLS. **Nie den `service_role` Key verwenden.**
 Seite öffnen, mit der Besitzer-E-Mail anmelden (Lizenz-ID leer lassen) → *＋ Neue Firma*.
 Die angezeigten Zugangsdaten an den Firmen-Admin weitergeben; dieser legt dann unter
 *Einstellungen → Mitarbeiter* seine Mitarbeiter an.
+
+## Als App installieren (PWA)
+Die Seite ist als App installierbar (`manifest.webmanifest`, `sw.js`, Icons in `icons/`):
+- **Android / Chrome:** *Einstellungen → App installieren* oder im Browser-Menü „App installieren“.
+- **iPhone / iPad:** in Safari *Teilen → Zum Home-Bildschirm*.
+
+Die App heißt „Planner“, startet ohne Browserleiste und lädt Updates nach jedem Push automatisch.
+Der Service Worker lädt immer zuerst aus dem Netz; nur ohne Netz zeigt er die zuletzt geladene Version.
+Icons neu erzeugen: Vorlage `Media/app-icon-vorlage.html` (Variante A: braunes „P“, Karamell-Punkt, „JOKE SMART SOLUTIONS“),
+z. B. `chrome --headless=new --default-background-color=00000000 --window-size=512,512 --virtual-time-budget=6000 --screenshot=icons/icon-512.png "file:///…/Media/app-icon-vorlage.html#512,round"` (Modi: `round`, `full` für iPhone, `mask` für Android).
 
 ## Alte Handy-Daten übernehmen
 In der alten Version auf dem Handy: *Mehr → Backup kopieren*. In der neuen Version als Firmen-Admin:

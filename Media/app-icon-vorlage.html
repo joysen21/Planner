@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&display=swap">
+<style>html,body{margin:0;background:transparent}svg{display:block}</style></head><body>
+<script>
+// #größe,modus  – modus: round (abgerundet, transparent), full (randlos, iOS), mask (randlos, Inhalt in sicherer Zone)
+var p=location.hash.slice(1).split(','),n=+p[0],m=p[1];
+var inner='<circle cx="417" cy="95" r="28" fill="#E8B57A"/>'+
+ '<text x="256" y="318" text-anchor="middle" font-family="Outfit" font-weight="800" font-size="300" fill="#fff">P</text>'+
+ '<text x="256" y="404" text-anchor="middle" font-family="Outfit" font-weight="700" font-size="30" letter-spacing="3" fill="#F3E4D2">JOKE SMART SOLUTIONS</text>';
+var bg=m=='round'?'<rect width="512" height="512" rx="117.76" fill="#8A5A2B"/>':'<rect width="512" height="512" fill="#8A5A2B"/>';
+var g=m=='mask'?'<g transform="translate(256 256) scale(.78) translate(-256 -256)">'+inner+'</g>':inner;
+document.fonts.load('800 300px Outfit').then(function(){return document.fonts.load('700 30px Outfit')}).then(function(){
+ document.body.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="'+n+'" height="'+n+'" viewBox="0 0 512 512">'+bg+g+'</svg>'});
+</script></body></html>
