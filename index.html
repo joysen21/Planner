@@ -134,7 +134,7 @@ main{padding:10px 12px 24px}
 .lbl{text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:600;margin:0 0 6px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}.g2 .w{grid-column:1/-1}
-.ft2{display:flex;gap:6px}.ft2 .b{flex:1}.ft2 .b:last-child{flex:0 0 48px}
+.ft2{display:flex;gap:6px;margin-bottom:6px}.ft2:last-child{margin-bottom:0}.ft2 .b{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ft2 .b.d{flex:0 0 48px}
 .b{border-radius:12px;font-weight:500;min-height:44px;padding:0 8px;font-size:14px;transition:transform .08s}.b:active{transform:scale(.96)}
 .b.p{box-shadow:0 2px 8px rgba(138,90,43,.3)}
 .dh{font-size:16px;padding:6px 2px}
@@ -568,13 +568,14 @@ function card(j,ds){
  '<div class="sub">'+A.n+' · '+(wer(j).length>1?ic('users')+' ':'')+esc(who(j))+pos+(j.zeit?' · '+ic('clock')+' '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div><div class="acts">';
  if(j.start)h+='<div class="lbl">Verschieben</div><div class="g4">'+q("mv('"+id+"',-1)",ic('left')+'Tag')+q("mv('"+id+"',1)",'Tag'+ic('right'))+q("mv('"+id+"',7)",'+1 Wo.')+q("mv('"+id+"',0)",'Offen')+'</div>';
  h+='<div class="g2">'+q("pick('"+id+"')",ic('move')+' Im Kalender')+q("fixt('"+id+"')",PV(j)?ic('pin')+' Fix setzen':ic('pv')+' Provisorisch')+'</div>';
- h+='<div class="g2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt',mt?'p':'p w')+(mt?q("mat('"+id+"')",j.material?ic('alert')+' Material fehlt':ic('box')+' Material da'):'')+'</div>';
- h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+q("del('"+id+"')",ic('trash'),'d')+'</div></div></div>';
+ // Aktionen: Erledigt | Bearbeiten | Löschen, darunter (nur wenn eingetragen) Anrufen | Route
+ h+='<div class="ft2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt','p')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+q("del('"+id+"')",ic('trash'),'d')+'</div>';
+ if(j.tel||j.adresse)h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+'</div>';
+ h+='</div></div>';
  return h}
 function tog(id){openId=openId==id?null:id;render()}
 function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j.art)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
 function done(id){var j=byId(id);j.done=!j.done;save(j);render()}
-function mat(id){var j=byId(id);j.material=!j.material;save(j);render()}
 function del(id){if(confirm('Auftrag löschen?')){S.jobs=S.jobs.filter(function(j){return j.id!=id});render();sb.from('jobs').delete().eq('id',id).then(function(r){if(r.error)fail(r.error)})}}
 function clearDone(){var ids=S.jobs.filter(function(j){return j.done}).map(function(j){return j.id});if(!ids.length||!confirm(ids.length+' erledigte Aufträge (aller Benutzer) löschen?'))return;
  S.jobs=S.jobs.filter(function(j){return !j.done});render();sb.from('jobs').delete().in('id',ids).then(function(r){if(r.error)fail(r.error)})}
