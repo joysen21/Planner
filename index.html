@@ -823,8 +823,10 @@ function hsec(adm){var td=fmt(new Date()),f=function(s){var p=parse(s);return WD
   (adm?'<div class="row" style="margin-top:10px"><input id="h_d" type="date" style="flex:1 1 140px"><input id="h_n" placeholder="z. B. Betriebsurlaub" style="flex:2 1 160px"><button class="b" style="flex:none" onclick="addH()">'+ic('plus')+' Hinzufügen</button></div>':'')}
 function impt(id){var j=byId(id);j.imp=!j.imp;save(j);render()}
 var sw=null;
-// Wischen = Tag wechseln, aber nicht im seitlich scrollbaren Team-Raster (dort scrollt Wischen die Spalten)
-function hScroll(t){var g=t.closest&&t.closest('.tg.team');return !!g&&g.scrollWidth>g.clientWidth+1}
+// Wischen = Tag wechseln, aber nicht in seitlich scrollbaren Bereichen (Mitarbeiter-Filterleiste, Team-Raster):
+// dort scrollt Wischen nur den Bereich
+function hScroll(t){for(var e=t;e&&e.nodeType==1&&e.tagName!='MAIN';e=e.parentNode){var o=getComputedStyle(e).overflowX;
+ if((o=='auto'||o=='scroll')&&e.scrollWidth>e.clientWidth+1)return true}return false}
 document.addEventListener('touchstart',function(e){sw=(tab=='plan'&&e.touches.length==1&&!(DG&&DG.on)&&e.target.closest&&e.target.closest('main')&&!hScroll(e.target))?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
 document.addEventListener('touchend',function(e){var s0=sw;sw=null;if(!s0||(DG&&DG.on)||sup)return;var t=e.changedTouches[0],dx=t.clientX-s0.x,dy=t.clientY-s0.y;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6)step(dx<0?1:-1)},{passive:true});
 // Filter: beim Aufruf immer "Meine" (FLT='me'), umschaltbar auf alle oder eine andere Person
