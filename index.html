@@ -111,7 +111,7 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .dt{box-shadow:inset 0 0 0 2px var(--ac)!important;background-color:color-mix(in srgb,var(--ac) 10%,var(--card))!important}
 .dt.bad{box-shadow:inset 0 0 0 2px var(--bad)!important;background-color:color-mix(in srgb,var(--bad) 10%,var(--card))!important}
 /* Team-Ansicht (Outlook „Nebeneinander“): eine Spalte pro Mitarbeiter */
-.tg.team{overflow-x:auto;padding-right:0}.tg.team .wk>:first-child{position:sticky;left:0;z-index:6;background:var(--card)}
+.tg.team{overflow-x:auto;padding-right:0}.tg.team .wk>:first-child{position:sticky;left:0;z-index:2;background:var(--card)}.tg.team .dcol,.tg.team .tgc{z-index:0}
 .tmh{border-bottom:3px solid var(--uc,var(--ln));border-radius:0!important;margin:0 4px;padding:6px 4px 5px!important}.tmh .hn{color:var(--mu);font-weight:500}.tmh b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Markierter Zeitraum für neuen Auftrag */
 .slr{position:absolute;left:3px;right:3px;z-index:5;pointer-events:none;box-sizing:border-box;border-radius:7px;border:2px solid var(--ac);background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--tx);font-size:11px;font-weight:700;padding:2px 6px;overflow:hidden}
@@ -316,6 +316,9 @@ nav button.on .i{color:var(--ac)}
 }
 @media (min-width:1400px){.yr{grid-template-columns:repeat(6,minmax(0,1fr))}}
 /* Maus: schmale Ziehränder wie in Outlook, Finger: breitere */
+/* Touch (wie Outlook): keine sichtbaren Balken; lange auf den Rand drücken startet das Ändern der Dauer */
+@media (pointer:coarse){.rz{touch-action:auto}.rz::after{display:none}.ev.rzon .rz::after{display:block}}
+.ev.rzon{box-shadow:0 0 0 2px var(--tx),0 6px 16px rgba(0,0,0,.25);z-index:4}
 @media (pointer:fine){.rz,.sh .rz{height:7px;cursor:ns-resize}.rz::after{display:none}.ev:hover .rz::after{display:block}.rz.rt::after{top:2px}.rz.rb::after,.sh .rz.rb::after{bottom:2px}}
 .warn{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);color:var(--tx);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
 </style>
@@ -625,7 +628,7 @@ function plan(hd,m){
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
  h+=(mode=='team'?'':fltBar())+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
  if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'')+'</div>';
+ var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'')+'</div>';
  if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
  else if(mode=='team')h+=TGH+teamGrid(an);
  else if(mode=='woche')h+=TGH+weekGrid(monday(a));
@@ -741,8 +744,8 @@ function useS(ds){document.getElementById('f_s').value=ds;document.querySelector
 function tOpts(v){v=m2t(Math.round(t2m(v)/30)*30);var o='';for(var m=0;m<1440;m+=30){var t=m2t(m);o+='<option'+(t==v?' selected':'')+'>'+t+'</option>'}return o}
 function zchg(){var z=document.getElementById('f_z'),e=document.getElementById('f_e');if(e.value<=z.value)e.value=m2t(Math.min(t2m(z.value)+60,1410));sug()}
 var mvG='',DG=null,sup=false;
-document.addEventListener('touchmove',function(e){if(DG&&DG.on||SL&&SL.on)e.preventDefault()},{passive:false});
-document.addEventListener('contextmenu',function(e){if(DG)e.preventDefault()});
+document.addEventListener('touchmove',function(e){if(DG&&DG.on||SL&&SL.on||RZ)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',function(e){if(DG||RZ||RZP)e.preventDefault()});
 document.addEventListener('click',function(e){if(sup){e.stopPropagation();e.preventDefault()}},true);
 document.addEventListener('pointerdown',function(e){
  if(e.button>0||mvId)return;var el=e.target.closest&&e.target.closest('[data-id]');if(!el||e.target.closest('.rz'))return;
@@ -833,17 +836,23 @@ function pc(j){return cnt(j)>1?ic('users')+cnt(j)+' ':''}
 function fltSub(){return FLT=='alle'||tab=='plan'&&mode=='team'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
 function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+(i?ic(i)+' ':'')+esc(l)+'</button>'};
  return '<div class="seg flt">'+b('me','Meine','','user')+b('alle','Alle','','users')+USERS.filter(function(u){return u.id!=ME.id}).map(function(u){return b(u.id,u.display_name,u.color)}).join('')+'</div>'}
-var RZ=null,H1=20;
+// Dauer ändern über den oberen/unteren Rand eines Termins.
+// Maus: Rand greifen und ziehen. Touch (wie Outlook): lange auf den Rand drücken, dann ziehen – kurzes Wischen scrollt weiter.
+var RZ=null,RZP=null,H1=20;
+function rzStart(h,ev,j,pid){var s0=j.zeit?t2m(j.zeit):360,e0=j.zeit?Math.max(t2m(j.ende||j.zeit),s0+30):1200;
+ RZ={ev:ev,col:ev.parentNode,j:j,side:h.dataset.rz,s:s0,e:e0};sup=true;ev.classList.add('rzon');
+ try{h.setPointerCapture(pid)}catch(x){}}
 document.addEventListener('pointerdown',function(e){var h=e.target.closest&&e.target.closest('.rz');if(!h||mvId)return;
  var ev=h.parentNode,j=byId(ev.dataset.id);if(!j)return;
- var s0=j.zeit?t2m(j.zeit):360,e0=j.zeit?Math.max(t2m(j.ende||j.zeit),s0+30):1200;
- RZ={ev:ev,col:ev.parentNode,j:j,side:h.dataset.rz,s:s0,e:e0};sup=true;
- try{h.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
-document.addEventListener('pointermove',function(e){if(!RZ)return;
+ if(e.pointerType=='mouse'){rzStart(h,ev,j,e.pointerId);e.preventDefault();return}
+ RZP={x:e.clientX,y:e.clientY,tm:setTimeout(function(){RZP=null;rzStart(h,ev,j,e.pointerId);try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}},400)}});
+document.addEventListener('pointermove',function(e){
+ if(RZP){if(Math.abs(e.clientX-RZP.x)>8||Math.abs(e.clientY-RZP.y)>8){clearTimeout(RZP.tm);RZP=null}return}
+ if(!RZ)return;
  var r=RZ.col.getBoundingClientRect(),m=Math.round(((e.clientY-r.top)/HH*60+H0*60)/30)*30;
  if(RZ.side=='b')RZ.e=Math.max(RZ.s+30,Math.min(H1*60,m));else RZ.s=Math.min(RZ.e-30,Math.max(H0*60,m));
- RZ.ev.style.top=((RZ.s/60-H0)*HH)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH)+'px'});
-function rzEnd(ok){if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
+ RZ.ev.style.top=((RZ.s/60-H0)*HH+1)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH-2)+'px'});
+function rzEnd(ok){if(RZP){clearTimeout(RZP.tm);RZP=null}if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
  if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
