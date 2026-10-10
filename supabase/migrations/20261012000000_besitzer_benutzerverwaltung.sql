@@ -57,12 +57,15 @@ create or replace function public.owner_set_password(p_emp uuid, p_password text
 language plpgsql security definer set search_path = '' as $$
 declare
   v_emp public.employees;
+  v_min int := 8;
 begin
   if not public.is_owner() then raise exception 'Nur der Besitzer darf das.'; end if;
   select * into v_emp from public.employees where id = p_emp;
   if not found or v_emp.user_id is null then raise exception 'Mitarbeiter nicht gefunden oder ohne Anmeldung.'; end if;
-  if length(coalesce(p_password, '')) < case when v_emp.role = 'admin' then 10 else 8 end then
-    raise exception 'Passwort: mindestens % Zeichen.', case when v_emp.role = 'admin' then 10 else 8 end;
+  -- Mindestlänge vorher bestimmen (ein CASE mit THEN innerhalb einer IF-Bedingung versteht PL/pgSQL nicht)
+  if v_emp.role = 'admin' then v_min := 10; end if;
+  if length(coalesce(p_password, '')) < v_min then
+    raise exception 'Passwort: mindestens % Zeichen.', v_min;
   end if;
   perform public._set_password(v_emp.user_id, p_password);
 end $$;
