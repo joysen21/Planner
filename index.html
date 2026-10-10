@@ -108,7 +108,10 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .ghost{position:fixed;z-index:60;pointer-events:none;padding:6px 10px;border-radius:10px;background:var(--c,var(--ac));color:#fff;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ghost.planung{color:#2b2620}
 .drg{opacity:.3}
-.dt{box-shadow:inset 0 0 0 2px var(--ac)!important}
+.dt{box-shadow:inset 0 0 0 2px var(--ac)!important;background-color:color-mix(in srgb,var(--ac) 10%,var(--card))!important}
+.dt.bad{box-shadow:inset 0 0 0 2px var(--bad)!important;background-color:color-mix(in srgb,var(--bad) 10%,var(--card))!important}
+/* Drag-Vorschau im Stundenraster */
+.dpv{position:absolute;left:3px;right:3px;z-index:5;pointer-events:none;box-sizing:border-box;border-radius:7px;border:2px dashed var(--c,var(--ac));background:color-mix(in srgb,var(--c,var(--ac)) 24%,transparent);color:var(--tx);font-size:11px;font-weight:700;padding:2px 6px;overflow:hidden}
 :root{--bg:#f5f2ec;--ln:#e7e1d8;--sh:0 1px 2px rgba(0,0,0,.06),0 3px 10px rgba(0,0,0,.06)}
 html{background:var(--bg)}
 body{font-family:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;-webkit-tap-highlight-color:transparent}
@@ -357,6 +360,7 @@ werkstatt:'<path d="M17.6 15.6l3.9-3.9-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3A6 6 0
 planung:'<path d="M3.3 15.5L15.5 3.3a1.5 1.5 0 0 1 2.1 0l3.1 3.1a1.5 1.5 0 0 1 0 2.1L8.5 20.7a1.5 1.5 0 0 1-2.1 0l-3.1-3.1a1.5 1.5 0 0 1 0-2.1z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M3.3 15.5L15.5 3.3a1.5 1.5 0 0 1 2.1 0l3.1 3.1a1.5 1.5 0 0 1 0 2.1L8.5 20.7a1.5 1.5 0 0 1-2.1 0l-3.1-3.1a1.5 1.5 0 0 1 0-2.1zM7.5 11.3l2 2M10.4 8.4l1.5 1.5M13.3 5.5l2 2"/>',
 urlaub:'<circle cx="12" cy="12" r="4.5" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
 logout:'<path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5M10 8l-4 4 4 4M6 12h10"/>',
+split:'<circle cx="6" cy="6" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.3 8L20 19.5M8.3 16L20 4.5"/>',
 copy:'<rect x="8" y="8" width="12.5" height="12.5" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="8" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
 function ic(n,c){return '<svg class="i'+(c?' '+c:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>'}
 function boot(){
@@ -476,7 +480,7 @@ function nextWork(s,dir){var d=parse(s);do{d.setDate(d.getDate()+dir)}while(d.ge
 function R(a){return a=='montage'||a=='werkstatt'||a=='planung'}
 function isWE(ds){var g=parse(ds).getDay();return g==0||g==6||!!HOL[ds]}
 var WEMSG='Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage).',HH=28,H0=6;
-function span(j){var out=[],r=R(j.art),d=r?norm(j.start):j.start,n=j.zeit?1:j.tage;for(var i=0;i<n;i++){out.push(d);d=r?nextWork(d,1):addDays(d,1)}return out}
+function span(j){var out=[],r=R(j.art),d=r?norm(j.start):j.start,n=Math.max(1,j.tage||1);for(var i=0;i<n;i++){out.push(d);d=r?nextWork(d,1):addDays(d,1)}return out}
 function t2m(t){var p=(t||'0:0').split(':');return +p[0]*60+(+p[1]||0)}
 function m2t(m){m=Math.max(0,Math.min(1439,m));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 var WD=['So','Mo','Di','Mi','Do','Fr','Sa'],MN=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -628,7 +632,7 @@ function monthGrid(y,mo,kind){
 function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 function chip(id,ds){if(mvId)drop(ds);else{mvId=id;mvG=ds;render()}}
 function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);return}
- if(ds){var st=ds,i=(j.zeit||!j.start)?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
+ if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
  mvG='';if(ds&&mode=='tag')an=j.start;mvId=null;save(j);render()}
 // Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
 function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
@@ -638,7 +642,7 @@ function dropT(ds,e){
  var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
  var m0=slotMin(e);
  if(j.zeit){var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}
- else if(span(j).length==1){j.zeit=m2t(m0);j.ende=m2t(m0+60);j.tage=1}
+ else{j.zeit=m2t(m0);j.ende=m2t(m0+60)}
  drop(ds)}
 // Ganztags-Zeile: Ziel macht den Auftrag ganztägig
 function dropAd(ds){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}j.zeit='';j.ende='';drop(ds)}
@@ -693,7 +697,7 @@ function conflict(ds,c){return S.jobs.some(function(o){
 function sug(){
  var d=document.getElementById('dlg'),el=d.querySelector('#sg'),j=cur.j;if(!el)return;
  var c={id:j.id,art:j.art,wer:j.wer,tage:Math.max(1,parseInt(d.querySelector('#f_d').value)||1),zeit:'',ende:'',start:''};
- if(cur.zt){c.zeit=d.querySelector('#f_z').value||'08:00';c.ende=d.querySelector('#f_e').value;if(!c.ende||c.ende<=c.zeit)c.ende=m2t(t2m(c.zeit)+60);c.tage=1}
+ if(cur.zt){c.zeit=d.querySelector('#f_z').value||'08:00';c.ende=d.querySelector('#f_e').value;if(!c.ende||c.ende<=c.zeit)c.ende=m2t(t2m(c.zeit)+60)}
  var out=[],ds=fmt(new Date());
  for(var i=0;i<200&&out.length<3;i++,ds=addDays(ds,1)){
   if(isWE(ds))continue;
@@ -717,7 +721,7 @@ document.addEventListener('pointermove',function(e){if(!DG)return;
  if(!DG.on){if(Math.abs(e.clientX-DG.x)>8||Math.abs(e.clientY-DG.y)>8){if(DG.t=='mouse')dgStart();else{clearTimeout(DG.tm);DG=null}}return}
  DG.cx=e.clientX;DG.cy=e.clientY;dgMove()});
 function dgStart(){if(!DG||DG.on)return;DG.on=true;sup=true;
- var j=byId(DG.id),n=j.zeit?1:span(j).length,g=document.createElement('div');
+ var j=byId(DG.id),n=span(j).length,g=document.createElement('div');
  g.className='ghost '+j.art;DG.lb=(j.kunde||'Auftrag')+(n>1?' · '+n+' Tage':'');g.textContent=DG.lb;document.body.appendChild(g);DG.g=g;
  document.querySelectorAll('[data-id="'+DG.id+'"]').forEach(function(x){x.classList.add('drg')});
  DG.cx=DG.x;DG.cy=DG.y;dgMove();
@@ -726,12 +730,27 @@ function dgStart(){if(!DG||DG.on)return;DG.on=true;sup=true;
   if(dr!=DG.dir){DG.dir=dr;DG.t0=Date.now()}else if(dr&&Date.now()-DG.t0>600){DG.t0=Date.now();step(dr);document.querySelectorAll('[data-id="'+DG.id+'"]').forEach(function(x){x.classList.add('drg')});DG.hl=null;dgMove()}}},30);
  try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}}
 function dgMove(){DG.g.style.left=(DG.cx+10)+'px';DG.g.style.top=(DG.cy-40)+'px';
- var t=document.elementFromPoint(DG.cx,DG.cy),d=t&&t.closest?t.closest('[data-drop]'):null;
- if(DG.hl&&DG.hl!==d)DG.hl.classList.remove('dt');if(d)d.classList.add('dt');DG.hl=d;
- // Wie in Outlook: beim Ziehen über die Stunden die Zieluhrzeit anzeigen
- DG.g.textContent=d&&d.classList.contains('dcol')?DG.lb+' · '+m2t(slotMin({currentTarget:d,clientY:DG.cy-DG.oy})):d&&d.dataset.ad?DG.lb+' · ganztags':DG.lb}
+ var t=document.elementFromPoint(DG.cx,DG.cy),d=t&&t.closest?t.closest('[data-drop]'):null;DG.hl=d;
+ var r=dgPrev(d);DG.g.textContent=DG.lb+(r?' · '+r:'')}
+// Vorschau beim Ziehen wie in Outlook: genau dort, wo der Eintrag landen würde (Uhrzeit, Dauer, alle Tage).
+// Rechnet wie drop/dropT/dropAd, ändert den Auftrag aber nicht.
+function dgPrev(d){var m=document.getElementById('main');
+ m.querySelectorAll('.dpv').forEach(function(x){x.remove()});m.querySelectorAll('.dt').forEach(function(x){x.classList.remove('dt','bad')});
+ if(!d)return '';
+ var j=byId(DG.id),ds=d.dataset.drop,grid=d.classList.contains('dcol'),ad=!!d.dataset.ad,t=Object.assign({},j),st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(DG.ds));
+ for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);t.start=st;
+ if(grid){var s0=slotMin({currentTarget:d,clientY:DG.cy-DG.oy}),du=j.zeit?((t2m(j.ende||j.zeit)-t2m(j.zeit))||60):60;t.zeit=m2t(s0);t.ende=m2t(s0+du)}
+ else if(ad){t.zeit='';t.ende=''}
+ var bad=R(j.art)&&isWE(ds);if(bad){d.classList.add('dt','bad');return 'nur Werktage'}
+ var hasGrid=!!m.querySelector('.dcol'),sel=ad||(!t.zeit&&m.querySelector('.tgc'))?'.tgc':d.classList.contains('wh2')?'.wh2':'.c';
+ span(t).forEach(function(x){
+  var c=t.zeit&&hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'):null;
+  if(c){var p=document.createElement('div');p.className='dpv '+j.art;p.style.top=((t2m(t.zeit)/60-H0)*HH)+'px';p.style.height=((t2m(t.ende)-t2m(t.zeit))/60*HH)+'px';p.textContent=t.zeit+'–'+t.ende;c.appendChild(p);return}
+  if(t.zeit&&hasGrid)return;
+  c=m.querySelector(sel+'[data-drop="'+x+'"]');if(c)c.classList.add('dt')});
+ return grid?t.zeit+'–'+t.ende:ad?'ganztags':''}
 function dgEnd(ok){if(!DG)return;clearTimeout(DG.tm);
- if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,y=DG.cy-DG.oy;if(d)d.classList.remove('dt');
+ if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,y=DG.cy-DG.oy;dgPrev(null);
   setTimeout(function(){sup=false},80);DG=null;
   if(ok&&d){mvId=id;mvG=g;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else if(d.dataset.ad)dropAd(ds);else drop(ds);if(mvId){mvId=null;mvG='';render()}}
   else render();return}
@@ -773,7 +792,7 @@ document.addEventListener('pointermove',function(e){if(!RZ)return;
  if(RZ.side=='b')RZ.e=Math.max(RZ.s+30,Math.min(H1*60,m));else RZ.s=Math.min(RZ.e-30,Math.max(H0*60,m));
  RZ.ev.style.top=((RZ.s/60-H0)*HH)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH)+'px'});
 function rzEnd(ok){if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
- if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);j.tage=1;save(j)}render()}
+ if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
 var cur={};
@@ -789,6 +808,7 @@ function edit(id,ds,t){
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
  '<div id="db"><label>Dauer in Tagen</label><input id="f_d" oninput="sug()" type="number" min="1" max="60" value="'+j.tage+'"></div>'+
  '<div id="sg"></div><label>Datum (leer = noch offen)</label><input id="f_s" type="date" value="'+j.start+'">'+
+ (id&&span(byId(id)).length>1?'<div class="sec">Aufteilen</div><div class="sub">Den mehrtägigen Auftrag in einzelne Einträge teilen – danach lässt sich jeder Teil einzeln verschieben und zuteilen.</div><div class="row" style="margin-top:8px">'+splitUI(byId(id))+'</div>':'')+
  '<div class="sec">Details</div><label>Adresse</label><input id="f_a" value="'+esc(j.adresse)+'"><label>Telefon</label><input id="f_t" type="tel" value="'+esc(j.tel)+'">'+
  '<label class="chk"><input id="f_m" type="checkbox"'+(j.material?' checked':'')+'> Material ist da</label><label>Notiz</label><textarea id="f_n" rows="3">'+esc(j.notiz)+'</textarea>'+
  '<div class="row ft"><button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="sv()">Speichern</button></div>';
@@ -796,14 +816,24 @@ function edit(id,ds,t){
  wb.forEach(function(b){b.onclick=function(){var i=j.wer.indexOf(b.dataset.v);if(i>-1)j.wer.splice(i,1);else j.wer.push(b.dataset.v);wv();sug()}});wv();
  ['art'].forEach(function(k){var s=d.querySelector('#s_'+k);s.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v==j[k]);b.onclick=function(){j[k]=b.dataset.v;s.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x==b)});sug()}})});
  var zb=d.querySelectorAll('#s_zt button');
- function zv(){d.querySelector('#tb').style.display=cur.zt?'flex':'none';d.querySelector('#db').style.display=cur.zt?'none':'';zb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.zt)})}
+ function zv(){d.querySelector('#tb').style.display=cur.zt?'flex':'none';zb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.zt)})}
  zb.forEach(function(b){b.onclick=function(){cur.zt=b.dataset.v=='1';zv();sug()}});zv();
  var fb=d.querySelectorAll('#s_fx button');function fv(){fb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.fx)})}fb.forEach(function(b){b.onclick=function(){cur.fx=b.dataset.v=='1';fv()}});fv();sug();
  d.showModal()}
+// Mehrtägigen Auftrag aufteilen: k=0 = jeder Tag einzeln, sonst nach Tag k in zwei Teile
+function splitUI(j){var n=span(j).length,o='';for(var k=1;k<n;k++)o+='<option value="'+k+'">nach Tag '+k+' ('+k+' + '+(n-k)+' Tage)</option>';
+ return '<button class="b" onclick="splitJ(\''+j.id+'\',0)">'+ic('split')+' In '+n+' Einzeltage</button>'+
+  (n>2?'<select id="f_sp" style="flex:1 1 200px">'+o+'</select><button class="b" style="flex:none" onclick="splitJ(\''+j.id+'\',+document.getElementById(\'f_sp\').value)">Teilen</button>':'')}
+function splitJ(id,k){var j=byId(id),days=span(j),n=days.length,parts=k?[k,n-k]:days.map(function(){return 1});
+ if(!confirm('„'+(j.kunde||'Auftrag')+'“ in '+parts.length+' Einträge aufteilen ('+parts.join(' + ')+' Tage)?\n\nNicht gespeicherte Änderungen in diesem Dialog gehen dabei verloren.'))return;
+ var o=0,neu=[];
+ parts.forEach(function(len,i){var p=i?Object.assign({},j,{id:uuid(),wer:(j.wer||[]).slice()}):j;p.start=days[o];p.tage=len;o+=len;if(i)neu.push(p);save(p)});
+ S.jobs=S.jobs.concat(neu);document.getElementById('dlg').close();render()}
 function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g('f_s').value;
  if(st&&R(j.art)&&isWE(st)){alert(WEMSG);return}
  j.kunde=g('f_k').value.trim();j.adresse=g('f_a').value.trim();j.tel=g('f_t').value.trim();j.start=st;j.fix=cur.fx;j.imp=g('f_i').checked;j.material=g('f_m').checked;j.notiz=g('f_n').value.trim();
- if(cur.zt){j.zeit=g('f_z').value||'08:00';j.ende=g('f_e').value;if(!j.ende||j.ende<=j.zeit)j.ende=m2t(t2m(j.zeit)+60);j.tage=1}else{j.zeit='';j.ende='';j.tage=Math.max(1,parseInt(g('f_d').value)||1)}
+ if(cur.zt){j.zeit=g('f_z').value||'08:00';j.ende=g('f_e').value;if(!j.ende||j.ende<=j.zeit)j.ende=m2t(t2m(j.zeit)+60)}else{j.zeit='';j.ende=''}
+ j.tage=Math.max(1,parseInt(g('f_d').value)||1);
  if(cur.isNew)S.jobs.push(j);else S.jobs=S.jobs.map(function(o){return o.id==j.id?j:o});save(j);g('dlg').close();if(j.start)an=j.start;tab=j.start?'plan':'offen';render()}
 document.querySelector('nav').insertAdjacentHTML('afterbegin','<div class="nlg" title="JoKe Smart Solutions">'+LOGO_I+'</div>');
 document.querySelectorAll('nav [data-i]').forEach(function(x){x.innerHTML=ic(x.dataset.i)});
