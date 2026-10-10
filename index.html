@@ -110,6 +110,12 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .drg{opacity:.3}
 .dt{box-shadow:inset 0 0 0 2px var(--ac)!important;background-color:color-mix(in srgb,var(--ac) 10%,var(--card))!important}
 .dt.bad{box-shadow:inset 0 0 0 2px var(--bad)!important;background-color:color-mix(in srgb,var(--bad) 10%,var(--card))!important}
+/* Eingeteilte Mitarbeiter unter dem Datum (Woche/Tag) */
+.whp{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin:5px 2px 0}
+.whp i{font-style:normal;font-size:10px;font-weight:600;line-height:1.5;padding:0 6px;border-radius:99px;border:1px solid var(--uc);background:color-mix(in srgb,var(--uc) 16%,var(--card));color:var(--tx);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Team-Ansicht (Outlook „Nebeneinander“): eine Spalte pro Mitarbeiter */
+.tg.team{overflow-x:auto;padding-right:0}.tg.team .wk>:first-child{position:sticky;left:0;z-index:6;background:var(--card)}
+.tmh{border-bottom:3px solid var(--uc,var(--ln));border-radius:0!important;margin:0 4px;padding:6px 4px 5px!important}.tmh .hn{color:var(--mu);font-weight:500}.tmh b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Markierter Zeitraum für neuen Auftrag */
 .slr{position:absolute;left:3px;right:3px;z-index:5;pointer-events:none;box-sizing:border-box;border-radius:7px;border:2px solid var(--ac);background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--tx);font-size:11px;font-weight:700;padding:2px 6px;overflow:hidden}
 /* Drag-Vorschau im Stundenraster */
@@ -603,21 +609,22 @@ function imp(){var d;try{d=JSON.parse(document.getElementById('bk').value);if(!d
  Promise.all([sb.from('jobs').upsert(rows),hol.length?sb.from('holidays').upsert(hol):{}]).then(function(r){var e=r.filter(function(x){return x.error})[0];if(e)fail(e.error);else{alert('Übernommen.');document.getElementById('bk').value='';reload()}})}
 
 var ART={montage:{n:'Montage',ic:ic('montage')},werkstatt:{n:'Werkstatt',ic:ic('werkstatt')},planung:{n:'Planung',ic:ic('planung')},termin:{n:'Termin',ic:ic('clock')},urlaub:{n:'Urlaub',ic:ic('urlaub')}},COL={montage:'var(--mo)',werkstatt:'var(--we)',planung:'var(--pl)',termin:'var(--tm)',urlaub:'var(--ur)'};
-var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['tag','Tag'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
+var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['tag','Tag'],['team','Team'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
 function plan(hd,m){
  var a=parse(an),t,h='';
- dm={};S.jobs.forEach(function(j){if(j.start&&vis(j))span(j).forEach(function(d){(dm[d]=dm[d]||[]).push(j)})});
- if(mode=='tag')t=WD[a.getDay()]+' '+a.getDate()+'. '+MN[a.getMonth()];
+ dm={};S.jobs.forEach(function(j){if(j.start&&(mode=='team'||vis(j)))span(j).forEach(function(d){(dm[d]=dm[d]||[]).push(j)})});
+ if(mode=='tag'||mode=='team')t=WD[a.getDay()]+' '+a.getDate()+'. '+MN[a.getMonth()];
  else if(mode=='woche'){var w0=monday(a),e=new Date(w0);e.setDate(e.getDate()+6);t='KW '+kw(w0)+' · '+w0.getDate()+'.–'+e.getDate()+'. '+MN[e.getMonth()]}
  else if(mode=='monat')t=MF[a.getMonth()]+' '+a.getFullYear();
  else if(mode=='quartal'){var e2=new Date(a.getFullYear(),a.getMonth()+2,1);t=MN[a.getMonth()]+'–'+MN[e2.getMonth()]+' '+e2.getFullYear()}
  else t=''+a.getFullYear();
  hd.innerHTML='<button class="ib" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
- h+=fltBar()+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
+ h+=(mode=='team'?'':fltBar())+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
  if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen oder markieren = neuer Auftrag</div>';
- if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid([an])+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
+ var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'')+'</div>';
+ if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
+ else if(mode=='team')h+=TGH+teamGrid(an);
  else if(mode=='woche')h+=TGH+weekGrid(monday(a));
  else if(mode=='monat')h+=(mvId?'':'<div class="empty">Auftrag antippen = verschieben · Tag antippen = Details</div>')+monthGrid(a.getFullYear(),a.getMonth(),'full');
  else if(mode=='quartal'){h+='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
@@ -637,62 +644,81 @@ function monthGrid(y,mo,kind){
   else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();chip(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
  return h+'</div></div>'}
 function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
-function chip(id,ds){if(mvId)drop(ds);else{mvId=id;mvG=ds;render()}}
+// mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
+var mvE='';
+function chip(id,ds,emp){if(mvId)drop(ds);else{mvId=id;mvG=ds;mvE=emp||'';render()}}
 function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);return}
  if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
- mvG='';if(ds&&mode=='tag')an=j.start;mvId=null;save(j);render()}
+ mvG='';mvE='';if(ds&&(mode=='tag'||mode=='team'))an=j.start;mvId=null;save(j);render()}
+// Team-Ansicht: in eine andere Mitarbeiter-Spalte gezogen = statt der Ausgangsperson die Zielperson zuteilen
+function reassign(j,from,to){if(!to||!from||from==to)return;
+ var w=(j.wer||[]).filter(function(x){return x!=from});if(to!='-'&&w.indexOf(to)<0)w.push(to);j.wer=w}
 // Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
 function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
-// Stundenspalte: im Verschiebemodus Ziel (ganztägige Ein-Tages-Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Auftrag
-function dropT(ds,e){
- if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)));return}
+// Stundenspalte: im Verschiebemodus Ziel (ganztägige Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Auftrag
+function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
+ if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)),null,emp);return}
  var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
  var m0=slotMin(e);
  if(j.zeit){var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}
  else{j.zeit=m2t(m0);j.ende=m2t(m0+60)}
- drop(ds)}
+ reassign(j,mvE,emp);drop(ds)}
 // Ganztags-Zeile: Ziel macht den Auftrag ganztägig
-function dropAd(ds){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}j.zeit='';j.ende='';drop(ds)}
-function adClick(ds){if(mvId)dropAd(ds);else if(mode=='tag')edit(null,ds);else{an=ds;setMode('tag')}}
+function dropAd(ds,emp){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}j.zeit='';j.ende='';reassign(j,mvE,emp);drop(ds)}
+function adClick(ds,emp){if(mvId)dropAd(ds,emp);else if(mode=='tag'||mode=='team')edit(null,ds,'','',emp);else{an=ds;setMode('tag')}}
 // Termin antippen: Tagesansicht = Details öffnen, sonst zum Verschieben auswählen
-function evClick(id,ds){if(mvId){drop(ds);return}
- if(mode!='tag'){chip(id,ds);return}
+function evClick(id,ds,emp){if(mvId){drop(ds);return}
+ if(mode!='tag'){chip(id,ds,emp);return}
  openId=id;render();var c=document.querySelector('.dvl .job.open');if(c)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
 function hdr(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
-function pick(id){var j=byId(id);mvId=id;mvG='';tab='plan';openId=null;if(mode=='tag')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
-function det(){var j=byId(mvId);if(j.start)an=j.start;openId=mvId;mvId=null;setMode('tag')}
+function pick(id){var j=byId(id);mvId=id;mvG='';mvE='';tab='plan';openId=null;if(mode=='tag'||mode=='team')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
+function det(){var j=byId(mvId);if(j.start)an=j.start;openId=mvId;mvId=null;mvE='';setMode('tag')}
 function setMode(k){mode=k;render()}
-function step(n){if(mode=='tag')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
-function weekGrid(w){var days=[];for(var i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}return timeGrid(days)}
-// Zeitraster wie in Outlook (Tag und Woche): oben die Ganztags-Zeile, darunter die Stunden mit 30-Minuten-Linien.
-// Halten und ziehen = verschieben (auch zwischen Ganztags und Uhrzeit), Rand oben/unten ziehen = Dauer.
-function timeGrid(days){
- var one=days.length==1,wide=innerWidth>=900,lo=420,hi=1140,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes();
- HH=one?56:wide?44:30;
- days.forEach(function(ds){(dm[ds]||[]).forEach(function(j){if(j.zeit){lo=Math.min(lo,t2m(j.zeit));hi=Math.max(hi,t2m(j.ende||j.zeit))}})});
+function step(n){if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
+// Spalten des Zeitrasters: Tage (Tag/Woche) oder Mitarbeiter (Team)
+function dayCols(days){var td=fmt(new Date());return days.map(function(ds){var d=parse(ds);
+ return {ds:ds,head:'<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+dayPpl(ds)+'</div>'}})}
+// Unter dem Datum: wer an diesem Tag eingeteilt ist (Farbe des Mitarbeiters; schmal nur die ersten 2 Buchstaben)
+function dayPpl(ds){var ids={};(dm[ds]||[]).forEach(function(j){wer(j).forEach(function(id){ids[id]=1})});
+ var us=USERS.filter(function(u){return ids[u.id]}),sh=innerWidth<900;
+ return us.length?'<span class="whp">'+us.map(function(u){return '<i style="--uc:'+esc(u.color)+'" title="'+esc(u.display_name)+'">'+esc(sh?u.display_name.slice(0,2):u.display_name)+'</i>'}).join('')+'</span>':''}
+function weekGrid(w){var days=[];for(var i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}return timeGrid(dayCols(days))}
+// Team wie Outlook „Nebeneinander“: ein Tag, eine Spalte pro Mitarbeiter
+function teamGrid(ds){
+ var cols=USERS.map(function(u){return {ds:ds,emp:u.id,head:'<div class="wh2 tmh" style="--uc:'+esc(u.color)+'"><b>'+esc(u.display_name)+'</b>'+(u.user_id?'':'<em class="hn">ohne Anmeldung</em>')+'</div>'}});
+ if((dm[ds]||[]).some(function(j){return !wer(j).length}))cols.push({ds:ds,emp:'-',head:'<div class="wh2 tmh"><b>Nicht zugeteilt</b></div>'});
+ return timeGrid(cols,true)}
+function colJobs(c){return (dm[c.ds]||[]).filter(function(j){if(!c.emp)return true;var w=wer(j);return c.emp=='-'?!w.length:w.indexOf(c.emp)>-1})}
+// Zeitraster wie in Outlook: oben die Ganztags-Zeile, darunter die Stunden mit 30-Minuten-Linien.
+// Halten und ziehen = verschieben (auch zwischen Ganztags und Uhrzeit bzw. Mitarbeitern), Rand oben/unten ziehen = Dauer.
+function timeGrid(cols,team){
+ var one=cols.length==1,wide=innerWidth>=900,lo=420,hi=1140,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes(),det=one||team;
+ HH=one?56:team?48:wide?44:30;
+ cols.forEach(function(c){colJobs(c).forEach(function(j){if(j.zeit){lo=Math.min(lo,t2m(j.zeit));hi=Math.max(hi,t2m(j.ende||j.zeit))}})});
  var h0=Math.floor(lo/60),h1=Math.min(24,Math.ceil(hi/60)),H=(h1-h0)*HH;H0=h0;H1=h1;
- var row=function(cls,first,cells){return '<div class="wk '+cls+'" style="grid-template-columns:'+(one||wide?'52px':'30px')+' repeat('+days.length+',minmax(0,1fr))">'+first+cells+'</div>'};
- var cls=function(j){return j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')},att=function(j,ds){return ' data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')"'};
- var h='<div class="tg'+(one?' one':'')+'" style="--hh:'+HH+'px">';
- h+=row('tgh','<div></div>',days.map(function(ds){var d=parse(ds);return '<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+'</div>'}).join(''));
- h+=row('tga','<div class="tl">ganz&shy;tags</div>',days.map(function(ds){
-  return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1" onclick="adClick(\''+ds+'\')">'+(dm[ds]||[]).filter(function(j){return !j.zeit}).map(function(j){
-   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,ds)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+(one?' <small>· '+esc(who(j))+'</small>':'')+'</span>'}).join('')+'</div>'}).join(''));
- var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
- h+=row('tgb',hl,days.map(function(ds){
-  var js=(dm[ds]||[]).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
+ var row=function(cls,first,cells){return '<div class="wk '+cls+'" style="grid-template-columns:'+(one||wide||team?'52px':'30px')+' repeat('+cols.length+','+(team?'minmax(130px,1fr)':'minmax(0,1fr)')+')'+(team?';min-width:'+(52+cols.length*130)+'px':'')+'">'+first+cells+'</div>'};
+ var ea=function(c){return c.emp?' data-emp="'+c.emp+'"':''},ce=function(c){return c.emp?',\''+c.emp+'\'':''};
+ var cls=function(j){return j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')},att=function(j,c){return ' data-id="'+j.id+'" data-ds="'+c.ds+'"'+ea(c)+' onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+c.ds+'\''+ce(c)+')"'};
+ var h='<div class="tg'+(one?' one':'')+(team?' team':'')+'" style="--hh:'+HH+'px">';
+ h+=row('tgh','<div></div>',cols.map(function(c){return c.head}).join(''));
+ h+=row('tga','<div class="tl">ganz&shy;tags</div>',cols.map(function(c){var ds=c.ds;
+  return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1"'+ea(c)+' onclick="adClick(\''+ds+'\''+ce(c)+')">'+colJobs(c).filter(function(j){return !j.zeit}).map(function(j){
+   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+(one?' <small>· '+esc(who(j))+'</small>':'')+'</span>'}).join('')+'</div>'}).join(''));
+ var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide||team?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
+ h+=row('tgb',hl,cols.map(function(c){var ds=c.ds;
+  var js=colJobs(c).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
   var pl=js.map(function(j){var s0=t2m(j.zeit),e0=Math.max(t2m(j.ende||j.zeit),s0+30),l=0;while(lanes[l]>s0)l++;lanes[l]=e0;return {j:j,s:s0,e:e0,l:l}}),nl=Math.max(1,lanes.length);
-  return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td?' tdc':'')+'" data-drop="'+ds+'" style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
+  return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH;
-    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,ds)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH)+'px;height:'+hp+'px;left:'+(q.l*100/nl)+'%;width:'+(100/nl)+'%">'+
-    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+(one?' · '+esc(who(j))+(j.adresse?' · '+ic('place')+' '+esc(j.adresse):''):'')+'</small>'+
+    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH)+'px;height:'+hp+'px;left:'+(q.l*100/nl)+'%;width:'+(100/nl)+'%">'+
+    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+(one?' · '+esc(who(j)):'')+(det&&j.adresse?' · '+ic('place')+' '+esc(j.adresse):'')+'</small>'+
     (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+'</div>'}).join(''));
  return h+'</div>'}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
 var WIDE=innerWidth>=900;addEventListener('resize',function(){var w=innerWidth>=900;if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
-function nw(){edit(null,tab=='plan'&&mode=='tag'?an:'')}
+function nw(){edit(null,tab=='plan'&&(mode=='tag'||mode=='team')?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
 function conflict(ds,c){return S.jobs.some(function(o){
  if(o.id==c.id||o.done||!o.start)return false;
@@ -722,7 +748,7 @@ document.addEventListener('click',function(e){if(sup){e.stopPropagation();e.prev
 document.addEventListener('pointerdown',function(e){
  if(e.button>0||mvId)return;var el=e.target.closest&&e.target.closest('[data-id]');if(!el||e.target.closest('.rz'))return;
  // oy: Abstand vom oberen Rand des Termins, damit er beim Ablegen nicht um den Greifpunkt springt
- DG={el:el,id:el.dataset.id,ds:el.dataset.ds,x:e.clientX,y:e.clientY,t:e.pointerType,on:false,oy:el.classList.contains('ev')?e.clientY-el.getBoundingClientRect().top:0};
+ DG={el:el,id:el.dataset.id,ds:el.dataset.ds,x:e.clientX,y:e.clientY,t:e.pointerType,on:false,emp:el.dataset.emp||'',oy:el.classList.contains('ev')?e.clientY-el.getBoundingClientRect().top:0};
  DG.tm=setTimeout(dgStart,280)});
 document.addEventListener('pointermove',function(e){if(!DG)return;
  if(!DG.on){if(Math.abs(e.clientX-DG.x)>8||Math.abs(e.clientY-DG.y)>8){if(DG.t=='mouse')dgStart();else{clearTimeout(DG.tm);DG=null}}return}
@@ -749,17 +775,17 @@ function dgPrev(d){var m=document.getElementById('main');
  if(grid){var s0=slotMin({currentTarget:d,clientY:DG.cy-DG.oy}),du=j.zeit?((t2m(j.ende||j.zeit)-t2m(j.zeit))||60):60;t.zeit=m2t(s0);t.ende=m2t(s0+du)}
  else if(ad){t.zeit='';t.ende=''}
  var bad=R(j.art)&&isWE(ds);if(bad){d.classList.add('dt','bad');return 'nur Werktage'}
- var hasGrid=!!m.querySelector('.dcol'),sel=ad||(!t.zeit&&m.querySelector('.tgc'))?'.tgc':d.classList.contains('wh2')?'.wh2':'.c';
+ var es=d.dataset.emp?'[data-emp="'+d.dataset.emp+'"]':'',hasGrid=!!m.querySelector('.dcol'),sel=ad||(!t.zeit&&m.querySelector('.tgc'))?'.tgc':d.classList.contains('wh2')?'.wh2':'.c';
  span(t).forEach(function(x){
-  var c=t.zeit&&hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'):null;
+  var c=t.zeit&&hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'+es):null;
   if(c){var p=document.createElement('div');p.className='dpv '+j.art;p.style.top=((t2m(t.zeit)/60-H0)*HH)+'px';p.style.height=((t2m(t.ende)-t2m(t.zeit))/60*HH)+'px';p.textContent=t.zeit+'–'+t.ende;c.appendChild(p);return}
   if(t.zeit&&hasGrid)return;
-  c=m.querySelector(sel+'[data-drop="'+x+'"]');if(c)c.classList.add('dt')});
+  c=m.querySelector(sel+'[data-drop="'+x+'"]'+es);if(c)c.classList.add('dt')});
  return grid?t.zeit+'–'+t.ende:ad?'ganztags':''}
 function dgEnd(ok){if(!DG)return;clearTimeout(DG.tm);
- if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,y=DG.cy-DG.oy;dgPrev(null);
+ if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,fe=DG.emp,y=DG.cy-DG.oy;dgPrev(null);
   setTimeout(function(){sup=false},80);DG=null;
-  if(ok&&d){mvId=id;mvG=g;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else if(d.dataset.ad)dropAd(ds);else drop(ds);if(mvId){mvId=null;mvG='';render()}}
+  if(ok&&d){mvId=id;mvG=g;mvE=fe;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else if(d.dataset.ad)dropAd(ds,d.dataset.emp);else drop(ds);if(mvId){mvId=null;mvG='';mvE='';render()}}
   else render();return}
  DG=null}
 document.addEventListener('pointerup',function(e){if(DG&&DG.on){DG.cx=e.clientX;DG.cy=e.clientY;dgMove()}dgEnd(true)});
@@ -802,7 +828,7 @@ function vis(j){if(FLT=='alle')return true;var id=FLT=='me'?ME.id:FLT;return (j.
 function setFlt(v){FLT=v;render()}
 function cnt(j){return wer(j).length}
 function pc(j){return cnt(j)>1?ic('users')+cnt(j)+' ':''}
-function fltSub(){return FLT=='alle'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
+function fltSub(){return FLT=='alle'||tab=='plan'&&mode=='team'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
 function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+(i?ic(i)+' ':'')+esc(l)+'</button>'};
  return '<div class="seg flt">'+b('me','Meine','','user')+b('alle','Alle','','users')+USERS.filter(function(u){return u.id!=ME.id}).map(function(u){return b(u.id,u.display_name,u.color)}).join('')+'</div>'}
 var RZ=null,H1=20;
@@ -834,12 +860,12 @@ function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);SL.s=Math.
  r.style.top=((SL.s/60-H0)*HH)+'px';r.style.height=((SL.e-SL.s)/60*HH)+'px';r.textContent=m2t(SL.s)+'–'+m2t(SL.e)}
 function slEnd(ok){if(!SL)return;clearTimeout(SL.tm);var z=SL;SL=null;if(!z.on)return;
  var r=z.c.querySelector('.slr');if(r)r.remove();setTimeout(function(){sup=false},80);
- if(ok)edit(null,z.ds,m2t(z.s),m2t(z.e))}
+ if(ok)edit(null,z.ds,m2t(z.s),m2t(z.e),z.c.dataset.emp)}
 document.addEventListener('pointerup',function(){slEnd(true)});
 document.addEventListener('pointercancel',function(){slEnd(false)});
 var cur={};
-function edit(id,ds,t,te){
- var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
+function edit(id,ds,t,te,emp){
+ var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
