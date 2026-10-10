@@ -411,7 +411,9 @@ function lsSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeI
 function applyTheme(t){t=t||'auto';var r=document.documentElement;if(t=='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
  lsSet('planer_theme',t=='auto'?'':t);var dk=t=='dark'||t=='auto'&&matchMedia('(prefers-color-scheme: dark)').matches,m=document.querySelector('meta[name=theme-color]');if(m)m.content=dk?'#1b1815':'#f5f2ec'}
 function curTheme(){return (ME&&ME.theme)||lsGet('planer_theme')||'auto'}
-function setTheme(t){applyTheme(t);if(ME){ME.theme=t;sb.rpc('set_my_theme',{p_theme:t}).then(function(r){if(r.error)console.warn(r.error.message)})}render()}
+// THP: gerade gewählte Darstellung, deren Speichern noch läuft – Neuladen darf sie nicht mit dem alten Datenbankwert überschreiben
+var THP=null;
+function setTheme(t){THP=t;applyTheme(t);if(ME){ME.theme=t;sb.rpc('set_my_theme',{p_theme:t}).then(function(r){if(r.error)console.warn(r.error.message);setTimeout(function(){if(THP==t)THP=null},1500)})}render()}
 var NC=' autocapitalize="none" autocorrect="off" spellcheck="false"';
 function authHead(t){return '<div class="lo">'+LOGO_H+'</div><h1>Auftragsplaner<small>'+t+'</small></h1>'}
 function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();document.getElementById('main').innerHTML=h}
@@ -491,7 +493,9 @@ async function loadAll(){
  var r=await Promise.all([sb.from('employees').select('*').order('display_name'),sb.from('jobs').select('*'),sb.from('holidays').select('d,n').order('d'),sb.from('organizations').select('*').single()]);
  r.forEach(function(x){if(x.error)throw x.error});
  USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;ORG=r[3].data;
- if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}}}
+ if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}
+  // Darstellung: laufende Auswahl behalten, sonst Änderung von einem anderen Gerät übernehmen
+  if(THP)ME.theme=THP;else if(ME.theme&&ME.theme!=(lsGet('planer_theme')||'auto'))applyTheme(ME.theme)}}
 function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
 function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
