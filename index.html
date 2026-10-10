@@ -222,6 +222,8 @@ body.auth header,body.auth nav{display:none}body.auth{padding-bottom:0}
 .ur .b{flex:none;min-height:36px;font-size:13px}
 input[type=color]{padding:4px;height:44px}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
+.own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
+.warn{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);color:var(--tx);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
 </style>
 </head>
 <body>
@@ -237,7 +239,8 @@ input[type=color]{padding:4px;height:44px}
 <script>
 var S={jobs:[],hol:[]},tab='plan',mode='woche',an=fmt(new Date()),mvId=null,dm={},openId=null;
 // Supabase: Anmeldung, Benutzer, Speichern
-var USER_DOMAIN='planer.local',sb=null,ME=null,USERS=[],FLT='me',CH=null,rtT=null;
+// USERS = alle Mitarbeiter der Firma (mit und ohne Anmeldung), ORG = Firma inkl. Lizenz
+var USER_DOMAIN='planer.local',sb=null,ME=null,ORG=null,USERS=[],FLT='me',CH=null,rtT=null;
 var COLORS=['#f27d0c','#1e7be0','#3d8b4f','#8e5bc0','#d03a3a','#b8860b','#16a3a3','#c2185b'];
 function boot(){
  var C=window.PLANER_CONFIG||{};
@@ -246,35 +249,97 @@ function boot(){
  sb.auth.onAuthStateChange(function(ev){if(ev=='SIGNED_OUT'&&ME)showLogin()});
  sb.auth.getSession().then(function(r){if(r.data.session)enter();else showLogin()});
  document.addEventListener('visibilitychange',function(){if(!document.hidden&&ME)rt()})}
-function showLogin(msg){ME=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();
- document.getElementById('main').innerHTML='<form class="login" onsubmit="return doLogin(event)"><div class="lo"><img src="joke-icon.svg" alt=""><h1>Auftragsplaner<small>Bitte anmelden</small></h1></div>'+
- '<label>Benutzername oder E-Mail</label><input id="l_u" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>'+
+function lsGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
+function lsSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
+var NC=' autocapitalize="none" autocorrect="off" spellcheck="false"';
+function authHead(t){return '<div class="lo"><img src="joke-icon.svg" alt=""><h1>Auftragsplaner<small>'+t+'</small></h1></div>'}
+function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();document.getElementById('main').innerHTML=h}
+// Anmeldung für alle Firmen-Konten: Lizenz-ID + Benutzername (intern benutzername@001.planer.local).
+// Der Besitzer der Seite meldet sich mit E-Mail an (Lizenz-ID leer) und sieht die Firmenverwaltung.
+function licTag(s){var m=String(s||'').trim().match(/(\d+)$/);if(!m)return '';var n=parseInt(m[1],10);return n<1000?String(n).padStart(3,'0'):String(n)}
+function showLogin(msg){
+ authPage('<form class="login" onsubmit="return doLogin(event)">'+authHead('Bitte anmelden')+
+ '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'" placeholder="JK.PLANNER.001"'+NC+'>'+
+ '<label>Benutzername</label><input id="l_u" autocomplete="username"'+NC+' required>'+
  '<label>Passwort</label><input id="l_p" type="password" autocomplete="current-password" required>'+
- '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button><div class="brand">JoKe Smart Solutions</div></form>'}
-function login2mail(u){u=u.trim().toLowerCase();return u.indexOf('@')>-1?u:u+'@'+USER_DOMAIN}
-function doLogin(e){e.preventDefault();var b=e.target.querySelector('button');b.disabled=true;
- sb.auth.signInWithPassword({email:login2mail(document.getElementById('l_u').value),password:document.getElementById('l_p').value}).then(function(r){
-  b.disabled=false;if(r.error){document.getElementById('l_e').textContent='Anmeldung fehlgeschlagen – Benutzername/E-Mail oder Passwort falsch.';return}enter()});return false}
+ '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button><div class="brand">JoKe Smart Solutions</div></form>')}
+function doLogin(e){e.preventDefault();var b=e.target.querySelector('.b.p'),er=document.getElementById('l_e'),
+  u=document.getElementById('l_u').value.trim().toLowerCase(),t=licTag(document.getElementById('l_f').value),mail=u.indexOf('@')>-1;
+ if(!mail&&!t){er.textContent='Bitte die Lizenz-ID angeben (z. B. JK.PLANNER.001).';return false}
+ if(!mail)lsSet('planer_lizenz','JK.PLANNER.'+t);
+ b.disabled=true;
+ sb.auth.signInWithPassword({email:mail?u:u+'@'+t+'.'+USER_DOMAIN,password:document.getElementById('l_p').value}).then(function(r){
+  b.disabled=false;if(r.error){er.textContent='Anmeldung fehlgeschlagen – Lizenz-ID, Benutzername oder Passwort falsch.';return}enter()});return false}
 async function enter(){
  var u=(await sb.auth.getUser()).data.user;if(!u){showLogin();return}
- var c=await sb.rpc('claim_admin');
- if(c.error){showLogin('Datenbank nicht eingerichtet: '+c.error.message);return}
- if(!c.data){await sb.auth.signOut();showLogin('Kein Zugang – bitte vom Admin als Benutzer anlegen lassen.');return}
- try{await loadAll()}catch(e){showLogin('Laden fehlgeschlagen: '+(e.message||e));return}
- ME=uById(u.id);ME.email=u.email;FLT='me';tab='plan';openId=null;mvId=null;
+ var o=await sb.rpc('is_owner');
+ if(o.error){showLogin('Datenbank nicht eingerichtet: '+o.error.message);return}
+ if(o.data){ownerLoad();return}
+ var e=await sb.from('employees').select('id').eq('user_id',u.id).maybeSingle();
+ if(e.error){showLogin('Laden fehlgeschlagen: '+e.error.message);return}
+ if(!e.data){await sb.auth.signOut();showLogin('Kein Zugang – die Lizenz ist gesperrt oder die Anmeldung wurde entfernt.');return}
+ try{await loadAll()}catch(x){showLogin('Laden fehlgeschlagen: '+(x.message||x));return}
+ ME=uById(e.data.id);ME.email=u.email;FLT='me';tab='plan';openId=null;mvId=null;
  document.body.classList.remove('auth');subscribe();render()}
+// ---------------------------------------------------------------- Besitzer: Firmen & Lizenzen
+var OWN=[];
+function ownerLoad(){sb.rpc('owner_companies').then(function(r){if(r.error){showLogin('Laden fehlgeschlagen: '+r.error.message);return}OWN=r.data;ownerPage()})}
+function coById(id){return OWN.filter(function(c){return c.id==id})[0]}
+function ownerPage(){var td=fmt(new Date());
+ authPage('<div class="own"><div class="login">'+authHead('Besitzer · Firmen & Lizenzen')+'<div class="sub">'+OWN.length+' Firmen · '+OWN.filter(function(c){return c.active}).length+' aktiv</div>'+
+ '<div class="row" style="margin-top:10px"><button class="b p" onclick="coEdit()">＋ Neue Firma</button><button class="b" style="flex:none" onclick="logout()">Abmelden</button></div></div>'+
+ (OWN.length?OWN.map(function(c){var q='\''+c.id+'\'',st=!c.active?['gesperrt',' bad']:c.valid_until&&c.valid_until<td?['abgelaufen',' bad']:['aktiv',''];
+  return '<div class="job"><div class="top"><div class="k">'+esc(c.license_id)+'</div><span class="tag'+st[1]+'">'+st[0]+'</span></div>'+
+  '<div class="sub"><b>'+esc(c.name)+'</b>'+(c.note?' · '+esc(c.note):'')+'</div>'+
+  '<div class="sub">Anmeldungen <b>'+c.logins+' / '+c.max_users+'</b> · Mitarbeiter gesamt '+c.employees+' · gültig '+(c.valid_until?'bis '+dDE(c.valid_until):'unbegrenzt')+'</div>'+
+  '<div class="sub">Admin: '+esc(c.admin_username||'–')+'</div>'+
+  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">✎ Bearbeiten</button><button class="b" onclick="coPw('+q+')">🔑 Admin-Passwort</button><button class="b d" style="flex:none" onclick="coDel('+q+')">🗑</button></div></div>'}).join('')
+ :'<div class="empty big">Noch keine Firmen.<br><small>Mit „＋ Neue Firma“ die erste Lizenz vergeben.</small></div>')+'</div>')}
+function genPw(){var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789',r=new Uint32Array(12),s='';crypto.getRandomValues(r);for(var i=0;i<12;i++)s+=a[r[i]%a.length];return s}
+function coEdit(id){var c=id?coById(id):null,d=document.getElementById('dlg'),y=new Date();y.setFullYear(y.getFullYear()+1);
+ var f=function(i,l,v,ex){return '<label>'+l+'</label><input id="'+i+'" value="'+esc(v==null?'':v)+'"'+(ex||'')+'>'};
+ d.innerHTML='<div class="dt2"><b>'+(c?esc(c.license_id)+' bearbeiten':'Neue Firma')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">✕</button></div>'+
+ (c?'':'<div class="sub">Die Lizenz-ID wird automatisch fortlaufend vergeben.</div>')+
+ '<div class="sec">Firma & Lizenz</div>'+f('c_n','Firmenname',c&&c.name)+
+ '<div class="g2"><div>'+f('c_m','Anmeldungen (inkl. Admin)',c?c.max_users:5,' type="number" min="1"')+'</div><div>'+f('c_v','Gültig bis (leer = unbegrenzt)',c?c.valid_until:fmt(y),' type="date"')+'</div></div>'+
+ f('c_o','Notiz (nur für dich sichtbar)',c&&c.note)+
+ (c?'<label class="chk"><input id="c_a" type="checkbox"'+(c.active?' checked':'')+'> Lizenz aktiv</label><div class="sub">Ausgeschaltet kann sich niemand der Firma mehr anmelden. Die Daten bleiben erhalten.</div>'
+  :'<div class="sec">Admin der Firma</div>'+f('c_an','Name (Anzeige)','',' placeholder="z. B. Uwe Meier"')+
+   '<div class="g2"><div>'+f('c_au','Benutzername','',NC+' placeholder="z. B. uwe"')+'</div><div>'+f('c_ap','Passwort (mind. 10 Zeichen)',genPw(),NC+' autocomplete="off"')+'</div></div>')+
+ '<div class="row ft"><button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="coSave(\''+(id||'')+'\',this)">'+(c?'Speichern':'Firma anlegen')+'</button></div>';
+ d.showModal()}
+function coSave(id,b){var g=function(i){var x=document.getElementById(i);return x?x.value.trim():''},n=g('c_n'),m=parseInt(g('c_m'),10)||0,v=g('c_v')||null;
+ if(!n){alert('Bitte den Firmennamen angeben.');return}
+ if(m<1){alert('Mindestens 1 Anmeldung (für den Admin).');return}
+ if(id){b.disabled=true;sb.rpc('owner_update_company',{p_id:id,p_name:n,p_max_users:m,p_valid_until:v,p_active:document.getElementById('c_a').checked,p_note:g('c_o')}).then(function(r){b.disabled=false;if(!rpcErr(r))ownerLoad()});return}
+ var u=g('c_au').toLowerCase(),p=document.getElementById('c_ap').value;if(!chkLogin(u,p,10))return;
+ b.disabled=true;sb.rpc('owner_create_company',{p_name:n,p_max_users:m,p_valid_until:v,p_admin_name:g('c_an'),p_admin_username:u,p_admin_password:p,p_note:g('c_o')}).then(function(r){b.disabled=false;if(rpcErr(r))return;
+  sb.rpc('owner_companies').then(function(x){if(!x.error)OWN=x.data;ownerPage();showCreds('Firma angelegt',n,r.data,u,p)})})}
+// Zugangsdaten zum Weitergeben anzeigen (das Passwort wird danach nirgends mehr angezeigt)
+function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Auftragsplaner – Zugang für '+name+'\nAdresse: '+location.origin+location.pathname+'\nLizenz-ID: '+lic+'\nBenutzername: '+u+'\nPasswort: '+p;
+ d.innerHTML='<div class="dt2"><b>'+esc(t)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">✕</button></div><div class="sub">Zugangsdaten für den Admin – jetzt kopieren und weitergeben. Das Passwort wird später nicht mehr angezeigt.</div>'+
+ '<textarea id="cr" rows="6" readonly style="margin-top:10px">'+esc(txt)+'</textarea><div class="row ft"><button class="b p" onclick="var a=document.getElementById(\'cr\');a.select();try{navigator.clipboard.writeText(a.value)}catch(e){}this.textContent=\'✓ Kopiert\'">Kopieren</button></div>';
+ if(!d.open)d.showModal()}
+function coPw(id){var c=coById(id);if(!c.admin_username){alert('Diese Firma hat keinen Admin mit Anmeldung.');return}
+ var p=prompt('Neues Passwort für den Admin „'+c.admin_username+'“ von '+c.name+' (mind. 10 Zeichen):',genPw());if(p==null)return;if(p.length<10){alert('Passwort: mindestens 10 Zeichen.');return}
+ sb.rpc('owner_set_admin_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))showCreds('Admin-Passwort geändert',c.name,c.license_id,c.admin_username,p)})}
+function coDel(id){var c=coById(id),x=prompt('Firma „'+c.name+'“ mit ALLEN Mitarbeitern, Anmeldungen und Aufträgen endgültig löschen?\n\nZur Bestätigung die Lizenz-ID eingeben: '+c.license_id);if(x==null)return;
+ sb.rpc('owner_delete_company',{p_id:id,p_confirm:x}).then(function(r){if(!rpcErr(r))ownerLoad()})}
 async function loadAll(){
- var r=await Promise.all([sb.from('profiles').select('*').order('display_name'),sb.from('jobs').select('*'),sb.from('holidays').select('*').order('d')]);
+ var r=await Promise.all([sb.from('employees').select('*').order('display_name'),sb.from('jobs').select('*'),sb.from('holidays').select('d,n').order('d'),sb.from('organizations').select('*').single()]);
  r.forEach(function(x){if(x.error)throw x.error});
- USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;
+ USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;ORG=r[3].data;
  if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}}}
+function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
+function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
 function fromRow(r){return {id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
 function toRow(j){return {id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done}}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
 function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}
 function reload(){return loadAll().then(render).catch(function(e){alert('Laden fehlgeschlagen: '+(e.message||e))})}
 function save(j){if(j)sb.from('jobs').upsert(toRow(j)).then(function(r){if(r.error)fail(r.error)})}
-function subscribe(){if(CH)sb.removeChannel(CH);CH=sb.channel('planer');['jobs','holidays','profiles'].forEach(function(t){CH.on('postgres_changes',{event:'*',schema:'public',table:t},rt)});CH.subscribe()}
+function subscribe(){if(CH)sb.removeChannel(CH);CH=sb.channel('planer');[['jobs','org_id'],['holidays','org_id'],['employees','org_id'],['organizations','id']].forEach(function(t){CH.on('postgres_changes',{event:'*',schema:'public',table:t[0],filter:t[1]+'=eq.'+ORG.id},rt)});CH.subscribe()}
 // Änderungen anderer Benutzer nachladen, aber nicht mitten im Ziehen oder im offenen Dialog
 function rt(){clearTimeout(rtT);rtT=setTimeout(function(){if(DG||RZ||document.getElementById('dlg').open||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('main input,main textarea')){rt();return}reload()},500)}
 function uById(id){return USERS.filter(function(u){return u.id==id})[0]}
@@ -301,7 +366,8 @@ function kw(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())
 function who(j){var w=wer(j);return w.length?w.map(uName).join(', '):'niemand zugeteilt'}
 function byId(id){return S.jobs.filter(function(j){return j.id==id})[0]}
 
-function render(){render0();document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()">＋</button>')}
+function render(){render0();document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()">＋</button>');
+ if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">⚠ Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>')}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&!j.done&&vis(j)}).length+')';
@@ -313,32 +379,53 @@ function render0(){mkH();
  }else{
   hd.innerHTML='<h1>Mehr</h1>';
   var adm=ME.role=='admin';
-  m.innerHTML='<h2>Mein Konto</h2><div class="me">Angemeldet als <b>'+esc(ME.display_name)+'</b> · '+esc(ME.email&&ME.email.slice(-USER_DOMAIN.length-1)!='@'+USER_DOMAIN?ME.email:ME.username)+(adm?' · Admin':'')+'</div>'+
+  m.innerHTML='<h2>Mein Konto</h2><div class="me">Angemeldet als <b>'+esc(ME.display_name)+'</b> · '+esc(ME.username)+(adm?' · Admin':'')+'<br>Firma: <b>'+esc(ORG.name)+'</b> · Lizenz-ID: <b>'+esc(ORG.license_id)+'</b></div>'+
   '<label>Neues Passwort</label><div class="row"><input id="pw1" type="password" autocomplete="new-password" style="flex:1 1 160px"><button class="b" style="flex:none" onclick="ownPw()">Ändern</button></div>'+
   '<div class="row"><button class="b d" onclick="logout()">Abmelden</button></div>'+
-  (adm?usec():'')+hsec(adm)+'<h2>Erledigte Aufträge</h2><div class="row"><button class="b" onclick="clearDone()">Erledigte löschen ('+S.jobs.filter(function(j){return j.done}).length+')</button></div>'+
+  (adm?lsec()+usec():'')+hsec(adm)+'<h2>Erledigte Aufträge</h2><div class="row"><button class="b" onclick="clearDone()">Erledigte löschen ('+S.jobs.filter(function(j){return j.done}).length+')</button></div>'+
   '<h2>Backup</h2><div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
   '<div class="row" style="margin-top:8px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="5" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>'
  }
 }
-function usec(){
- return '<h2>Benutzer</h2><div class="sub">Benutzer melden sich mit Benutzername und Passwort an – ohne E-Mail.</div><div class="ul">'+USERS.map(function(u){var me=u.id==ME.id;
-  return '<div class="ur"><input type="color" value="'+esc(u.color)+'" onchange="uUpd(\''+u.id+'\',{color:this.value})" title="Farbe im Kalender"><div class="nm"><input value="'+esc(u.display_name)+'" onchange="uUpd(\''+u.id+'\',{display_name:this.value.trim()||\''+esc(u.username)+'\'})"><small>'+(u.role=='admin'?'Admin · Anmeldung per E-Mail':'Benutzername: <b>'+esc(u.username)+'</b>')+'</small></div>'+
-  (me?'':'<button class="b" onclick="uPw(\''+u.id+'\')">🔑 Passwort</button><button class="b d" onclick="uDel(\''+u.id+'\')">🗑</button>')+'</div>'}).join('')+'</div>'+
-  '<div class="sec">Neuer Benutzer</div><div class="g2"><div><label>Name (Anzeige)</label><input id="u_n" placeholder="z. B. Stefan"></div><div><label>Benutzername</label><input id="u_u" placeholder="z. B. stefan" autocapitalize="none" autocorrect="off" spellcheck="false"></div>'+
-  '<div><label>Passwort</label><input id="u_p" type="text" autocomplete="off" placeholder="mind. 6 Zeichen"></div><div><label>Farbe</label><input id="u_c" type="color" value="'+COLORS[USERS.length%COLORS.length]+'"></div></div>'+
-  '<div class="row"><button class="b p" onclick="uNew(this)">＋ Benutzer anlegen</button></div>'}
+// Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)
+function lsec(){
+ return '<h2>Lizenz</h2><div class="me">Lizenz-ID: <b>'+esc(ORG.license_id)+'</b><br>Anmeldungen: <b>'+nLogins()+' von '+ORG.max_users+'</b> belegt · Mitarbeiter ohne Anmeldung: unbegrenzt<br>Gültig '+
+  (ORG.valid_until?'bis <b'+(expired()?' style="color:var(--bad)"':'')+'>'+dDE(ORG.valid_until)+'</b>':'<b>unbegrenzt</b>')+'</div>'+
+  '<div class="sub">Mehr Anmeldungen oder Verlängerung: bitte an JoKe Smart Solutions wenden.</div>'}
+// Mitarbeiter: mit Anmeldung (zählt zur Lizenz) oder ohne Anmeldung (nur verplanbar)
+function usec(){var full=nLogins()>=ORG.max_users;
+ return '<h2>Mitarbeiter</h2><div class="sub">Mitarbeiter <b>mit Anmeldung</b> melden sich mit Lizenz-ID <b>'+esc(ORG.license_id)+'</b>, Benutzername und Passwort an. Mitarbeiter <b>ohne Anmeldung</b> werden nur verplant und zählen nicht zur Lizenz.</div><div class="ul">'+USERS.map(function(u){var me=u.id==ME.id,q='\''+u.id+'\'';
+  return '<div class="ur"><input type="color" value="'+esc(u.color)+'" onchange="uUpd('+q+',{color:this.value})" title="Farbe im Kalender"><div class="nm"><input value="'+esc(u.display_name)+'" onchange="uUpd('+q+',{display_name:this.value.trim()||this.defaultValue})"><small>'+(u.role=='admin'?'Admin · Benutzername: <b>'+esc(u.username||'–')+'</b>':u.user_id?'Benutzername: <b>'+esc(u.username)+'</b>':'Ohne Anmeldung (nur Planung)')+'</small></div>'+
+  (u.role=='admin'?'':u.user_id?'<button class="b" onclick="uPw('+q+')">🔑 Passwort</button><button class="b" onclick="uNoLogin('+q+')">Anmeldung entfernen</button>':'<button class="b" onclick="uLogin('+q+')"'+(full?' disabled title="Lizenzlimit erreicht"':'')+'>＋ Anmeldung</button>')+
+  (me?'':'<button class="b d" onclick="uDel('+q+')">🗑</button>')+'</div>'}).join('')+'</div>'+
+  '<div class="sec">Neuer Mitarbeiter</div><div class="g2"><div><label>Name (Anzeige)</label><input id="u_n" placeholder="z. B. Stefan"></div><div><label>Farbe</label><input id="u_c" type="color" value="'+COLORS[USERS.length%COLORS.length]+'"></div></div>'+
+  '<label class="chk"><input id="u_l" type="checkbox" onchange="document.getElementById(\'u_lb\').style.display=this.checked?\'\':\'none\'"'+(full?' disabled':' checked')+'> Darf sich anmelden'+(full?' (Lizenzlimit erreicht)':'')+'</label>'+
+  '<div id="u_lb" class="g2"'+(full?' style="display:none"':'')+'><div><label>Benutzername</label><input id="u_u" placeholder="z. B. stefan"'+NC+'></div><div><label>Passwort</label><input id="u_p" type="text" autocomplete="off" placeholder="mind. 8 Zeichen"></div></div>'+
+  '<div class="row"><button class="b p" onclick="uNew(this)">＋ Mitarbeiter anlegen</button></div>'}
 function rpcErr(r){if(r.error){alert(r.error.message);return true}return false}
+// Passwort-Mindestlänge: Firmen-Admins 10, Mitarbeiter 8 Zeichen
+function pwMin(){return ME&&ME.role=='admin'?10:8}
+function chkLogin(u,p,min){min=min||8;
+ if(!/^[a-z0-9][a-z0-9._-]{1,29}$/.test(u)){alert('Benutzername: 2–30 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich (keine Umlaute, keine Leerzeichen).');return false}
+ if(p.length<min){alert('Passwort: mindestens '+min+' Zeichen.');return false}return true}
+function loginMsg(u){return 'Anmeldung mit\nLizenz-ID: '+ORG.license_id+'\nBenutzername: '+u+'\nPasswort: das eben vergebene'}
 function uNew(b){var g=function(i){return document.getElementById(i).value.trim()},n=g('u_n'),u=g('u_u').toLowerCase(),p=document.getElementById('u_p').value;
- if(!/^[a-z0-9._-]{2,30}$/.test(u)){alert('Benutzername: 2–30 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich (keine Umlaute, keine Leerzeichen).');return}
- if(p.length<6){alert('Passwort: mindestens 6 Zeichen.');return}
- b.disabled=true;sb.rpc('admin_create_user',{p_username:u,p_password:p,p_display_name:n||u,p_color:g('u_c')}).then(function(r){b.disabled=false;if(rpcErr(r))return;alert('Benutzer angelegt.\n\nAnmeldung mit\nBenutzername: '+u+'\nPasswort: das eben vergebene');reload()})}
-function uUpd(id,ch){var u=uById(id);Object.assign(u,ch);sb.from('profiles').update(ch).eq('id',id).then(function(r){if(r.error)fail(r.error);else render()})}
-function uPw(id){var p=prompt('Neues Passwort für '+uName(id)+' (mind. 6 Zeichen):');if(p==null)return;if(p.length<6){alert('Passwort: mindestens 6 Zeichen.');return}
+ if(!document.getElementById('u_l').checked){if(!n){alert('Bitte einen Namen angeben.');return}
+  b.disabled=true;sb.rpc('admin_add_employee',{p_display_name:n,p_color:g('u_c')}).then(function(r){b.disabled=false;if(!rpcErr(r))reload()});return}
+ if(!chkLogin(u,p))return;
+ b.disabled=true;sb.rpc('admin_create_user',{p_username:u,p_password:p,p_display_name:n||u,p_color:g('u_c')}).then(function(r){b.disabled=false;if(rpcErr(r))return;alert('Mitarbeiter angelegt.\n\n'+loginMsg(u));reload()})}
+function uLogin(id){var s=uName(id).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9._-]/g,'');
+ var u=prompt('Benutzername für '+uName(id)+' (a–z, 0–9, Punkt, Minus, Unterstrich):',s);if(u==null)return;u=u.trim().toLowerCase();
+ var p=prompt('Passwort für '+uName(id)+' (mind. 8 Zeichen):');if(p==null||!chkLogin(u,p))return;
+ sb.rpc('admin_create_login',{p_id:id,p_username:u,p_password:p}).then(function(r){if(rpcErr(r))return;alert('Anmeldung angelegt.\n\n'+loginMsg(u));reload()})}
+function uNoLogin(id){if(!confirm(uName(id)+': Anmeldung entfernen?\n\nDie Person bleibt mit allen Terminen als Mitarbeiter erhalten, kann sich aber nicht mehr anmelden. Der Lizenzplatz wird frei.'))return;
+ sb.rpc('admin_remove_login',{p_id:id}).then(function(r){if(!rpcErr(r))reload()})}
+function uUpd(id,ch){var u=uById(id);Object.assign(u,ch);sb.from('employees').update(ch).eq('id',id).then(function(r){if(r.error)fail(r.error);else render()})}
+function uPw(id){var p=prompt('Neues Passwort für '+uName(id)+' (mind. 8 Zeichen):');if(p==null)return;if(p.length<8){alert('Passwort: mindestens 8 Zeichen.');return}
  sb.rpc('admin_set_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))alert('Passwort geändert.')})}
-function uDel(id){if(!confirm(uName(id)+' wirklich löschen? Die Person kann sich danach nicht mehr anmelden und wird aus allen Aufträgen entfernt.'))return;
- sb.rpc('admin_delete_user',{p_id:id}).then(function(r){if(!rpcErr(r)){if(FLT==id)FLT='me';reload()}})}
-function ownPw(){var p=document.getElementById('pw1').value;if(p.length<6){alert('Passwort: mindestens 6 Zeichen.');return}
+function uDel(id){if(!confirm(uName(id)+' wirklich löschen? Die Person wird aus allen Aufträgen entfernt'+(uById(id).user_id?' und kann sich nicht mehr anmelden':'')+'.'))return;
+ sb.rpc('admin_delete_employee',{p_id:id}).then(function(r){if(!rpcErr(r)){if(FLT==id)FLT='me';reload()}})}
+function ownPw(){var p=document.getElementById('pw1').value;if(p.length<pwMin()){alert('Passwort: mindestens '+pwMin()+' Zeichen.');return}
  sb.auth.updateUser({password:p}).then(function(r){if(r.error)alert(r.error.message);else{document.getElementById('pw1').value='';alert('Passwort geändert.')}})}
 function logout(){sb.auth.signOut().then(function(){showLogin()})}
 function card(j,ds){
@@ -375,7 +462,7 @@ function imp(){var d;try{d=JSON.parse(document.getElementById('bk').value);if(!d
   var id=/^[0-9a-f-]{36}$/.test(j.id)?j.id:uuid();
   return toRow(Object.assign({},j,{id:id,wer:w,zeit:j.zeit||'',ende:j.ende||''}))});
  var neu=rows.filter(function(r){return !ex[r.id]}).length;
- if(!confirm(rows.length+' Aufträge übernehmen ('+neu+' neu, '+(rows.length-neu)+' werden überschrieben)?'+(miss.length?'\n\nOhne passenden Benutzer (bitte vorher anlegen, gleicher Name): '+miss.join(', '):'')))return;
+ if(!confirm(rows.length+' Aufträge übernehmen ('+neu+' neu, '+(rows.length-neu)+' werden überschrieben)?'+(miss.length?'\n\nOhne passenden Mitarbeiter (bitte vorher anlegen, gleicher Name): '+miss.join(', '):'')))return;
  var hol=(d.hol||[]).map(function(h){return {d:h.d,n:h.n}});
  Promise.all([sb.from('jobs').upsert(rows),hol.length?sb.from('holidays').upsert(hol):{}]).then(function(r){var e=r.filter(function(x){return x.error})[0];if(e)fail(e.error);else{alert('Übernommen.');document.getElementById('bk').value='';reload()}})}
 
