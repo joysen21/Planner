@@ -558,7 +558,7 @@ function kw(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())
 function who(j){var w=wer(j);return w.length?w.map(uName).join(', '):'niemand zugeteilt'}
 function byId(id){return S.jobs.filter(function(j){return j.id==id})[0]}
 
-function render(){render0();if(tab!='mehr')document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Auftrag">'+ic('plus')+'</button>');
+function render(){render0();if(tab!='mehr')document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Termin">'+ic('plus')+'</button>');
  if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>');detRefresh()}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');
@@ -711,13 +711,13 @@ function plan(hd,m){
 // Legende/Bedienung: offen/zu merken (Standard: Breitbild offen, Handy zu)
 function lgOpen(){var v=lsGet('planer_lg');return v?v=='1':innerWidth>=900}
 function lgSet(o){lsSet('planer_lg',o?'1':'0')}
-function hintTxt(){if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
+function hintTxt(){if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
  if(mode=='monat')return 'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
  return 'Tag antippen = Tagesansicht · halten und ziehen = verschieben'}
 // Reihenfolge: ganztägige zuerst, dann nach Uhrzeit
 function sortJ(js){return js.slice().sort(function(a,b){return (a.zeit?1:0)-(b.zeit?1:0)||t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')})}
 function dayBlock(ds){var d=parse(ds),js=dm[ds]||[];
- return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Auftrag">'+ic('plus')+'</button>')+'</div>'+(js.length?sortJ(js).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
+ return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Termin">'+ic('plus')+'</button>')+'</div>'+(js.length?sortJ(js).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
 function monthGrid(y,mo,kind){
  var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,h='<div class="mg '+kind+'">';
  if(kind!='full'&&mode!='monat')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
@@ -740,7 +740,7 @@ function reassign(j,from,to){if(!to||!from||from==to)return;
  var w=(j.wer||[]).filter(function(x){return x!=from});if(to!='-'&&w.indexOf(to)<0)w.push(to);j.wer=w}
 // Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
 function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
-// Stundenspalte: im Verschiebemodus Ziel (ganztägige Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Auftrag
+// Stundenspalte: im Verschiebemodus Ziel (ganztägige Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Termin
 function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
  if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)),null,emp);return}
  var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
@@ -951,7 +951,7 @@ function rzEnd(ok){if(RZP){clearTimeout(RZP.tm);RZP=null}if(!RZ)return;var z=RZ,
  if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
-// Zeitraum markieren wie in Outlook: in freier Zeit drücken (Handy: kurz halten) und ziehen → neuer Auftrag mit dieser Zeit
+// Zeitraum markieren wie in Outlook: in freier Zeit drücken (Handy: kurz halten) und ziehen → neuer Termin mit dieser Zeit
 var SL=null;
 document.addEventListener('pointerdown',function(e){
  if(mvId||e.button>0)return;var c=e.target.closest&&e.target.closest('.dcol');
@@ -973,7 +973,7 @@ var cur={};
 function edit(id,ds,t,te,emp){
  var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
- d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
+ d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="eg"><div><div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'">'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+USERS.map(function(u){return '<button data-v="'+u.id+'">'+esc(u.display_name)+'</button>'}).join('')+'</div>'+
