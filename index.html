@@ -702,7 +702,7 @@ function timeGrid(cols,team){
  h+=row('tgh','<div></div>',cols.map(function(c){return c.head}).join(''));
  h+=row('tga','<div class="tl">ganz&shy;tags</div>',cols.map(function(c){var ds=c.ds;
   return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1"'+ea(c)+' onclick="adClick(\''+ds+'\''+ce(c)+')">'+colJobs(c).filter(function(j){return !j.zeit}).map(function(j){
-   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+' <small>· '+esc(who(j))+'</small></span>'}).join('')+'</div>'}).join(''));
+   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+esc(j.kunde||'?')+' <small>· '+esc(who(j))+'</small></span>'}).join('')+'</div>'}).join(''));
  var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide||team?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
  h+=row('tgb',hl,cols.map(function(c){var ds=c.ds;
   var js=colJobs(c).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
@@ -711,7 +711,7 @@ function timeGrid(cols,team){
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH;
     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc('+(q.l*100/nl)+'% + 2px);width:calc('+(100/nl)+'% - 4px)">'+
-    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':'')+
+    (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':'')+
     (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+'</div>'}).join(''));
  return h+'</div>'}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
