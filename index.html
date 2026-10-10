@@ -233,9 +233,13 @@ body.auth header,body.auth nav{display:none}body.auth{padding-bottom:0}
 .ul{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:4px 12px;margin-bottom:10px}
 .ur{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--ln)}.ur:last-child{border-bottom:0}
 .ur .nm{flex:1 1 140px;min-width:0}.ur .nm small{display:block;color:var(--mu);font-size:12px}
-.ur input[type=color]{width:44px;height:36px;padding:2px;flex:none}
 .ur .b{flex:none;min-height:36px;font-size:13px}
-input[type=color]{padding:4px;height:44px}
+/* Farbwähler: überall gleich groß und rund */
+input[type=color]{-webkit-appearance:none;appearance:none;width:40px;height:40px;min-width:40px;padding:0;border-radius:50%;border:2px solid var(--ln);background:none;cursor:pointer;flex:none;overflow:hidden;display:block}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
+input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
+input[type=color]:hover,input[type=color]:focus-visible{border-color:var(--ac)}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
 .own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
 /* Duotone-Icons */
@@ -278,13 +282,12 @@ nav button.on .i{color:var(--ac)}
 .ev small.evw{font-weight:600;opacity:1}.ev small{display:block;font-weight:500;opacity:.9;font-size:.9em;margin-top:1px}
 .tg.one .ev{font-size:14px;padding:6px 10px;border-radius:9px}.tg.one .wh2{font-size:13px}
 .tg.one .tgc .ch{font-size:13px;padding:6px 10px}
-/* Abschnitte (Mehr / Einstellungen) */
+/* Abschnitte (Einstellungen) */
 .pnl{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:16px;margin-bottom:14px;min-width:0}
 .pcol{display:flex;flex-direction:column;gap:14px;margin-bottom:14px;min-width:0}.pcol .pnl{margin:0}
 .pnl>h2{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--ln);font-size:16px}
 .pnl .ul{box-shadow:none;border:1px solid var(--ln);background:var(--bg)}
 .pnl .sec{margin-top:16px}
-.pnl #u_c{max-width:120px}
 .kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:14px;margin-bottom:12px}.kv span{color:var(--mu)}
 .meter{height:8px;border-radius:99px;background:var(--ln);overflow:hidden}.meter i{display:block;height:100%;background:var(--ok);border-radius:99px}.meter.full i{background:var(--bad)}
 /* Breitbild (Web): seitliche Navigation, breite Kalender, mehrspaltige Listen */
@@ -323,7 +326,7 @@ nav button.on .i{color:var(--ac)}
 <nav>
 <button data-t="plan" class="on"><span data-i="plan"></span>Plan</button>
 <button data-t="offen"><span data-i="auftraege"></span><b id="oc">Offen</b></button>
-<button data-t="mehr"><span data-i="einstellungen"></span>Mehr</button>
+<button data-t="mehr"><span data-i="einstellungen"></span>Einstellungen</button>
 </nav>
 <dialog id="dlg"></dialog>
 
@@ -509,7 +512,7 @@ function render0(){mkH();
   var o=S.jobs.filter(function(j){return !j.start&&vis(j)});
   m.innerHTML=fltBar()+(o.length?'<div class="ol">'+o.map(function(j){return card(j,'')}).join('')+'</div>':'<div class="empty big">'+ic('auftraege')+'<br><b>Nichts offen</b><br><small>Mit '+ic('plus')+' einen Auftrag ohne Termin anlegen</small></div>')
  }else{
-  hd.innerHTML='<h1>Mehr</h1>';
+  hd.innerHTML='<h1>Einstellungen</h1>';
   var adm=ME.role=='admin',nd=S.jobs.filter(function(j){return j.done}).length;
   // Einstellungen als klar getrennte Abschnitte (Breitbild: zweispaltig)
   var P={konto:pnl(ic('user')+'Mein Konto','<div class="kv"><span>Name</span><b>'+esc(ME.display_name)+'</b><span>Benutzername</span><b>'+esc(ME.username)+(adm?' · Admin':'')+'</b><span>Firma</span><b>'+esc(ORG.name)+'</b><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b></div>'+

@@ -17,7 +17,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 - **Firmen-Admin und Mitarbeiter** melden sich mit **Lizenz-ID + Benutzername + Passwort** an.
   Die Lizenz-ID kann auch kurz eingegeben werden (`001` oder `1`); das Gerät merkt sie sich.
   Intern wird daraus `benutzername@001.planer.local` – eine E-Mail ist nicht nötig.
-- **Mitarbeiter** legt der Firmen-Admin unter *Mehr → Mitarbeiter* an – mit oder ohne Anmeldung:
+- **Mitarbeiter** legt der Firmen-Admin unter *Einstellungen → Mitarbeiter* an – mit oder ohne Anmeldung:
   - **mit Anmeldung**: zählen zur Lizenz.
   - **ohne Anmeldung** („Dummy“): werden nur verplant, unbegrenzt, zählen nicht zur Lizenz.
     Später kann ihnen per *＋ Anmeldung* ein Login gegeben werden – alle Termine bleiben erhalten.
@@ -57,11 +57,11 @@ geschützt wird über RLS. **Nie den `service_role` Key verwenden.**
 ### 4. Erste Firma
 Seite öffnen, mit der Besitzer-E-Mail anmelden (Lizenz-ID leer lassen) → *＋ Neue Firma*.
 Die angezeigten Zugangsdaten an den Firmen-Admin weitergeben; dieser legt dann unter
-*Mehr → Mitarbeiter* seine Mitarbeiter an.
+*Einstellungen → Mitarbeiter* seine Mitarbeiter an.
 
 ## Alte Handy-Daten übernehmen
 In der alten Version auf dem Handy: *Mehr → Backup kopieren*. In der neuen Version als Firmen-Admin:
-Mitarbeiter mit **denselben Namen** anlegen (z. B. Uwe, Stefan, Asterix, Obelix), dann *Mehr → Backup*
+Mitarbeiter mit **denselben Namen** anlegen (z. B. Uwe, Stefan, Asterix, Obelix), dann *Einstellungen → Backup*
 einfügen → *Einfügen & übernehmen*. „Beide“ und Aushilfen werden den passenden Mitarbeitern zugeordnet.
 
 ## Lokal testen
