@@ -6,6 +6,9 @@
 <title>Auftragsplaner</title>
 <link rel="icon" type="image/svg+xml" href="joke-icon.svg">
 <meta name="theme-color" content="#f5f2ec">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <style>
@@ -108,7 +111,8 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .dt{box-shadow:inset 0 0 0 2px var(--ac)!important}
 :root{--bg:#f5f2ec;--ln:#e7e1d8;--sh:0 1px 2px rgba(0,0,0,.06),0 3px 10px rgba(0,0,0,.06)}
 html{background:var(--bg)}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;-webkit-tap-highlight-color:transparent}
+body{font-family:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:inherit}
 header{height:56px;padding:8px 12px;border-bottom:0;box-shadow:0 1px 0 var(--ln)}
 header h1{font-size:16px;font-weight:700;letter-spacing:-.01em}
 .ib{height:40px;border:0;border-radius:12px;box-shadow:var(--sh)}
@@ -200,10 +204,10 @@ body.el::before{left:0;background:linear-gradient(to right,rgba(138,90,43,.45),t
 .flt .fu{border:1.5px solid var(--uc)}.flt .fu.on{background:var(--uc);border-color:var(--uc);color:#fff}
 header h1 small{font-size:11px;font-weight:600;color:var(--ac)}
 .rz{position:absolute;left:0;right:0;height:18px;touch-action:none;z-index:2}
-.rz.t{top:0}.rz.b{bottom:0}
+.rz.rt{top:0}.rz.rb{bottom:0}
 .sh .rz{height:9px}
 .rz::after{content:"";position:absolute;left:28%;right:28%;height:3px;border-radius:2px;background:rgba(255,255,255,.9);box-shadow:0 0 2px rgba(0,0,0,.4)}
-.rz.t::after{top:5px}.rz.b::after{bottom:5px}.sh .rz.b::after{bottom:2px}
+.rz.rt::after{top:5px}.rz.rb::after{bottom:5px}.sh .rz.rb::after{bottom:2px}
 .ev.pv .rz::after{background:var(--c);box-shadow:none}
 .ev.ad{font-size:13px;font-weight:700;padding-top:16px}
 .ev.vt{writing-mode:vertical-rl;padding:16px 3px}
@@ -211,10 +215,13 @@ header h1 small{font-size:11px;font-weight:600;color:var(--ac)}
 .wh2 .hn{font-size:8px;display:block}
 body.auth header,body.auth nav{display:none}body.auth{padding-bottom:0}
 .login{max-width:380px;margin:9vh auto 0;background:var(--card);border-radius:22px;padding:24px 20px;box-shadow:var(--sh)}
-.login .lo{display:flex;align-items:center;gap:12px;margin-bottom:10px}.login .lo img{width:48px;height:48px;flex:none}
+.login .lo{padding-bottom:14px;margin-bottom:12px;border-bottom:1px solid var(--ln)}.login .lo .jkh{height:54px;width:auto}
+/* JoKe-Logo in den Tönen der App */
+.jk{display:block}.jk-b{fill:#8a5a2b}.jk-w{fill:#fff}.jk-d{fill:#e8b57a}.jk-t{fill:var(--ac)}.jk-s{fill:var(--mu)}
+.nlg{display:none}
+.mfoot{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 0 6px;color:var(--mu);font-size:12px}.mfoot .jkh{height:40px;width:auto}
 .login h1{font-size:20px;margin:0;line-height:1.15}.login h1 small{display:block;font-size:12px;font-weight:500;color:var(--mu)}
 .err{color:var(--bad);font-size:14px;min-height:18px;margin-top:10px}
-.brand{text-align:center;font-size:11px;color:var(--mu);margin-top:18px}
 .ul{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:4px 12px;margin-bottom:10px}
 .ur{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--ln)}.ur:last-child{border-bottom:0}
 .ur .nm{flex:1 1 140px;min-width:0}.ur .nm small{display:block;color:var(--mu);font-size:12px}
@@ -223,6 +230,77 @@ body.auth header,body.auth nav{display:none}body.auth{padding-bottom:0}
 input[type=color]{padding:4px;height:44px}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
 .own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
+/* Duotone-Icons */
+.i{width:1.2em;height:1.2em;vertical-align:-.22em;flex:none;overflow:visible}
+nav span .i{width:26px;height:26px;display:block;margin:0 auto 2px;vertical-align:0}
+nav button.on .i{color:var(--ac)}
+.ib{display:inline-flex;align-items:center;justify-content:center}.ib .i{width:20px;height:20px}.ib.pl .i{width:22px;height:22px;stroke-width:2.2}
+.b .i{width:18px;height:18px;margin-right:2px}.b.d .i{margin:0}
+.b{gap:4px}
+.ic .i{width:24px;height:24px;color:var(--c,var(--ac))}
+.ic .st .i{color:#e0a800}.add .i{width:18px;height:18px}.add{display:inline-flex;align-items:center;justify-content:center}
+.st .i{width:22px;height:22px;vertical-align:-.25em}.starx{color:#e0a800}
+.tag .i{width:13px;height:13px;margin-right:3px;vertical-align:-2px}
+.sub .i{width:14px;height:14px;vertical-align:-2px}
+.ch .i{width:1.05em;height:1.05em;vertical-align:-.15em}
+.pnl>h2{display:flex;align-items:center;gap:8px}.pnl>h2 .i{width:22px;height:22px;color:var(--ac)}
+.empty.big>.i{width:46px;height:46px;color:var(--mu)}
+.warn .i{color:var(--bad)}
+.mvb .i{width:18px;height:18px}
+.flt button .i{width:16px;height:16px}
+.seg button .i{width:17px;height:17px;vertical-align:-.25em}
+.lg .i{width:12px;height:12px;vertical-align:-1px}
+/* Zeitraster (Tag/Woche) wie in Outlook */
+.tg{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:6px 8px 10px 0;margin-bottom:14px}
+.tg .wh2{padding:6px 0}
+.tga{border-bottom:2px solid var(--ln);margin-bottom:6px}
+.tga .tl{align-self:center;font-size:10px;line-height:1.1;text-align:right;padding-right:6px;color:var(--mu)}
+.tgc{border-left:1px solid var(--ln);min-height:36px;padding:3px 2px;display:flex;flex-direction:column;gap:3px;cursor:pointer}
+.tgc .ch{margin:0;font-size:12px;padding:5px 7px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgc .ch small{font-weight:500;opacity:.85}
+.tgc.hol{background:color-mix(in srgb,var(--ur) 9%,var(--card))}
+.tg .hl{font-size:10px;transform:translateY(-6px);padding-right:6px}.tg .hl:first-child{transform:none}
+.dcol{cursor:pointer;background-image:repeating-linear-gradient(to bottom,var(--ln) 0 1px,transparent 1px var(--hh,28px)),repeating-linear-gradient(to bottom,transparent 0 calc(var(--hh,28px) / 2),color-mix(in srgb,var(--ln) 55%,transparent) calc(var(--hh,28px) / 2) calc(var(--hh,28px) / 2 + 1px),transparent calc(var(--hh,28px) / 2 + 1px) var(--hh,28px))}
+.dcol.tdc{background-color:color-mix(in srgb,var(--ac) 6%,var(--card))}
+.now{position:absolute;left:0;right:0;height:2px;background:var(--ur);z-index:3;pointer-events:none}
+.now::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--ur)}
+.ev{border-radius:7px;padding:3px 5px;cursor:grab}.ev small{display:block;font-weight:500;opacity:.9;font-size:.9em;margin-top:1px}
+.tg.one .ev{font-size:14px;padding:6px 10px;border-radius:9px}.tg.one .wh2{font-size:13px}
+.tg.one .tgc .ch{font-size:13px;padding:6px 10px}
+/* Abschnitte (Mehr / Einstellungen) */
+.pnl{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:16px;margin-bottom:14px;min-width:0}
+.pnl>h2{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--ln);font-size:16px}
+.pnl .ul{box-shadow:none;border:1px solid var(--ln);background:var(--bg)}
+.pnl .sec{margin-top:16px}
+.pnl #u_c{max-width:120px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:14px;margin-bottom:12px}.kv span{color:var(--mu)}
+.meter{height:8px;border-radius:99px;background:var(--ln);overflow:hidden}.meter i{display:block;height:100%;background:var(--ok);border-radius:99px}.meter.full i{background:var(--bad)}
+/* Breitbild (Web): seitliche Navigation, breite Kalender, mehrspaltige Listen */
+@media (min-width:900px){
+ body{padding-bottom:0;padding-left:96px}body.auth{padding-left:0}
+ nav{top:0;right:auto;width:96px;flex-direction:column;padding:16px 0 0;box-shadow:1px 0 0 var(--ln),6px 0 20px rgba(0,0,0,.04)}
+ nav button{flex:none;min-height:78px;font-size:13px}
+ .nlg{display:block;padding:2px 0 16px;margin:0 18px 8px;border-bottom:1px solid var(--ln)}.nlg .jki{width:52px;height:52px;margin:0 auto}
+ nav button.on::before{top:18%;bottom:18%;left:0;right:auto;width:3px;height:auto;border-radius:0 3px 3px 0}
+ header{padding:8px 28px;height:64px}header h1{font-size:19px}
+ main{max-width:1480px;padding:16px 28px 40px}
+ .modes{max-width:520px;top:calc(env(safe-area-inset-top,0px) + 64px)}
+ .mvb{top:calc(env(safe-area-inset-top,0px) + 120px)}
+ .c{min-height:124px}.c .ch{font-size:13px}
+ .qv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+ .yr{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+ .ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:0 16px;align-items:start}
+ .dv{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,420px);gap:20px;align-items:start}
+ .dvl{position:sticky;top:calc(env(safe-area-inset-top,0px) + 124px);max-height:calc(100vh - 140px);overflow:auto;padding:0 4px 8px}
+ .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}.pgrid .pnl{margin:0}
+ .pnl.wide{grid-column:1/-1}
+ .pnl.wide .ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));column-gap:24px}
+ .pnl.wide .ul .ur:last-child{border-bottom:1px solid var(--ln)}
+ .own{max-width:1240px}
+}
+@media (min-width:1400px){.yr{grid-template-columns:repeat(6,minmax(0,1fr))}}
+/* Maus: schmale Ziehränder wie in Outlook, Finger: breitere */
+@media (pointer:fine){.rz,.sh .rz{height:7px;cursor:ns-resize}.rz::after{display:none}.ev:hover .rz::after{display:block}.rz.rt::after{top:2px}.rz.rb::after,.sh .rz.rb::after{bottom:2px}}
 .warn{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);color:var(--tx);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
 </style>
 </head>
@@ -230,9 +308,9 @@ input[type=color]{padding:4px;height:44px}
 <header id="hd"></header>
 <main id="main"></main>
 <nav>
-<button data-t="plan" class="on"><span>📅</span>Plan</button>
-<button data-t="offen"><span>📥</span><b id="oc">Offen</b></button>
-<button data-t="mehr"><span>⚙️</span>Mehr</button>
+<button data-t="plan" class="on"><span data-i="plan"></span>Plan</button>
+<button data-t="offen"><span data-i="auftraege"></span><b id="oc">Offen</b></button>
+<button data-t="mehr"><span data-i="einstellungen"></span>Mehr</button>
 </nav>
 <dialog id="dlg"></dialog>
 
@@ -242,6 +320,45 @@ var S={jobs:[],hol:[]},tab='plan',mode='woche',an=fmt(new Date()),mvId=null,dm={
 // USERS = alle Mitarbeiter der Firma (mit und ohne Anmeldung), ORG = Firma inkl. Lizenz
 var USER_DOMAIN='planer.local',sb=null,ME=null,ORG=null,USERS=[],FLT='me',CH=null,rtT=null;
 var COLORS=['#f27d0c','#1e7be0','#3d8b4f','#8e5bc0','#d03a3a','#b8860b','#16a3a3','#c2185b'];
+// Neues JoKe-Logo (aus joke-logo-paket), Farben über .jk-* in den Tönen der App
+var LOGO_H='<svg class="jk jkh" viewBox="34 34 417 152" role="img" aria-label="JoKe Smart Solutions"><rect x="40" y="40" width="140" height="140" rx="32.20" class="jk-b"/><path d="M85.85875 133.0015625C95.634140625 133.0015625 101.3790625 127.858203125 101.3790625 118.62421875000001V87.58359375H90.911875V118.8046875C90.911875 122.68476562500001 89.016953125 124.60976562500001 85.85875 124.60976562500001C82.67046875 124.60976562500001 80.775546875 122.68476562500001 80.775546875 118.86484375V115.97734375H70.15796875V118.684375C70.15796875 127.858203125 75.963046875 133.0015625 85.85875 133.0015625ZM106.6771875 132.4H117.294765625V120.36875L123.009609375 113.901953125L134.71 132.4H147.192421875L130.31859375 106.923828125L146.56078125 87.58359375H133.80765625L123.82171875 99.82539062500001C120.81390625 103.58515625000001 118.858828125 106.35234375 117.114296875 109.42031250000001L117.294765625 98.5921875V87.58359375H106.6771875Z" class="jk-w"/><circle cx="154.10" cy="65.90" r="7.70" class="jk-d"/><g transform="translate(216,59.65)"><path d="M21.375 56.2221875C33.435546875 56.2221875 40.5234375 49.876484375 40.5234375 38.48390625V0.18703124999999687H27.609375V38.7065625C27.609375 43.493671875 25.271484375 45.868671875 21.375 45.868671875C17.44140625 45.868671875 15.103515625 43.493671875 15.103515625 38.78078125V35.21828125H2.00390625V38.558125C2.00390625 49.876484375 9.166015625 56.2221875 21.375 56.2221875ZM67.21546875 56.259296875C80.166640625 56.259296875 88.033828125 47.649921875 88.033828125 34.884296875C88.033828125 22.081562499999997 80.166640625 13.472187499999997 67.21546875 13.472187499999997C54.2271875 13.472187499999997 46.36 22.081562499999997 46.36 34.884296875C46.36 47.649921875 54.2271875 56.259296875 67.21546875 56.259296875ZM67.21546875 46.35109375C62.2428125 46.35109375 59.5709375 41.712421875 59.5709375 34.810078125C59.5709375 27.870624999999997 62.2428125 23.380390624999997 67.21546875 23.380390624999997C72.188125 23.380390624999997 74.86 27.870624999999997 74.86 34.810078125C74.86 41.712421875 72.188125 46.35109375 67.21546875 46.35109375ZM93.9075 55.48H107.007109375V40.63625L114.057890625 32.657734375L128.4934375 55.48H143.893828125L123.07546875 24.048359374999997L143.11453125 0.18703124999999687H127.38015625L115.05984375 15.290546874999997C111.34890625 19.929218749999997 108.936796875 23.343281249999997 106.784453125 27.128437499999997L107.007109375 13.769062499999997V0.18703124999999687H93.9075ZM168.17374999999998 56.259296875C178.23039062499998 56.259296875 185.02140624999998 51.69484375 187.09953124999998 44.495625L175.55851562499998 42.603046875C174.51945312499998 45.38625 171.88468749999998 46.870625 168.39640624999998 46.870625C163.49796874999998 46.870625 160.19523437499998 43.901875 159.97257812499998 37.89015625H187.69328124999998V34.62453125C187.69328124999998 20.931171874999997 179.34367187499998 13.472187499999997 167.69132812499998 13.472187499999997C155.22257812499998 13.472187499999997 147.24406249999998 22.081562499999997 147.24406249999998 34.884296875C147.24406249999998 48.169453125 155.14835937499998 56.259296875 168.17374999999998 56.259296875ZM160.04679687499998 30.356953124999997C160.52921874999998 25.792499999999997 163.23820312499998 22.860859374999997 167.80265624999998 22.860859374999997C172.32999999999998 22.860859374999997 174.89054687499998 25.644062499999997 175.41007812499998 30.356953124999997Z" class="jk-t"/><path d="M9.26212890625 96.97458984375C13.357519531249999 96.97458984375 15.750332031249998 94.915390625 15.750332031249998 91.9013671875C15.750332031249998 88.9103515625 13.253984374999998 87.58740234375 10.711621093749999 86.97769531249999L9.112578124999999 86.56355468749999C7.72060546875 86.2184375 6.1905859375 85.6432421875 6.1905859375 84.20525390625C6.1905859375 82.9053125 7.363984374999999 81.95048828124999 9.296640625 81.95048828124999C11.148769531249998 81.95048828124999 12.391191406249998 82.80177734374999 12.5407421875 84.26277343749999H15.520253906249998C15.439726562499999 81.39830078125 13.000898437499998 79.33910156249999 9.34265625 79.33910156249999C5.7534375 79.33910156249999 3.08453125 81.36378906249999 3.08453125 84.38931640624999C3.08453125 86.80513671874999 4.775605468749999 88.25462890624999 7.6400781250000005 88.99087890624999L9.584238281249998 89.49705078125C11.436367187499998 89.98021484374999 12.678789062499998 90.54390624999999 12.678789062499998 91.87835937499999C12.678789062499998 93.350859375 11.26380859375 94.35169921875 9.239121093749999 94.35169921875C7.30646484375 94.35169921875 5.7764453125 93.47740234375 5.638398437499999 91.6712890625H2.61287109375C2.75091796875 95.05343749999999 5.2702734375 96.97458984375 9.26212890625 96.97458984375ZM18.5687890625 96.71H21.5828125V88.0590625C21.5828125 86.75912109375 21.5137890625 84.38931640624999 21.4677734375 82.44515625C22.100488281249998 84.65390624999999 22.790722656249997 86.94318359374999 23.193359375 88.0590625L26.40294921875 96.71H29.0143359375L32.17791015625 88.0590625C32.580546874999996 86.908671875 33.305292968749995 84.55037109374999 33.891992187499994 82.35312499999999C33.85748046875 84.38931640624999 33.78845703125 86.78212890625 33.78845703125 88.0590625V96.71H36.84849609375V79.5691796875H32.212421875L28.991328124999995 88.41568359374999C28.65771484375 89.43953124999999 28.128535156249995 91.55624999999999 27.7258984375 93.24732421875C27.334765624999996 91.5332421875 26.79408203125 89.42802734374999 26.448964843749998 88.41568359374999L23.193359375 79.5691796875H18.5687890625ZM39.14927734375 96.71H42.50841796875L43.91189453125 92.46505859375H50.3195703125L51.78056640625 96.71H55.1512109375L49.0311328125 79.5691796875H45.13130859375ZM44.728671875 89.99171874999999 45.45341796875 87.80597656249999C45.925078125 86.27595703124999 46.44275390625 84.35480468749999 47.0524609375 81.96199218749999C47.68517578125 84.331796875 48.225859375 86.22994140624999 48.73203125 87.80597656249999L49.47978515625 89.99171874999999ZM57.44048828125 96.71H60.51203125V90.41736328124999H63.710117187499996L67.08076171875 96.71H70.5204296875L66.80466796875 89.8996875C68.82935546875 89.0944140625 69.88771484374999 87.38033203124999 69.88771484374999 85.05654296875C69.88771484374999 81.78943359374999 67.79400390625 79.5691796875 63.8481640625 79.5691796875H57.44048828125ZM60.51203125 87.875V82.1460546875H63.376503906249994C65.711796875 82.1460546875 66.7471484375 83.22742187499999 66.7471484375 85.05654296875C66.7471484375 86.87416015625 65.711796875 87.875 63.39951171875 87.875ZM72.0389453125 82.15755859375H77.3307421875V96.71H80.40228515625V82.15755859375H85.68257812499999V79.5691796875H72.0389453125ZM100.315546875 96.97458984375C104.41093749999999 96.97458984375 106.80375 94.915390625 106.80375 91.9013671875C106.80375 88.9103515625 104.30740234375 87.58740234375 101.7650390625 86.97769531249999L100.16599609375 86.56355468749999C98.77402343749999 86.2184375 97.24400390624999 85.6432421875 97.24400390624999 84.20525390625C97.24400390624999 82.9053125 98.41740234375 81.95048828124999 100.35005859374999 81.95048828124999C102.2021875 81.95048828124999 103.444609375 82.80177734374999 103.59416015625 84.26277343749999H106.57367187499999C106.49314453125 81.39830078125 104.05431640625 79.33910156249999 100.39607421874999 79.33910156249999C96.80685546874999 79.33910156249999 94.13794921875 81.36378906249999 94.13794921875 84.38931640624999C94.13794921875 86.80513671874999 95.8290234375 88.25462890624999 98.69349609375 88.99087890624999L100.63765624999999 89.49705078125C102.48978515625 89.98021484374999 103.73220703125 90.54390624999999 103.73220703125 91.87835937499999C103.73220703125 93.350859375 102.3172265625 94.35169921875 100.2925390625 94.35169921875C98.35988281249999 94.35169921875 96.82986328125 93.47740234375 96.69181640625 91.6712890625H93.6662890625C93.8043359375 95.05343749999999 96.32369140624999 96.97458984375 100.315546875 96.97458984375ZM116.96169921874998 96.940078125C121.44822265624998 96.940078125 124.81886718749999 93.68447265625 124.81886718749999 88.15109375C124.81886718749999 82.6062109375 121.44822265624998 79.33910156249999 116.96169921874998 79.33910156249999C112.46367187499999 79.33910156249999 109.08152343749998 82.6062109375 109.08152343749998 88.15109375C109.08152343749998 93.67296875 112.46367187499999 96.940078125 116.96169921874998 96.940078125ZM116.96169921874998 94.19064453125C114.15474609374999 94.19064453125 112.16457031249999 92.05091796875 112.16457031249999 88.15109375C112.16457031249999 84.22826171874999 114.15474609374999 82.08853515624999 116.96169921874998 82.08853515624999C119.74564453124998 82.08853515624999 121.72431640624998 84.21675781249999 121.72431640624998 88.15109375C121.72431640624998 92.062421875 119.74564453124998 94.19064453125 116.96169921874998 94.19064453125ZM127.72935546874999 96.71H138.37046875V94.12162109375H130.8008984375V79.5691796875H127.72935546874999ZM147.99923828124997 96.9630859375C152.17515625 96.9630859375 154.94759765624997 94.43222656249999 154.94759765624997 90.76248046875V79.5691796875H151.8760546875V90.50939453125C151.8760546875 92.660625 150.36904296874997 94.21365234375 147.99923828124997 94.21365234375C145.62943359374998 94.21365234375 144.122421875 92.660625 144.122421875 90.50939453125V79.5691796875H141.05087890624998V90.76248046875C141.05087890624998 94.43222656249999 143.8003125 96.9630859375 147.99923828124997 96.9630859375ZM157.61650390624996 82.15755859375H162.90830078124998V96.71H165.97984374999996V82.15755859375H171.26013671874998V79.5691796875H157.61650390624996ZM177.01208984374998 79.5691796875H173.94054687499997V96.71H177.01208984374998ZM187.80275390624996 96.940078125C192.28927734374997 96.940078125 195.65992187499998 93.68447265625 195.65992187499998 88.15109375C195.65992187499998 82.6062109375 192.28927734374997 79.33910156249999 187.80275390624996 79.33910156249999C183.30472656249998 79.33910156249999 179.92257812499997 82.6062109375 179.92257812499997 88.15109375C179.92257812499997 93.67296875 183.30472656249998 96.940078125 187.80275390624996 96.940078125ZM187.80275390624996 94.19064453125C184.99580078124998 94.19064453125 183.00562499999998 92.05091796875 183.00562499999998 88.15109375C183.00562499999998 84.22826171874999 184.99580078124998 82.08853515624999 187.80275390624996 82.08853515624999C190.58669921874997 82.08853515624999 192.56537109374997 84.21675781249999 192.56537109374997 88.15109375C192.56537109374997 92.062421875 190.58669921874997 94.19064453125 187.80275390624996 94.19064453125ZM198.57041015624998 96.71H201.69947265624998V88.197109375C201.69947265624998 87.24228515624999 201.5959375 85.436171875 201.48089843749997 83.319453125C202.63128906249997 85.5512109375 203.27550781249997 86.770625 204.17281249999996 88.20861328125L209.52212890624997 96.71H213.00781249999997V79.5691796875H209.89025390624997V88.56523437499999C209.89025390624997 89.61208984375 209.95927734375 91.3491796875 210.07431640624998 93.00574218749999C209.32656249999997 91.29166015624999 208.57880859374998 89.99171874999999 207.9691015625 89.01388671875L202.04458984374997 79.5691796875H198.57041015624998ZM222.47552734374997 96.97458984375C226.57091796874997 96.97458984375 228.96373046874996 94.915390625 228.96373046874996 91.9013671875C228.96373046874996 88.9103515625 226.46738281249998 87.58740234375 223.92501953124997 86.97769531249999L222.32597656249996 86.56355468749999C220.93400390624998 86.2184375 219.40398437499996 85.6432421875 219.40398437499996 84.20525390625C219.40398437499996 82.9053125 220.57738281249996 81.95048828124999 222.51003906249997 81.95048828124999C224.36216796874996 81.95048828124999 225.60458984374998 82.80177734374999 225.75414062499996 84.26277343749999H228.73365234374998C228.65312499999996 81.39830078125 226.21429687499997 79.33910156249999 222.55605468749997 79.33910156249999C218.96683593749998 79.33910156249999 216.29792968749996 81.36378906249999 216.29792968749996 84.38931640624999C216.29792968749996 86.80513671874999 217.98900390624996 88.25462890624999 220.85347656249996 88.99087890624999L222.79763671874997 89.49705078125C224.64976562499996 89.98021484374999 225.89218749999998 90.54390624999999 225.89218749999998 91.87835937499999C225.89218749999998 93.350859375 224.47720703124997 94.35169921875 222.45251953124998 94.35169921875C220.51986328124997 94.35169921875 218.98984374999998 93.47740234375 218.85179687499996 91.6712890625H215.82626953124998C215.96431640624996 95.05343749999999 218.48367187499997 96.97458984375 222.47552734374997 96.97458984375Z" class="jk-s"/></g></svg>',
+    LOGO_I='<svg class="jk jki" viewBox="0 0 512 512" role="img" aria-label="JoKe"><rect x="0" y="0" width="512" height="512" rx="117.76" class="jk-b"/><path d="M167.712 340.12C203.462 340.12 224.472 321.31 224.472 287.54V174.02H186.192V288.20000000000005C186.192 302.39 179.262 309.43 167.712 309.43C156.05200000000002 309.43 149.122 302.39 149.122 288.42V277.86H110.292V287.76C110.292 321.31 131.522 340.12 167.712 340.12ZM243.84799999999998 337.92H282.678V293.92L303.578 270.27L346.368 337.92H392.01800000000003L330.308 244.75L389.70799999999997 174.02H343.068L306.548 218.79000000000002C295.548 232.54000000000002 288.398 242.66000000000003 282.018 253.88L282.678 214.28000000000003V174.02H243.84799999999998Z" class="jk-w"/><circle cx="417.28" cy="94.72" r="28.16" class="jk-d"/></svg>';
+// Duotone-Icons (Linie + halbtransparente Fläche, Farbe = currentColor). plan/auftraege/einstellungen aus Media/*.svg
+var ICONS={plan:'<rect x="3" y="4.5" width="18" height="16.5" rx="3.5" fill="currentColor" fill-opacity=".14" stroke="none"/><path d="M3 9.5V8a3.5 3.5 0 0 1 3.5-3.5h11A3.5 3.5 0 0 1 21 8v1.5z" fill="currentColor" fill-opacity=".22" stroke="none"/><rect x="3" y="4.5" width="18" height="16.5" rx="3.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1.05" fill="currentColor" stroke="none"/><circle cx="16" cy="14" r="1.05" fill="currentColor" stroke="none"/><circle cx="8" cy="17.5" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="17.5" r="1.05" fill="currentColor" stroke="none"/>',
+auftraege:'<rect x="5" y="4.5" width="14" height="17.5" rx="3" fill="currentColor" fill-opacity=".14" stroke="none"/><path d="M9 4.5H8a3 3 0 0 0-3 3V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V7.5a3 3 0 0 0-3-3h-1"/><rect x="9" y="2.5" width="6" height="4" rx="1.5" fill="currentColor" fill-opacity=".3"/><path d="M8.6 12l1.2 1.2 2-2.4M13.5 12h2.6M8.6 17h.01M13.5 17h2.6"/>',
+einstellungen:'<path d="M10.31 4.69L10.75 2.48L13.25 2.48L13.69 4.69L15.97 5.64L17.84 4.38L19.62 6.16L18.36 8.03L19.31 10.31L21.52 10.75L21.52 13.25L19.31 13.69L18.36 15.97L19.62 17.84L17.84 19.62L15.97 18.36L13.69 19.31L13.25 21.52L10.75 21.52L10.31 19.31L8.03 18.36L6.16 19.62L4.38 17.84L5.64 15.97L4.69 13.69L2.48 13.25L2.48 10.75L4.69 10.31L5.64 8.03L4.38 6.16L6.16 4.38L8.03 5.64ZM8.7 12a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0Z" fill="currentColor" fill-opacity=".16" fill-rule="evenodd" stroke="none"/><path d="M10.31 4.69L10.75 2.48L13.25 2.48L13.69 4.69L15.97 5.64L17.84 4.38L19.62 6.16L18.36 8.03L19.31 10.31L21.52 10.75L21.52 13.25L19.31 13.69L18.36 15.97L19.62 17.84L17.84 19.62L15.97 18.36L13.69 19.31L13.25 21.52L10.75 21.52L10.31 19.31L8.03 18.36L6.16 19.62L4.38 17.84L5.64 15.97L4.69 13.69L2.48 13.25L2.48 10.75L4.69 10.31L5.64 8.03L4.38 6.16L6.16 4.38L8.03 5.64Z"/><circle cx="12" cy="12" r="3.1"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',
+left:'<path d="M15 5l-7 7 7 7"/>',
+right:'<path d="M9 5l7 7-7 7"/>',
+today:'<circle cx="12" cy="12" r="8" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+edit:'<path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5zM13.5 7l3 3"/>',
+trash:'<path d="M6 7h12l-1 12.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M4 7h16M10 3.5h4M6 7l1 12.5a2 2 0 0 0 2 1.5h6a2 2 0 0 0 2-1.5L18 7M10 11v6M14 11v6"/>',
+key:'<circle cx="8" cy="15" r="4.5" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8L20 3M16.5 6.5l2.5 2.5M14 9l2 2"/>',
+check:'<circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="9"/><path d="M7.8 12.3l2.8 2.8 5.6-6"/>',
+undo:'<path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/><path d="M9 14L4 9l5-5"/>',
+alert:'<path d="M10.3 4.2L2.6 17.5a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M10.3 4.2L2.6 17.5a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0zM12 9.5v4M12 17h.01"/>',
+box:'<path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5zM3.5 7.5L12 12l8.5-4.5M12 12v9"/>',
+move:'<rect x="3" y="4.5" width="18" height="16.5" rx="3.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="3" y="4.5" width="18" height="16.5" rx="3.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M8.5 15.5h7M13 13l2.5 2.5L13 18"/>',
+user:'<circle cx="12" cy="8" r="4" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0z" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
+users:'<circle cx="9" cy="8.5" r="3.5" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0z" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M15.5 5.2a3.5 3.5 0 0 1 0 6.6M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
+flag:'<path d="M5 4h11l-2 4 2 4H5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M5 21V4h11l-2 4 2 4H5"/>',
+save:'<path d="M5 3h11.5L21 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M5 3h11.5L21 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM7.5 3v5h8V3M7 21v-7h10v7"/>',
+pin:'<path d="M9.5 3h5l-.8 6 3.8 4h-11l3.8-4z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M8.5 3h7M9.5 3l.8 6-3.8 4h11l-3.8-4 .8-6M12 13v8"/>',
+pv:'<circle cx="12" cy="12" r="8" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3.2"/>',
+place:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+route:'<path d="M3 11l18-8-8 18-2-8z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M3 11l18-8-8 18-2-8z"/>',
+phone:'<path d="M5 3.5h3.5l2 5-2.5 1.5a11 11 0 0 0 5.5 5.5l1.5-2.5 5 2V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M5 3.5h3.5l2 5-2.5 1.5a11 11 0 0 0 5.5 5.5l1.5-2.5 5 2V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/>',
+clock:'<circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+star:'<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/>',
+starf:'<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor"/>',
+montage:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+werkstatt:'<path d="M17.6 15.6l3.9-3.9-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3A6 6 0 0 0 12.5 3H9l.9.8A6.2 6.2 0 0 1 12 8.4V10l2 2h1.2a2 2 0 0 1 1.4.6z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M15 12l-8.4 8.4a2 2 0 0 1-3-3L12 9M17.6 15.6l3.9-3.9-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3A6 6 0 0 0 12.5 3H9l.9.8A6.2 6.2 0 0 1 12 8.4V10l2 2h1.2a2 2 0 0 1 1.4.6z"/>',
+planung:'<path d="M3.3 15.5L15.5 3.3a1.5 1.5 0 0 1 2.1 0l3.1 3.1a1.5 1.5 0 0 1 0 2.1L8.5 20.7a1.5 1.5 0 0 1-2.1 0l-3.1-3.1a1.5 1.5 0 0 1 0-2.1z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M3.3 15.5L15.5 3.3a1.5 1.5 0 0 1 2.1 0l3.1 3.1a1.5 1.5 0 0 1 0 2.1L8.5 20.7a1.5 1.5 0 0 1-2.1 0l-3.1-3.1a1.5 1.5 0 0 1 0-2.1zM7.5 11.3l2 2M10.4 8.4l1.5 1.5M13.3 5.5l2 2"/>',
+urlaub:'<circle cx="12" cy="12" r="4.5" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+logout:'<path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5M10 8l-4 4 4 4M6 12h10"/>',
+copy:'<rect x="8" y="8" width="12.5" height="12.5" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="8" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
+function ic(n,c){return '<svg class="i'+(c?' '+c:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>'}
 function boot(){
  var C=window.PLANER_CONFIG||{};
  if(!C.url||!C.anonKey||!window.supabase){document.body.classList.add('auth');document.getElementById('main').innerHTML='<div class="login"><h1>Einrichtung fehlt</h1><p class="sub">In <b>config.js</b> die Supabase-URL und den anon-Key eintragen (siehe README).</p></div>';return}
@@ -252,7 +369,7 @@ function boot(){
 function lsGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
 function lsSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
 var NC=' autocapitalize="none" autocorrect="off" spellcheck="false"';
-function authHead(t){return '<div class="lo"><img src="joke-icon.svg" alt=""><h1>Auftragsplaner<small>'+t+'</small></h1></div>'}
+function authHead(t){return '<div class="lo">'+LOGO_H+'</div><h1>Auftragsplaner<small>'+t+'</small></h1>'}
 function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();document.getElementById('main').innerHTML=h}
 // Anmeldung für alle Firmen-Konten: Lizenz-ID + Benutzername (intern benutzername@001.planer.local).
 // Der Besitzer der Seite meldet sich mit E-Mail an (Lizenz-ID leer) und sieht die Firmenverwaltung.
@@ -262,7 +379,7 @@ function showLogin(msg){
  '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'" placeholder="JK.PLANNER.001"'+NC+'>'+
  '<label>Benutzername</label><input id="l_u" autocomplete="username"'+NC+' required>'+
  '<label>Passwort</label><input id="l_p" type="password" autocomplete="current-password" required>'+
- '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button><div class="brand">JoKe Smart Solutions</div></form>')}
+ '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button></form>')}
 function doLogin(e){e.preventDefault();var b=e.target.querySelector('.b.p'),er=document.getElementById('l_e'),
   u=document.getElementById('l_u').value.trim().toLowerCase(),t=licTag(document.getElementById('l_f').value),mail=u.indexOf('@')>-1;
  if(!mail&&!t){er.textContent='Bitte die Lizenz-ID angeben (z. B. JK.PLANNER.001).';return false}
@@ -287,18 +404,18 @@ function ownerLoad(){sb.rpc('owner_companies').then(function(r){if(r.error){show
 function coById(id){return OWN.filter(function(c){return c.id==id})[0]}
 function ownerPage(){var td=fmt(new Date());
  authPage('<div class="own"><div class="login">'+authHead('Besitzer · Firmen & Lizenzen')+'<div class="sub">'+OWN.length+' Firmen · '+OWN.filter(function(c){return c.active}).length+' aktiv</div>'+
- '<div class="row" style="margin-top:10px"><button class="b p" onclick="coEdit()">＋ Neue Firma</button><button class="b" style="flex:none" onclick="logout()">Abmelden</button></div></div>'+
- (OWN.length?OWN.map(function(c){var q='\''+c.id+'\'',st=!c.active?['gesperrt',' bad']:c.valid_until&&c.valid_until<td?['abgelaufen',' bad']:['aktiv',''];
+ '<div class="row" style="margin-top:10px"><button class="b p" onclick="coEdit()">'+ic('plus')+' Neue Firma</button><button class="b" style="flex:none" onclick="logout()">Abmelden</button></div></div>'+
+ (OWN.length?'<div class="ol">'+OWN.map(function(c){var q='\''+c.id+'\'',st=!c.active?['gesperrt',' bad']:c.valid_until&&c.valid_until<td?['abgelaufen',' bad']:['aktiv',''];
   return '<div class="job"><div class="top"><div class="k">'+esc(c.license_id)+'</div><span class="tag'+st[1]+'">'+st[0]+'</span></div>'+
   '<div class="sub"><b>'+esc(c.name)+'</b>'+(c.note?' · '+esc(c.note):'')+'</div>'+
   '<div class="sub">Anmeldungen <b>'+c.logins+' / '+c.max_users+'</b> · Mitarbeiter gesamt '+c.employees+' · gültig '+(c.valid_until?'bis '+dDE(c.valid_until):'unbegrenzt')+'</div>'+
   '<div class="sub">Admin: '+esc(c.admin_username||'–')+'</div>'+
-  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">✎ Bearbeiten</button><button class="b" onclick="coPw('+q+')">🔑 Admin-Passwort</button><button class="b d" style="flex:none" onclick="coDel('+q+')">🗑</button></div></div>'}).join('')
- :'<div class="empty big">Noch keine Firmen.<br><small>Mit „＋ Neue Firma“ die erste Lizenz vergeben.</small></div>')+'</div>')}
+  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">'+ic('edit')+' Bearbeiten</button><button class="b" onclick="coPw('+q+')">'+ic('key')+' Admin-Passwort</button><button class="b d" style="flex:none" onclick="coDel('+q+')" title="Löschen">'+ic('trash')+'</button></div></div>'}).join('')+'</div>'
+ :'<div class="empty big">Noch keine Firmen.<br><small>Mit „Neue Firma“ die erste Lizenz vergeben.</small></div>')+'</div>')}
 function genPw(){var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789',r=new Uint32Array(12),s='';crypto.getRandomValues(r);for(var i=0;i<12;i++)s+=a[r[i]%a.length];return s}
 function coEdit(id){var c=id?coById(id):null,d=document.getElementById('dlg'),y=new Date();y.setFullYear(y.getFullYear()+1);
  var f=function(i,l,v,ex){return '<label>'+l+'</label><input id="'+i+'" value="'+esc(v==null?'':v)+'"'+(ex||'')+'>'};
- d.innerHTML='<div class="dt2"><b>'+(c?esc(c.license_id)+' bearbeiten':'Neue Firma')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">✕</button></div>'+
+ d.innerHTML='<div class="dt2"><b>'+(c?esc(c.license_id)+' bearbeiten':'Neue Firma')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  (c?'':'<div class="sub">Die Lizenz-ID wird automatisch fortlaufend vergeben.</div>')+
  '<div class="sec">Firma & Lizenz</div>'+f('c_n','Firmenname',c&&c.name)+
  '<div class="g2"><div>'+f('c_m','Anmeldungen (inkl. Admin)',c?c.max_users:5,' type="number" min="1"')+'</div><div>'+f('c_v','Gültig bis (leer = unbegrenzt)',c?c.valid_until:fmt(y),' type="date"')+'</div></div>'+
@@ -317,9 +434,10 @@ function coSave(id,b){var g=function(i){var x=document.getElementById(i);return 
   sb.rpc('owner_companies').then(function(x){if(!x.error)OWN=x.data;ownerPage();showCreds('Firma angelegt',n,r.data,u,p)})})}
 // Zugangsdaten zum Weitergeben anzeigen (das Passwort wird danach nirgends mehr angezeigt)
 function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Auftragsplaner – Zugang für '+name+'\nAdresse: '+location.origin+location.pathname+'\nLizenz-ID: '+lic+'\nBenutzername: '+u+'\nPasswort: '+p;
- d.innerHTML='<div class="dt2"><b>'+esc(t)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">✕</button></div><div class="sub">Zugangsdaten für den Admin – jetzt kopieren und weitergeben. Das Passwort wird später nicht mehr angezeigt.</div>'+
- '<textarea id="cr" rows="6" readonly style="margin-top:10px">'+esc(txt)+'</textarea><div class="row ft"><button class="b p" onclick="var a=document.getElementById(\'cr\');a.select();try{navigator.clipboard.writeText(a.value)}catch(e){}this.textContent=\'✓ Kopiert\'">Kopieren</button></div>';
+ d.innerHTML='<div class="dt2"><b>'+esc(t)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="sub">Zugangsdaten für den Admin – jetzt kopieren und weitergeben. Das Passwort wird später nicht mehr angezeigt.</div>'+
+ '<textarea id="cr" rows="6" readonly style="margin-top:10px">'+esc(txt)+'</textarea><div class="row ft"><button class="b p" onclick="copyCr(this)">'+ic('copy')+' Kopieren</button></div>';
  if(!d.open)d.showModal()}
+function copyCr(b){var a=document.getElementById('cr');a.select();try{navigator.clipboard.writeText(a.value)}catch(e){}b.innerHTML=ic('check')+' Kopiert'}
 function coPw(id){var c=coById(id);if(!c.admin_username){alert('Diese Firma hat keinen Admin mit Anmeldung.');return}
  var p=prompt('Neues Passwort für den Admin „'+c.admin_username+'“ von '+c.name+' (mind. 10 Zeichen):',genPw());if(p==null)return;if(p.length<10){alert('Passwort: mindestens 10 Zeichen.');return}
  sb.rpc('owner_set_admin_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))showCreds('Admin-Passwort geändert',c.name,c.license_id,c.admin_username,p)})}
@@ -366,8 +484,8 @@ function kw(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())
 function who(j){var w=wer(j);return w.length?w.map(uName).join(', '):'niemand zugeteilt'}
 function byId(id){return S.jobs.filter(function(j){return j.id==id})[0]}
 
-function render(){render0();document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()">＋</button>');
- if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">⚠ Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>')}
+function render(){render0();document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Auftrag">'+ic('plus')+'</button>');
+ if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>')}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&!j.done&&vis(j)}).length+')';
@@ -375,33 +493,40 @@ function render0(){mkH();
  if(tab=='plan'){plan(hd,m)}else if(tab=='offen'){
   hd.innerHTML='<h1>Noch ohne Termin'+fltSub()+'</h1>';
   var o=S.jobs.filter(function(j){return !j.start&&vis(j)});
-  m.innerHTML=fltBar()+(o.length?o.map(function(j){return card(j,'')}).join(''):'<div class="empty big">📥<br><b>Nichts offen</b><br><small>Mit ＋ einen Auftrag ohne Termin anlegen</small></div>')
+  m.innerHTML=fltBar()+(o.length?'<div class="ol">'+o.map(function(j){return card(j,'')}).join('')+'</div>':'<div class="empty big">'+ic('auftraege')+'<br><b>Nichts offen</b><br><small>Mit '+ic('plus')+' einen Auftrag ohne Termin anlegen</small></div>')
  }else{
   hd.innerHTML='<h1>Mehr</h1>';
-  var adm=ME.role=='admin';
-  m.innerHTML='<h2>Mein Konto</h2><div class="me">Angemeldet als <b>'+esc(ME.display_name)+'</b> · '+esc(ME.username)+(adm?' · Admin':'')+'<br>Firma: <b>'+esc(ORG.name)+'</b> · Lizenz-ID: <b>'+esc(ORG.license_id)+'</b></div>'+
-  '<label>Neues Passwort</label><div class="row"><input id="pw1" type="password" autocomplete="new-password" style="flex:1 1 160px"><button class="b" style="flex:none" onclick="ownPw()">Ändern</button></div>'+
-  '<div class="row"><button class="b d" onclick="logout()">Abmelden</button></div>'+
-  (adm?lsec()+usec():'')+hsec(adm)+'<h2>Erledigte Aufträge</h2><div class="row"><button class="b" onclick="clearDone()">Erledigte löschen ('+S.jobs.filter(function(j){return j.done}).length+')</button></div>'+
-  '<h2>Backup</h2><div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
-  '<div class="row" style="margin-top:8px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="5" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>'
+  var adm=ME.role=='admin',nd=S.jobs.filter(function(j){return j.done}).length;
+  // Einstellungen als klar getrennte Abschnitte (Breitbild: zweispaltig)
+  m.innerHTML='<div class="pgrid">'+
+  pnl(ic('user')+'Mein Konto','<div class="kv"><span>Name</span><b>'+esc(ME.display_name)+'</b><span>Benutzername</span><b>'+esc(ME.username)+(adm?' · Admin':'')+'</b><span>Firma</span><b>'+esc(ORG.name)+'</b><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b></div>'+
+   '<label>Neues Passwort</label><div class="row"><input id="pw1" type="password" autocomplete="new-password" placeholder="mind. '+pwMin()+' Zeichen" style="flex:1 1 160px"><button class="b" style="flex:none" onclick="ownPw()">Ändern</button></div>'+
+   '<div class="row" style="margin-top:6px"><button class="b d" style="flex:none" onclick="logout()">'+ic('logout')+' Abmelden</button></div>')+
+  (adm?pnl(ic('key')+'Lizenz',lsec()):'')+
+  (adm?pnl(ic('users')+'Mitarbeiter',usec(),'wide'):'')+
+  pnl(ic('flag')+'Feiertage Südtirol',hsec(adm))+
+  pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>')+
+  pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
+   '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>',adm?'wide':'')+
+  '</div><div class="mfoot">'+LOGO_H+'<span>Auftragsplaner</span></div>'
  }
 }
+function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)
-function lsec(){
- return '<h2>Lizenz</h2><div class="me">Lizenz-ID: <b>'+esc(ORG.license_id)+'</b><br>Anmeldungen: <b>'+nLogins()+' von '+ORG.max_users+'</b> belegt · Mitarbeiter ohne Anmeldung: unbegrenzt<br>Gültig '+
-  (ORG.valid_until?'bis <b'+(expired()?' style="color:var(--bad)"':'')+'>'+dDE(ORG.valid_until)+'</b>':'<b>unbegrenzt</b>')+'</div>'+
-  '<div class="sub">Mehr Anmeldungen oder Verlängerung: bitte an JoKe Smart Solutions wenden.</div>'}
+function lsec(){var n=nLogins(),p=Math.min(100,Math.round(n*100/ORG.max_users));
+ return '<div class="kv"><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b><span>Anmeldungen</span><b>'+n+' von '+ORG.max_users+' belegt</b><span>Ohne Anmeldung</span><b>unbegrenzt</b><span>Gültig</span><b'+(expired()?' style="color:var(--bad)"':'')+'>'+(ORG.valid_until?'bis '+dDE(ORG.valid_until):'unbegrenzt')+'</b></div>'+
+  '<div class="meter'+(n>=ORG.max_users?' full':'')+'"><i style="width:'+p+'%"></i></div>'+
+  '<div class="sub" style="margin-top:10px">Mehr Anmeldungen oder Verlängerung: bitte an JoKe Smart Solutions wenden.</div>'}
 // Mitarbeiter: mit Anmeldung (zählt zur Lizenz) oder ohne Anmeldung (nur verplanbar)
 function usec(){var full=nLogins()>=ORG.max_users;
- return '<h2>Mitarbeiter</h2><div class="sub">Mitarbeiter <b>mit Anmeldung</b> melden sich mit Lizenz-ID <b>'+esc(ORG.license_id)+'</b>, Benutzername und Passwort an. Mitarbeiter <b>ohne Anmeldung</b> werden nur verplant und zählen nicht zur Lizenz.</div><div class="ul">'+USERS.map(function(u){var me=u.id==ME.id,q='\''+u.id+'\'';
+ return '<div class="sub">Mitarbeiter <b>mit Anmeldung</b> melden sich mit Lizenz-ID <b>'+esc(ORG.license_id)+'</b>, Benutzername und Passwort an. Mitarbeiter <b>ohne Anmeldung</b> werden nur verplant und zählen nicht zur Lizenz.</div><div class="ul">'+USERS.map(function(u){var me=u.id==ME.id,q='\''+u.id+'\'';
   return '<div class="ur"><input type="color" value="'+esc(u.color)+'" onchange="uUpd('+q+',{color:this.value})" title="Farbe im Kalender"><div class="nm"><input value="'+esc(u.display_name)+'" onchange="uUpd('+q+',{display_name:this.value.trim()||this.defaultValue})"><small>'+(u.role=='admin'?'Admin · Benutzername: <b>'+esc(u.username||'–')+'</b>':u.user_id?'Benutzername: <b>'+esc(u.username)+'</b>':'Ohne Anmeldung (nur Planung)')+'</small></div>'+
-  (u.role=='admin'?'':u.user_id?'<button class="b" onclick="uPw('+q+')">🔑 Passwort</button><button class="b" onclick="uNoLogin('+q+')">Anmeldung entfernen</button>':'<button class="b" onclick="uLogin('+q+')"'+(full?' disabled title="Lizenzlimit erreicht"':'')+'>＋ Anmeldung</button>')+
-  (me?'':'<button class="b d" onclick="uDel('+q+')">🗑</button>')+'</div>'}).join('')+'</div>'+
+  (u.role=='admin'?'':u.user_id?'<button class="b" onclick="uPw('+q+')">'+ic('key')+' Passwort</button><button class="b" onclick="uNoLogin('+q+')">Anmeldung entfernen</button>':'<button class="b" onclick="uLogin('+q+')"'+(full?' disabled title="Lizenzlimit erreicht"':'')+'>'+ic('plus')+' Anmeldung</button>')+
+  (me?'':'<button class="b d" onclick="uDel('+q+')" title="Löschen">'+ic('trash')+'</button>')+'</div>'}).join('')+'</div>'+
   '<div class="sec">Neuer Mitarbeiter</div><div class="g2"><div><label>Name (Anzeige)</label><input id="u_n" placeholder="z. B. Stefan"></div><div><label>Farbe</label><input id="u_c" type="color" value="'+COLORS[USERS.length%COLORS.length]+'"></div></div>'+
   '<label class="chk"><input id="u_l" type="checkbox" onchange="document.getElementById(\'u_lb\').style.display=this.checked?\'\':\'none\'"'+(full?' disabled':' checked')+'> Darf sich anmelden'+(full?' (Lizenzlimit erreicht)':'')+'</label>'+
   '<div id="u_lb" class="g2"'+(full?' style="display:none"':'')+'><div><label>Benutzername</label><input id="u_u" placeholder="z. B. stefan"'+NC+'></div><div><label>Passwort</label><input id="u_p" type="text" autocomplete="off" placeholder="mind. 8 Zeichen"></div></div>'+
-  '<div class="row"><button class="b p" onclick="uNew(this)">＋ Mitarbeiter anlegen</button></div>'}
+  '<div class="row"><button class="b p" onclick="uNew(this)">'+ic('plus')+' Mitarbeiter anlegen</button></div>'}
 function rpcErr(r){if(r.error){alert(r.error.message);return true}return false}
 // Passwort-Mindestlänge: Firmen-Admins 10, Mitarbeiter 8 Zeichen
 function pwMin(){return ME&&ME.role=='admin'?10:8}
@@ -431,16 +556,16 @@ function logout(){sb.auth.signOut().then(function(){showLogin()})}
 function card(j,ds){
  var o=openId==j.id,days=j.start?span(j):[],A=ART[j.art],id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
  var pos=ds&&days.length>1?' · Tag '+(days.indexOf(ds)+1)+'/'+days.length:(j.tage>1&&!j.start?' · '+j.tage+' Tage':'');
- var tg='<span class="tag fx">'+(PV(j)?'◌ provisorisch':'📌 fix')+'</span>';
- if(!j.material&&!j.done&&mt)tg+='<span class="tag bad">⚠ Material fehlt</span>';
- if(j.adresse)tg+='<span class="tag">📍 '+esc(j.adresse)+'</span>';
+ var tg='<span class="tag fx">'+(PV(j)?ic('pv')+'provisorisch':ic('pin')+'fix')+'</span>';
+ if(!j.material&&!j.done&&mt)tg+='<span class="tag bad">'+ic('alert')+'Material fehlt</span>';
+ if(j.adresse)tg+='<span class="tag">'+ic('place')+esc(j.adresse)+'</span>';
  var q=function(f,l,c){return '<button class="b '+(c||'')+'" onclick="'+f+'">'+l+'</button>'};
- var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt" onclick="tog(\''+id+'\')"><div class="top"><div class="k">'+(j.imp?'<span class="starx">★</span> ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?'★':'☆')+'</button>'+A.ic+'</div></div>'+
- '<div class="sub">'+A.n+' · '+(wer(j).length>1?'👥 ':'')+esc(who(j))+pos+(j.zeit?' · 🕗 '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div><div class="acts">';
- if(j.start)h+='<div class="lbl">Verschieben</div><div class="g4">'+q("mv('"+id+"',-1)",'‹ Tag')+q("mv('"+id+"',1)",'Tag ›')+q("mv('"+id+"',7)",'+1 Wo.')+q("mv('"+id+"',0)",'Offen')+'</div>';
- h+='<div class="g2">'+q("pick('"+id+"')",'📆 Im Kalender')+q("fixt('"+id+"')",PV(j)?'📌 Fix setzen':'◌ Provisorisch')+'</div>';
- h+='<div class="g2">'+q("done('"+id+"')",j.done?'↺ Wieder öffnen':'✓ Erledigt',mt?'p':'p w')+(mt?q("mat('"+id+"')",j.material?'⚠ Material fehlt':'✔ Material da'):'')+'</div>';
- h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">📞 Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">🗺 Route</a>':'')+q("edit('"+id+"')",'✎ Bearbeiten')+q("del('"+id+"')",'🗑','d')+'</div></div></div>';
+ var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt" onclick="tog(\''+id+'\')"><div class="top"><div class="k">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?ic('starf'):ic('star'))+'</button>'+A.ic+'</div></div>'+
+ '<div class="sub">'+A.n+' · '+(wer(j).length>1?ic('users')+' ':'')+esc(who(j))+pos+(j.zeit?' · '+ic('clock')+' '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div><div class="acts">';
+ if(j.start)h+='<div class="lbl">Verschieben</div><div class="g4">'+q("mv('"+id+"',-1)",ic('left')+'Tag')+q("mv('"+id+"',1)",'Tag'+ic('right'))+q("mv('"+id+"',7)",'+1 Wo.')+q("mv('"+id+"',0)",'Offen')+'</div>';
+ h+='<div class="g2">'+q("pick('"+id+"')",ic('move')+' Im Kalender')+q("fixt('"+id+"')",PV(j)?ic('pin')+' Fix setzen':ic('pv')+' Provisorisch')+'</div>';
+ h+='<div class="g2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt',mt?'p':'p w')+(mt?q("mat('"+id+"')",j.material?ic('alert')+' Material fehlt':ic('box')+' Material da'):'')+'</div>';
+ h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+q("del('"+id+"')",ic('trash'),'d')+'</div></div></div>';
  return h}
 function tog(id){openId=openId==id?null:id;render()}
 function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j.art)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
@@ -466,7 +591,7 @@ function imp(){var d;try{d=JSON.parse(document.getElementById('bk').value);if(!d
  var hol=(d.hol||[]).map(function(h){return {d:h.d,n:h.n}});
  Promise.all([sb.from('jobs').upsert(rows),hol.length?sb.from('holidays').upsert(hol):{}]).then(function(r){var e=r.filter(function(x){return x.error})[0];if(e)fail(e.error);else{alert('Übernommen.');document.getElementById('bk').value='';reload()}})}
 
-var ART={montage:{n:'Montage',ic:'🔧'},werkstatt:{n:'Werkstatt',ic:'🪚'},planung:{n:'Planung',ic:'📐'},termin:{n:'Termin',ic:'📌'},urlaub:{n:'Urlaub',ic:'🌴'}},COL={montage:'var(--mo)',werkstatt:'var(--we)',planung:'var(--pl)',termin:'var(--tm)',urlaub:'var(--ur)'};
+var ART={montage:{n:'Montage',ic:ic('montage')},werkstatt:{n:'Werkstatt',ic:ic('werkstatt')},planung:{n:'Planung',ic:ic('planung')},termin:{n:'Termin',ic:ic('clock')},urlaub:{n:'Urlaub',ic:ic('urlaub')}},COL={montage:'var(--mo)',werkstatt:'var(--we)',planung:'var(--pl)',termin:'var(--tm)',urlaub:'var(--ur)'};
 var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['tag','Tag'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
 function plan(hd,m){
  var a=parse(an),t,h='';
@@ -476,18 +601,19 @@ function plan(hd,m){
  else if(mode=='monat')t=MF[a.getMonth()]+' '+a.getFullYear();
  else if(mode=='quartal'){var e2=new Date(a.getFullYear(),a.getMonth()+2,1);t=MN[a.getMonth()]+'–'+MN[e2.getMonth()]+' '+e2.getFullYear()}
  else t=''+a.getFullYear();
- hd.innerHTML='<button class="ib" onclick="step(-1)">‹</button><h1>'+t+fltSub()+'</h1><button class="ib" onclick="an=fmt(new Date());setMode(mode)">⌖</button><button class="ib" onclick="step(1)">›</button>';
+ hd.innerHTML='<button class="ib" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
- h+=fltBar()+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>★ wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>👥3 = 3 Personen</span></div>';
- if(mvId){var mj=byId(mvId);h+='<div class="mvb">📦 <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Tag antippen. Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- if(mode=='tag')h+=dayBlock(an);
- else if(mode=='woche')h+=(mvId?'':'<div class="empty">Block oben/unten ziehen = Uhrzeit ändern · halten und ziehen = verschieben</div>')+weekGrid(monday(a));
+ h+=fltBar()+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
+ if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
+ var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen = neuer Auftrag</div>';
+ if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid([an])+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
+ else if(mode=='woche')h+=TGH+weekGrid(monday(a));
  else if(mode=='monat')h+=(mvId?'':'<div class="empty">Auftrag antippen = verschieben · Tag antippen = Details</div>')+monthGrid(a.getFullYear(),a.getMonth(),'full');
- else if(mode=='quartal'){for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}}
+ else if(mode=='quartal'){h+='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
  else{h+='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
  m.innerHTML=h}
 function dayBlock(ds){var d=parse(ds),js=dm[ds]||[];
- return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · 🎌 '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')">+</button>')+'</div>'+(js.length?js.slice().sort(function(a,b){return (a.zeit||'')<(b.zeit||'')?-1:1}).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
+ return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Auftrag">'+ic('plus')+'</button>')+'</div>'+(js.length?js.slice().sort(function(a,b){return (a.zeit||'')<(b.zeit||'')?-1:1}).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
 function monthGrid(y,mo,kind){
  var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,h='<div class="mg '+kind+'">';
  if(kind!='full')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
@@ -497,32 +623,63 @@ function monthGrid(y,mo,kind){
   var ds=fmt(dt),js=dm[ds]||[],c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
   if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){if(ar.indexOf(j.art)<0)ar.push(j.art);if(!PV(j)){fxs[j.art]=1;anyF=true}});var cl=function(a){return fxs[a]?COL[a]:'color-mix(in srgb,'+COL[a]+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
   else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+'</div>';
-  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();chip(\''+j.id+'\',\''+ds+'\')">'+(j.imp?'★ ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
+  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();chip(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
  return h+'</div></div>'}
 function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 function chip(id,ds){if(mvId)drop(ds);else{mvId=id;mvG=ds;render()}}
 function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);return}
  if(ds){var st=ds,i=(j.zeit||!j.start)?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
  mvG='';if(ds&&mode=='tag')an=j.start;mvId=null;save(j);render()}
-function dropT(ds,e){if(!mvId)return;var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}if(j.zeit){var r=e.currentTarget.getBoundingClientRect(),m0=Math.round(((e.clientY-r.top)/HH*60+H0*60)/30)*30,du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}drop(ds)}
+// Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
+function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
+// Stundenspalte: im Verschiebemodus Ziel (ganztägige Ein-Tages-Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Auftrag
+function dropT(ds,e){
+ if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)));return}
+ var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
+ var m0=slotMin(e);
+ if(j.zeit){var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}
+ else if(span(j).length==1){j.zeit=m2t(m0);j.ende=m2t(m0+60);j.tage=1}
+ drop(ds)}
+// Ganztags-Zeile: Ziel macht den Auftrag ganztägig
+function dropAd(ds){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}j.zeit='';j.ende='';drop(ds)}
+function adClick(ds){if(mvId)dropAd(ds);else if(mode=='tag')edit(null,ds);else{an=ds;setMode('tag')}}
+// Termin antippen: Tagesansicht = Details öffnen, sonst zum Verschieben auswählen
+function evClick(id,ds){if(mvId){drop(ds);return}
+ if(mode!='tag'){chip(id,ds);return}
+ openId=id;render();var c=document.querySelector('.dvl .job.open');if(c)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
 function hdr(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 function pick(id){var j=byId(id);mvId=id;mvG='';tab='plan';openId=null;if(mode=='tag')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
 function det(){var j=byId(mvId);if(j.start)an=j.start;openId=mvId;mvId=null;setMode('tag')}
 function setMode(k){mode=k;render()}
 function step(n){if(mode=='tag')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
-function weekGrid(w){
- var days=[],lo=360,hi=1200,td=fmt(new Date()),i;
- for(i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}
- days.forEach(function(ds){(dm[ds]||[]).forEach(function(j){if(j.zeit){lo=Math.min(lo,t2m(j.zeit));hi=Math.max(hi,t2m(j.ende||j.zeit)+30)}})});
+function weekGrid(w){var days=[];for(var i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}return timeGrid(days)}
+// Zeitraster wie in Outlook (Tag und Woche): oben die Ganztags-Zeile, darunter die Stunden mit 30-Minuten-Linien.
+// Halten und ziehen = verschieben (auch zwischen Ganztags und Uhrzeit), Rand oben/unten ziehen = Dauer.
+function timeGrid(days){
+ var one=days.length==1,wide=innerWidth>=900,lo=420,hi=1140,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes();
+ HH=one?56:wide?44:30;
+ days.forEach(function(ds){(dm[ds]||[]).forEach(function(j){if(j.zeit){lo=Math.min(lo,t2m(j.zeit));hi=Math.max(hi,t2m(j.ende||j.zeit))}})});
  var h0=Math.floor(lo/60),h1=Math.min(24,Math.ceil(hi/60)),H=(h1-h0)*HH;H0=h0;H1=h1;
- var h='<div class="wk"><div></div>'+days.map(function(ds){var d=parse(ds);return '<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+'</div>'}).join('')+'</div>';
- h+='<div class="wk"><div>';for(var k=h0;k<h1;k++)h+='<div class="hl" style="height:'+HH+'px">'+k+'</div>';h+='</div>';
- days.forEach(function(ds){
-  var js=(dm[ds]||[]).slice().sort(function(a,b){return t2m(a.zeit||'06:00')-t2m(b.zeit||'06:00')}),lanes=[];
-  var pl=js.map(function(j){var s0=j.zeit?t2m(j.zeit):360,e0=j.zeit?Math.max(t2m(j.ende||j.zeit),s0+30):1200,l=0;while(lanes[l]>s0)l++;lanes[l]=e0;return {j:j,s:s0,e:e0,l:l}}),nl=Math.max(1,lanes.length);
-  h+='<div class="dcol'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,rz=(j.zeit||j.tage==1)&&!j.done;
-   return '<div class="ch ev '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+(!j.zeit?' ad':'')+(!j.zeit&&nl>1?' vt':'')+(hp<36?' sh':'')+'" data-id="'+j.id+'" data-ds="'+ds+'" style="'+wS(j)+'top:'+((q.s/60-h0)*HH)+'px;height:'+hp+'px;left:'+(q.l*100/nl)+'%;width:'+(100/nl)+'%" onclick="event.stopPropagation();chip(\''+j.id+'\',\''+ds+'\')">'+(j.imp?'★ ':'')+pc(j)+esc(j.kunde||'?')+(j.zeit?'<br>'+j.zeit:'')+(rz?(hp>=36?'<i class="rz t" data-rz="t"></i>':'')+'<i class="rz b" data-rz="b"></i>':'')+'</div>'}).join('')+'</div>'});
+ var row=function(cls,first,cells){return '<div class="wk '+cls+'" style="grid-template-columns:'+(one||wide?'52px':'30px')+' repeat('+days.length+',minmax(0,1fr))">'+first+cells+'</div>'};
+ var cls=function(j){return j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')},att=function(j,ds){return ' data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')"'};
+ var h='<div class="tg'+(one?' one':'')+'" style="--hh:'+HH+'px">';
+ h+=row('tgh','<div></div>',days.map(function(ds){var d=parse(ds);return '<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+'</div>'}).join(''));
+ h+=row('tga','<div class="tl">ganz&shy;tags</div>',days.map(function(ds){
+  return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1" onclick="adClick(\''+ds+'\')">'+(dm[ds]||[]).filter(function(j){return !j.zeit}).map(function(j){
+   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,ds)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+(one?' <small>· '+esc(who(j))+'</small>':'')+'</span>'}).join('')+'</div>'}).join(''));
+ var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
+ h+=row('tgb',hl,days.map(function(ds){
+  var js=(dm[ds]||[]).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
+  var pl=js.map(function(j){var s0=t2m(j.zeit),e0=Math.max(t2m(j.ende||j.zeit),s0+30),l=0;while(lanes[l]>s0)l++;lanes[l]=e0;return {j:j,s:s0,e:e0,l:l}}),nl=Math.max(1,lanes.length);
+  return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td?' tdc':'')+'" data-drop="'+ds+'" style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
+   (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
+   pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH;
+    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,ds)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH)+'px;height:'+hp+'px;left:'+(q.l*100/nl)+'%;width:'+(100/nl)+'%">'+
+    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+(one?' · '+esc(who(j))+(j.adresse?' · '+ic('place')+' '+esc(j.adresse):''):'')+'</small>'+
+    (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+'</div>'}).join(''));
  return h+'</div>'}
+// Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
+var WIDE=innerWidth>=900;addEventListener('resize',function(){var w=innerWidth>=900;if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
 function nw(){edit(null,tab=='plan'&&mode=='tag'?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
@@ -553,14 +710,15 @@ document.addEventListener('contextmenu',function(e){if(DG)e.preventDefault()});
 document.addEventListener('click',function(e){if(sup){e.stopPropagation();e.preventDefault()}},true);
 document.addEventListener('pointerdown',function(e){
  if(e.button>0||mvId)return;var el=e.target.closest&&e.target.closest('[data-id]');if(!el||e.target.closest('.rz'))return;
- DG={el:el,id:el.dataset.id,ds:el.dataset.ds,x:e.clientX,y:e.clientY,t:e.pointerType,on:false};
+ // oy: Abstand vom oberen Rand des Termins, damit er beim Ablegen nicht um den Greifpunkt springt
+ DG={el:el,id:el.dataset.id,ds:el.dataset.ds,x:e.clientX,y:e.clientY,t:e.pointerType,on:false,oy:el.classList.contains('ev')?e.clientY-el.getBoundingClientRect().top:0};
  DG.tm=setTimeout(dgStart,280)});
 document.addEventListener('pointermove',function(e){if(!DG)return;
  if(!DG.on){if(Math.abs(e.clientX-DG.x)>8||Math.abs(e.clientY-DG.y)>8){if(DG.t=='mouse')dgStart();else{clearTimeout(DG.tm);DG=null}}return}
  DG.cx=e.clientX;DG.cy=e.clientY;dgMove()});
 function dgStart(){if(!DG||DG.on)return;DG.on=true;sup=true;
  var j=byId(DG.id),n=j.zeit?1:span(j).length,g=document.createElement('div');
- g.className='ghost '+j.art;g.textContent=(j.kunde||'Auftrag')+(n>1?' · '+n+' Tage':'');document.body.appendChild(g);DG.g=g;
+ g.className='ghost '+j.art;DG.lb=(j.kunde||'Auftrag')+(n>1?' · '+n+' Tage':'');g.textContent=DG.lb;document.body.appendChild(g);DG.g=g;
  document.querySelectorAll('[data-id="'+DG.id+'"]').forEach(function(x){x.classList.add('drg')});
  DG.cx=DG.x;DG.cy=DG.y;dgMove();
  DG.iv=setInterval(function(){if(DG&&DG.on){if(DG.cy<90)scrollBy(0,-14);else if(DG.cy>innerHeight-120)scrollBy(0,14);
@@ -569,14 +727,16 @@ function dgStart(){if(!DG||DG.on)return;DG.on=true;sup=true;
  try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}}
 function dgMove(){DG.g.style.left=(DG.cx+10)+'px';DG.g.style.top=(DG.cy-40)+'px';
  var t=document.elementFromPoint(DG.cx,DG.cy),d=t&&t.closest?t.closest('[data-drop]'):null;
- if(DG.hl&&DG.hl!==d)DG.hl.classList.remove('dt');if(d)d.classList.add('dt');DG.hl=d}
+ if(DG.hl&&DG.hl!==d)DG.hl.classList.remove('dt');if(d)d.classList.add('dt');DG.hl=d;
+ // Wie in Outlook: beim Ziehen über die Stunden die Zieluhrzeit anzeigen
+ DG.g.textContent=d&&d.classList.contains('dcol')?DG.lb+' · '+m2t(slotMin({currentTarget:d,clientY:DG.cy-DG.oy})):d&&d.dataset.ad?DG.lb+' · ganztags':DG.lb}
 function dgEnd(ok){if(!DG)return;clearTimeout(DG.tm);
- if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,y=DG.cy;if(d)d.classList.remove('dt');
+ if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,y=DG.cy-DG.oy;if(d)d.classList.remove('dt');
   setTimeout(function(){sup=false},80);DG=null;
-  if(ok&&d){mvId=id;mvG=g;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else drop(ds);if(mvId){mvId=null;mvG='';render()}}
+  if(ok&&d){mvId=id;mvG=g;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else if(d.dataset.ad)dropAd(ds);else drop(ds);if(mvId){mvId=null;mvG='';render()}}
   else render();return}
  DG=null}
-document.addEventListener('pointerup',function(){dgEnd(true)});
+document.addEventListener('pointerup',function(e){if(DG&&DG.on){DG.cx=e.clientX;DG.cy=e.clientY;dgMove()}dgEnd(true)});
 document.addEventListener('pointercancel',function(){dgEnd(false)});
 var HOL={};
 function mkH(){HOL={};(S.hol||[]).forEach(function(h){HOL[h.d]=h.n})}
@@ -589,7 +749,7 @@ function impH(y){var l=holList(y);S.hol=(S.hol||[]).filter(function(h){return h.
  sb.from('holidays').upsert(l).then(function(r){if(r.error)fail(r.error)})}
 function clrH(){if(confirm('Alle Feiertage entfernen?')){S.hol=[];render();sb.from('holidays').delete().gte('d','1900-01-01').then(function(r){if(r.error)fail(r.error)})}}
 function holInfo(){var c={};(S.hol||[]).forEach(function(h){var y=h.d.slice(0,4);c[y]=(c[y]||0)+1});var k=Object.keys(c);return k.length?'Importiert: '+k.map(function(y){return y+' ('+c[y]+')'}).join(', '):'Noch nichts importiert.'}
-function hsec(adm){var y=new Date().getFullYear();return '<h2>Feiertage Südtirol</h2><div class="sub">Gesetzliche Feiertage werden im Kalender markiert. Montage, Planung und Werkstatt werden dort nicht eingeplant.</div>'+(adm?'<div class="row" style="margin-top:8px"><button class="b p" onclick="impH('+y+')">'+y+' importieren</button><button class="b" onclick="impH('+(y+1)+')">'+(y+1)+' importieren</button></div>':'')+'<div class="sub">'+holInfo()+'</div>'+(adm?'<div class="row" style="margin-top:6px"><button class="b" onclick="clrH()">Feiertage entfernen</button></div>':'')}
+function hsec(adm){var y=new Date().getFullYear();return '<div class="sub">Gesetzliche Feiertage werden im Kalender markiert. Montage, Planung und Werkstatt werden dort nicht eingeplant.</div>'+(adm?'<div class="row" style="margin-top:8px"><button class="b p" onclick="impH('+y+')">'+y+' importieren</button><button class="b" onclick="impH('+(y+1)+')">'+(y+1)+' importieren</button></div>':'')+'<div class="sub">'+holInfo()+'</div>'+(adm?'<div class="row" style="margin-top:6px"><button class="b" onclick="clrH()">Feiertage entfernen</button></div>':'')}
 function impt(id){var j=byId(id);j.imp=!j.imp;save(j);render()}
 var sw=null;
 document.addEventListener('touchstart',function(e){sw=(tab=='plan'&&e.touches.length==1&&!(DG&&DG.on)&&e.target.closest&&e.target.closest('main'))?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
@@ -598,10 +758,10 @@ document.addEventListener('touchend',function(e){var s0=sw;sw=null;if(!s0||(DG&&
 function vis(j){if(FLT=='alle')return true;var id=FLT=='me'?ME.id:FLT;return (j.wer||[]).indexOf(id)>-1}
 function setFlt(v){FLT=v;render()}
 function cnt(j){return wer(j).length}
-function pc(j){return cnt(j)>1?'👥'+cnt(j)+' ':''}
+function pc(j){return cnt(j)>1?ic('users')+cnt(j)+' ':''}
 function fltSub(){return FLT=='alle'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
-function fltBar(){var b=function(v,l,c){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+esc(l)+'</button>'};
- return '<div class="seg flt">'+b('me','👤 Meine')+b('alle','👥 Alle')+USERS.filter(function(u){return u.id!=ME.id}).map(function(u){return b(u.id,u.display_name,u.color)}).join('')+'</div>'}
+function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+(i?ic(i)+' ':'')+esc(l)+'</button>'};
+ return '<div class="seg flt">'+b('me','Meine','','user')+b('alle','Alle','','users')+USERS.filter(function(u){return u.id!=ME.id}).map(function(u){return b(u.id,u.display_name,u.color)}).join('')+'</div>'}
 var RZ=null,H1=20;
 document.addEventListener('pointerdown',function(e){var h=e.target.closest&&e.target.closest('.rz');if(!h||mvId)return;
  var ev=h.parentNode,j=byId(ev.dataset.id);if(!j)return;
@@ -613,18 +773,18 @@ document.addEventListener('pointermove',function(e){if(!RZ)return;
  if(RZ.side=='b')RZ.e=Math.max(RZ.s+30,Math.min(H1*60,m));else RZ.s=Math.min(RZ.e-30,Math.max(H0*60,m));
  RZ.ev.style.top=((RZ.s/60-H0)*HH)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH)+'px'});
 function rzEnd(ok){if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
- if(ok){if(z.s<=360&&z.e>=1200){j.zeit='';j.ende=''}else{j.zeit=m2t(z.s);j.ende=m2t(z.e);j.tage=1}save(j)}render()}
+ if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);j.tage=1;save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
 var cur={};
-function edit(id,ds){
- var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:'',ende:'',material:true,notiz:'',done:false};
+function edit(id,ds,t){
+ var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?m2t(t2m(t)+60):'',material:true,notiz:'',done:false};
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
- d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">✕</button></div>'+
+ d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'">'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+USERS.map(function(u){return '<button data-v="'+u.id+'">'+esc(u.display_name)+'</button>'}).join('')+'</div>'+
- '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">◌ Provisorisch</button><button data-v="1">📌 Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> ⭐ Wichtiger Termin</label>'+
+ '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">'+ic('pv')+' Provisorisch</button><button data-v="1">'+ic('pin')+' Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> '+ic('starf','starx')+' Wichtiger Termin</label>'+
  '<div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags</button><button data-v="1">Uhrzeit</button></div>'+
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
  '<div id="db"><label>Dauer in Tagen</label><input id="f_d" oninput="sug()" type="number" min="1" max="60" value="'+j.tage+'"></div>'+
@@ -645,6 +805,8 @@ function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g(
  j.kunde=g('f_k').value.trim();j.adresse=g('f_a').value.trim();j.tel=g('f_t').value.trim();j.start=st;j.fix=cur.fx;j.imp=g('f_i').checked;j.material=g('f_m').checked;j.notiz=g('f_n').value.trim();
  if(cur.zt){j.zeit=g('f_z').value||'08:00';j.ende=g('f_e').value;if(!j.ende||j.ende<=j.zeit)j.ende=m2t(t2m(j.zeit)+60);j.tage=1}else{j.zeit='';j.ende='';j.tage=Math.max(1,parseInt(g('f_d').value)||1)}
  if(cur.isNew)S.jobs.push(j);else S.jobs=S.jobs.map(function(o){return o.id==j.id?j:o});save(j);g('dlg').close();if(j.start)an=j.start;tab=j.start?'plan':'offen';render()}
+document.querySelector('nav').insertAdjacentHTML('afterbegin','<div class="nlg" title="JoKe Smart Solutions">'+LOGO_I+'</div>');
+document.querySelectorAll('nav [data-i]').forEach(function(x){x.innerHTML=ic(x.dataset.i)});
 document.querySelectorAll('nav button').forEach(function(b){b.onclick=function(){tab=b.dataset.t;window.scrollTo(0,0);render()}});
 boot();
 </script>
