@@ -603,10 +603,13 @@ function render0(){mkH();
   hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
   done:!adm?'':pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
   app:appSec(),
+  az:adm?pnl(ic('clock')+'Ganztägige Termine','<div class="sub">Ganztägige Termine werden im Kalender in diesem Zeitraum angezeigt.</div>'+
+   '<div class="row" style="margin-top:10px"><div style="flex:1"><label>von</label><select id="ad_s">'+tOpts(ORG.allday_start||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="ad_e">'+tOpts(ORG.allday_end||'17:00')+'</select></div></div>'+
+   '<div class="row"><button class="b" style="flex:none" onclick="saveAd(this)">Speichern</button></div>'):'',
   bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
    '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
   // Breitbild: zwei Spalten, in denen sich die Kästen lückenlos stapeln; Mitarbeiter über die volle Breite
-  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol+P.app,P.bk+P.done):cols(P.konto+P.app,P.hol+P.bk))+
+  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol+P.app,P.az+P.bk+P.done):cols(P.konto+P.app,P.hol+P.bk))+
   '<div class="mfoot">'+LOGO_H+'<span>Planner</span></div>'
  }
 }
@@ -622,6 +625,8 @@ function appSec(){if(isApp())return '';
    :isIOS()?'<div class="sub" style="margin-top:8px">Auf dem iPhone/iPad: in <b>Safari</b> unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.</div>'
    :'<div class="sub" style="margin-top:8px">Im Browser-Menü <b>„App installieren“</b> bzw. <b>„Zum Startbildschirm hinzufügen“</b> wählen.</div>'))}
 function instApp(){if(!IP)return;IP.prompt();IP.userChoice.then(function(){IP=null;render()})}
+function saveAd(b){var a=document.getElementById('ad_s').value,e=document.getElementById('ad_e').value;if(a>=e){alert('Das Ende muss nach dem Beginn liegen.');return}
+ b.disabled=true;sb.rpc('admin_set_allday',{p_start:a,p_end:e}).then(function(r){b.disabled=false;if(rpcErr(r))return;ORG.allday_start=a;ORG.allday_end=e;alert('Gespeichert: ganztägige Termine von '+a+' bis '+e+'.');render()})}
 function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
 function cols(a,b,eq){return '<div class="pgrid'+(eq?' eq':'')+'"><div class="pcol">'+a+'</div><div class="pcol">'+b+'</div></div>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)
@@ -765,18 +770,18 @@ function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);retur
 function reassign(j,from,to){if(!to||!from||from==to)return;
  var w=(j.wer||[]).filter(function(x){return x!=from});if(to!='-'&&w.indexOf(to)<0)w.push(to);j.wer=w}
 // Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
+// Ganztägige Termine erscheinen im Raster über den Zeitraum der Firma (Einstellung des Admins, Standard 08:00–17:00)
+function adWin(){return {s:t2m(ORG&&ORG.allday_start||'08:00'),e:t2m(ORG&&ORG.allday_end||'17:00')}}
+// Beginn/Ende eines Termins im Raster (Minuten)
+function jWin(j){if(!j.zeit){var a=adWin();return {s:a.s,e:a.e}}var s0=t2m(j.zeit);return {s:s0,e:Math.max(t2m(j.ende||j.zeit),s0+30)}}
 function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
-// Stundenspalte: im Verschiebemodus Ziel (ganztägige Aufträge bekommen eine Uhrzeit), sonst freie Zeit = neuer Termin
+// Stundenspalte: im Verschiebemodus Ziel (ganztägige Termine bleiben ganztägig), sonst freie Zeit = neuer Termin
 function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
  if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)),null,emp);return}
  var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
  var m0=slotMin(e);
  if(j.zeit){var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}
- else{j.zeit=m2t(m0);j.ende=m2t(m0+60)}
  reassign(j,mvE,emp);drop(ds)}
-// Ganztags-Zeile: Ziel macht den Auftrag ganztägig
-function dropAd(ds,emp){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}j.zeit='';j.ende='';reassign(j,mvE,emp);drop(ds)}
-function adClick(ds,emp){if(mvId)dropAd(ds,emp);else if(mode=='tag'||mode=='team')edit(null,ds,'','',emp);else{an=ds;setMode('tag')}}
 // Termin antippen: Tagesansicht = Details öffnen, sonst zum Verschieben auswählen
 function evClick(id,ds,emp){if(mvId){drop(ds);return}
  if(mode!='tag'){showDet(id,ds);return}
@@ -802,24 +807,21 @@ function teamGrid(ds){
  return timeGrid(cols,true)}
 function colJobs(c){return (dm[c.ds]||[]).filter(function(j){if(!c.emp)return true;var w=wer(j);return c.emp=='-'?!w.length:w.indexOf(c.emp)>-1})}
 // Zeitraster wie in Outlook: oben die Ganztags-Zeile, darunter die Stunden mit 30-Minuten-Linien.
-// Halten und ziehen = verschieben (auch zwischen Ganztags und Uhrzeit bzw. Mitarbeitern), Rand oben/unten ziehen = Dauer.
+// Ganztägige Termine stehen als Block im Firmen-Zeitraum. Halten und ziehen = verschieben, Rand oben/unten ziehen = Dauer.
 function timeGrid(cols,team){
- var one=cols.length==1,wide=innerWidth>=900,lo=420,hi=1140,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes(),det=one||team;
+ var one=cols.length==1,wide=innerWidth>=900,lo=360,hi=1200,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes(),det=one||team;
  HH=one?56:team?48:wide?44:30;
- cols.forEach(function(c){colJobs(c).forEach(function(j){if(j.zeit){lo=Math.min(lo,t2m(j.zeit));hi=Math.max(hi,t2m(j.ende||j.zeit))}})});
+ cols.forEach(function(c){colJobs(c).forEach(function(j){var w=jWin(j);lo=Math.min(lo,w.s);hi=Math.max(hi,w.e)})});
  var h0=Math.floor(lo/60),h1=Math.min(24,Math.ceil(hi/60)),H=(h1-h0)*HH;H0=h0;H1=h1;
  var row=function(cls,first,cells){return '<div class="wk '+cls+'" style="grid-template-columns:'+(one||wide||team?'52px':'30px')+' repeat('+cols.length+','+(team?'minmax(130px,1fr)':'minmax(0,1fr)')+')'+(team?';min-width:'+(52+cols.length*130)+'px':'')+'">'+first+cells+'</div>'};
  var ea=function(c){return c.emp?' data-emp="'+c.emp+'"':''},ce=function(c){return c.emp?',\''+c.emp+'\'':''};
  var cls=function(j){return j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')},att=function(j,c){return ' data-id="'+j.id+'" data-ds="'+c.ds+'"'+ea(c)+' onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+c.ds+'\''+ce(c)+')"'};
  var h='<div class="tg'+(one?' one':'')+(team?' team':'')+'" style="--hh:'+HH+'px">';
  h+=row('tgh','<div></div>',cols.map(function(c){return c.head}).join(''));
- h+=row('tga','<div class="tl">ganz&shy;tags</div>',cols.map(function(c){var ds=c.ds;
-  return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1"'+ea(c)+' onclick="adClick(\''+ds+'\''+ce(c)+')">'+colJobs(c).filter(function(j){return !j.zeit}).map(function(j){
-   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+esc(j.kunde||'?')+' <small>· '+esc(who(j))+'</small></span>'}).join('')+'</div>'}).join(''));
  var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide||team?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
  h+=row('tgb',hl,cols.map(function(c){var ds=c.ds;
-  var js=colJobs(c).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
-  var pl=js.map(function(j){var s0=t2m(j.zeit),e0=Math.max(t2m(j.ende||j.zeit),s0+30),l=0;while(lanes[l]>s0)l++;lanes[l]=e0;return {j:j,s:s0,e:e0,l:l}}),nl=Math.max(1,lanes.length);
+  var js=colJobs(c).sort(function(a,b){return jWin(a).s-jWin(b).s||jWin(b).e-jWin(a).e}),lanes=[];
+  var pl=js.map(function(j){var w=jWin(j),l=0;while(lanes[l]>w.s)l++;lanes[l]=w.e;return {j:j,s:w.s,e:w.e,l:l}}),nl=Math.max(1,lanes.length);
   return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    (function(){
@@ -831,8 +833,8 @@ function timeGrid(cols,team){
      return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
      (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
      // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
-     (cmp?'<b class="evt">'+j.zeit+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'
-        :esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
+     (cmp?'<b class="evt">'+(j.zeit||'ganztags')+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'
+        :esc(j.kunde||'?')+'<small>'+(j.zeit?j.zeit+(j.ende?'–'+j.ende:''):'ganztags')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
      (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+out})()+'</div>'}).join(''));
  return h+'</div>'}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
@@ -887,26 +889,25 @@ function dgMove(){DG.g.style.left=(DG.cx+10)+'px';DG.g.style.top=(DG.cy-40)+'px'
  var t=document.elementFromPoint(DG.cx,DG.cy),d=t&&t.closest?t.closest('[data-drop]'):null;DG.hl=d;
  var r=dgPrev(d);DG.g.textContent=DG.lb+(r?' · '+r:'')}
 // Vorschau beim Ziehen wie in Outlook: genau dort, wo der Eintrag landen würde (Uhrzeit, Dauer, alle Tage).
-// Rechnet wie drop/dropT/dropAd, ändert den Auftrag aber nicht.
+// Rechnet wie drop/dropT, ändert den Auftrag aber nicht.
 function dgPrev(d){var m=document.getElementById('main');
  m.querySelectorAll('.dpv').forEach(function(x){x.remove()});m.querySelectorAll('.dt').forEach(function(x){x.classList.remove('dt','bad')});
  if(!d)return '';
- var j=byId(DG.id),ds=d.dataset.drop,grid=d.classList.contains('dcol'),ad=!!d.dataset.ad,t=Object.assign({},j),st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(DG.ds));
+ var j=byId(DG.id),ds=d.dataset.drop,grid=d.classList.contains('dcol'),t=Object.assign({},j),st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(DG.ds));
  for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);t.start=st;
- if(grid){var s0=slotMin({currentTarget:d,clientY:DG.cy-DG.oy}),du=j.zeit?((t2m(j.ende||j.zeit)-t2m(j.zeit))||60):60;t.zeit=m2t(s0);t.ende=m2t(s0+du)}
- else if(ad){t.zeit='';t.ende=''}
+ if(grid&&j.zeit){var s0=slotMin({currentTarget:d,clientY:DG.cy-DG.oy}),du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;t.zeit=m2t(s0);t.ende=m2t(s0+du)}
  var bad=R(j.art)&&isWE(ds);if(bad){d.classList.add('dt','bad');return 'nur Werktage'}
- var es=d.dataset.emp?'[data-emp="'+d.dataset.emp+'"]':'',hasGrid=!!m.querySelector('.dcol'),sel=ad||(!t.zeit&&m.querySelector('.tgc'))?'.tgc':d.classList.contains('wh2')?'.wh2':'.c';
+ var es=d.dataset.emp?'[data-emp="'+d.dataset.emp+'"]':'',hasGrid=!!m.querySelector('.dcol'),sel=d.classList.contains('wh2')?'.wh2':'.c',w=jWin(t),lbl=t.zeit?t.zeit+'–'+t.ende:'ganztags';
  span(t).forEach(function(x){
-  var c=t.zeit&&hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'+es):null;
-  if(c){var p=document.createElement('div');p.className='dpv '+j.art;p.style.top=((t2m(t.zeit)/60-H0)*HH)+'px';p.style.height=((t2m(t.ende)-t2m(t.zeit))/60*HH)+'px';p.textContent=t.zeit+'–'+t.ende;c.appendChild(p);return}
-  if(t.zeit&&hasGrid)return;
+  var c=hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'+es):null;
+  if(c){var p=document.createElement('div');p.className='dpv '+j.art;p.style.top=((w.s/60-H0)*HH)+'px';p.style.height=((w.e-w.s)/60*HH)+'px';p.textContent=lbl;c.appendChild(p);return}
+  if(hasGrid)return;
   c=m.querySelector(sel+'[data-drop="'+x+'"]'+es);if(c)c.classList.add('dt')});
- return grid?t.zeit+'–'+t.ende:ad?'ganztags':''}
+ return grid?lbl:''}
 function dgEnd(ok){if(!DG)return;clearTimeout(DG.tm);
  if(DG.on){clearInterval(DG.iv);DG.g.remove();document.body.classList.remove('er','el');var d=DG.hl,id=DG.id,g=DG.ds,fe=DG.emp,y=DG.cy-DG.oy;dgPrev(null);
   setTimeout(function(){sup=false},80);DG=null;
-  if(ok&&d){mvId=id;mvG=g;mvE=fe;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else if(d.dataset.ad)dropAd(ds,d.dataset.emp);else drop(ds);if(mvId){mvId=null;mvG='';mvE='';render()}}
+  if(ok&&d){mvId=id;mvG=g;mvE=fe;var ds=d.dataset.drop;if(d.classList.contains('dcol'))dropT(ds,{currentTarget:d,clientY:y});else drop(ds);if(mvId){mvId=null;mvG='';mvE='';render()}}
   else render();return}
  DG=null}
 document.addEventListener('pointerup',function(e){if(DG&&DG.on){DG.cx=e.clientX;DG.cy=e.clientY;dgMove()}dgEnd(true)});
@@ -960,7 +961,7 @@ function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')
 // Dauer ändern über den oberen/unteren Rand eines Termins.
 // Maus: Rand greifen und ziehen. Touch (wie Outlook): lange auf den Rand drücken, dann ziehen – kurzes Wischen scrollt weiter.
 var RZ=null,RZP=null,H1=20;
-function rzStart(h,ev,j,pid){var s0=j.zeit?t2m(j.zeit):360,e0=j.zeit?Math.max(t2m(j.ende||j.zeit),s0+30):1200;
+function rzStart(h,ev,j,pid){var w=jWin(j),s0=w.s,e0=w.e;
  RZ={ev:ev,col:ev.parentNode,j:j,side:h.dataset.rz,s:s0,e:e0};sup=true;ev.classList.add('rzon');
  try{h.setPointerCapture(pid)}catch(x){}}
 document.addEventListener('pointerdown',function(e){var h=e.target.closest&&e.target.closest('.rz');if(!h||mvId)return;
@@ -1004,7 +1005,7 @@ function edit(id,ds,t,te,emp){
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'">'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+usersSorted().map(function(u){var me=ME&&u.id==ME.id;return '<button data-v="'+u.id+'"'+(me?' class="mew"':'')+'>'+(me?ic('user')+' ':'')+esc(u.display_name)+(me?' (ich)':'')+'</button>'}).join('')+'</div>'+
  '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">'+ic('pv')+' Provisorisch</button><button data-v="1">'+ic('pin')+' Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> '+ic('starf','starx')+' Wichtiger Termin</label>'+
- '</div><div><div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags</button><button data-v="1">Uhrzeit</button></div>'+
+ '</div><div><div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags <small>('+(ORG.allday_start||'08:00')+'–'+(ORG.allday_end||'17:00')+')</small></button><button data-v="1">Uhrzeit</button></div>'+
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
  '<div id="db"><label>Dauer in Tagen</label><input id="f_d" oninput="sug()" type="number" min="1" max="60" value="'+j.tage+'"></div>'+
  '<div id="sg"></div><label>Datum (leer = noch offen)</label><input id="f_s" type="date" value="'+j.start+'">'+

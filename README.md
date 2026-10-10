@@ -30,6 +30,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 - Beim Öffnen zeigt der Plan immer **nur die eigenen Termine**. Oben lässt sich auf *Alle* oder
   eine andere Person umschalten. Aufträge können mehreren Personen zugeteilt werden.
 - **Löschen** dürfen nur der Firmen-Admin und wer den Auftrag angelegt hat; „Erledigte löschen“ nur der Admin.
+- **Ganztägige Termine** erscheinen im Kalender als Block im Zeitraum der Firma (Standard 08:00–17:00), den der Admin unter *Einstellungen → Ganztägige Termine* festlegt.
 - **Darstellung** (Automatisch / Hell / Dunkel) wählt jeder unter *Einstellungen → Mein Konto*; sie wird pro Mitarbeiter gespeichert.
 
 ## Einrichtung
@@ -38,7 +39,8 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 1. Projekt anlegen auf <https://supabase.com>.
 2. **SQL Editor** → die Dateien aus `supabase/migrations/` der Reihe nach einfügen und *Run*
    (`20261009000000_init.sql`, `20261010000000_firmen_lizenzen_mitarbeiter.sql`,
-   `20261011000000_loeschrechte_darstellung.sql`, dann `20261012000000_besitzer_benutzerverwaltung.sql`).
+   `20261011000000_loeschrechte_darstellung.sql`, `20261012000000_besitzer_benutzerverwaltung.sql`,
+   dann `20261013000000_ganztags_zeitraum.sql`).
 3. **Authentication → Sign In / Providers → Email**:
    - *Allow new users to sign up* **ausschalten** (Konten entstehen nur über die App).
    - *Minimum password length* auf **8** setzen.
