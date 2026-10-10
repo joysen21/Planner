@@ -110,6 +110,8 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .drg{opacity:.3}
 .dt{box-shadow:inset 0 0 0 2px var(--ac)!important;background-color:color-mix(in srgb,var(--ac) 10%,var(--card))!important}
 .dt.bad{box-shadow:inset 0 0 0 2px var(--bad)!important;background-color:color-mix(in srgb,var(--bad) 10%,var(--card))!important}
+/* Markierter Zeitraum für neuen Auftrag */
+.slr{position:absolute;left:3px;right:3px;z-index:5;pointer-events:none;box-sizing:border-box;border-radius:7px;border:2px solid var(--ac);background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--tx);font-size:11px;font-weight:700;padding:2px 6px;overflow:hidden}
 /* Drag-Vorschau im Stundenraster */
 .dpv{position:absolute;left:3px;right:3px;z-index:5;pointer-events:none;box-sizing:border-box;border-radius:7px;border:2px dashed var(--c,var(--ac));background:color-mix(in srgb,var(--c,var(--ac)) 24%,transparent);color:var(--tx);font-size:11px;font-weight:700;padding:2px 6px;overflow:hidden}
 :root{--bg:#f5f2ec;--ln:#e7e1d8;--sh:0 1px 2px rgba(0,0,0,.06),0 3px 10px rgba(0,0,0,.06)}
@@ -272,6 +274,7 @@ nav button.on .i{color:var(--ac)}
 .tg.one .tgc .ch{font-size:13px;padding:6px 10px}
 /* Abschnitte (Mehr / Einstellungen) */
 .pnl{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:16px;margin-bottom:14px;min-width:0}
+.pcol{display:flex;flex-direction:column;gap:14px;margin-bottom:14px;min-width:0}.pcol .pnl{margin:0}
 .pnl>h2{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--ln);font-size:16px}
 .pnl .ul{box-shadow:none;border:1px solid var(--ln);background:var(--bg)}
 .pnl .sec{margin-top:16px}
@@ -295,7 +298,8 @@ nav button.on .i{color:var(--ac)}
  .ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:0 16px;align-items:start}
  .dv{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,420px);gap:20px;align-items:start}
  .dvl{position:sticky;top:calc(env(safe-area-inset-top,0px) + 124px);max-height:calc(100vh - 140px);overflow:auto;padding:0 4px 8px}
- .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}.pgrid .pnl{margin:0}
+ .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-bottom:16px}.pgrid .pcol{margin:0}
+ .pgrid.eq{align-items:stretch}.pgrid.eq .pnl{height:100%}.pnl.wide{margin-bottom:16px}
  .pnl.wide{grid-column:1/-1}
  .pnl.wide .ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));column-gap:24px}
  .pnl.wide .ul .ur:last-child{border-bottom:1px solid var(--ln)}
@@ -502,20 +506,22 @@ function render0(){mkH();
   hd.innerHTML='<h1>Mehr</h1>';
   var adm=ME.role=='admin',nd=S.jobs.filter(function(j){return j.done}).length;
   // Einstellungen als klar getrennte Abschnitte (Breitbild: zweispaltig)
-  m.innerHTML='<div class="pgrid">'+
-  pnl(ic('user')+'Mein Konto','<div class="kv"><span>Name</span><b>'+esc(ME.display_name)+'</b><span>Benutzername</span><b>'+esc(ME.username)+(adm?' · Admin':'')+'</b><span>Firma</span><b>'+esc(ORG.name)+'</b><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b></div>'+
+  var P={konto:pnl(ic('user')+'Mein Konto','<div class="kv"><span>Name</span><b>'+esc(ME.display_name)+'</b><span>Benutzername</span><b>'+esc(ME.username)+(adm?' · Admin':'')+'</b><span>Firma</span><b>'+esc(ORG.name)+'</b><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b></div>'+
    '<label>Neues Passwort</label><div class="row"><input id="pw1" type="password" autocomplete="new-password" placeholder="mind. '+pwMin()+' Zeichen" style="flex:1 1 160px"><button class="b" style="flex:none" onclick="ownPw()">Ändern</button></div>'+
-   '<div class="row" style="margin-top:6px"><button class="b d" style="flex:none" onclick="logout()">'+ic('logout')+' Abmelden</button></div>')+
-  (adm?pnl(ic('key')+'Lizenz',lsec()):'')+
-  (adm?pnl(ic('users')+'Mitarbeiter',usec(),'wide'):'')+
-  pnl(ic('flag')+'Feiertage Südtirol',hsec(adm))+
-  pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>')+
-  pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
-   '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>',adm?'wide':'')+
-  '</div><div class="mfoot">'+LOGO_H+'<span>Auftragsplaner</span></div>'
+   '<div class="row" style="margin-top:6px"><button class="b d" style="flex:none" onclick="logout()">'+ic('logout')+' Abmelden</button></div>'),
+  lic:adm?pnl(ic('key')+'Lizenz',lsec()):'',
+  ma:adm?pnl(ic('users')+'Mitarbeiter',usec(),'wide'):'',
+  hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
+  done:pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
+  bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
+   '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
+  // Breitbild: zwei Spalten, in denen sich die Kästen lückenlos stapeln; Mitarbeiter über die volle Breite
+  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol,P.bk+P.done):cols(P.konto+P.bk,P.hol+P.done))+
+  '<div class="mfoot">'+LOGO_H+'<span>Auftragsplaner</span></div>'
  }
 }
 function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
+function cols(a,b,eq){return '<div class="pgrid'+(eq?' eq':'')+'"><div class="pcol">'+a+'</div><div class="pcol">'+b+'</div></div>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)
 function lsec(){var n=nLogins(),p=Math.min(100,Math.round(n*100/ORG.max_users));
  return '<div class="kv"><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b><span>Anmeldungen</span><b>'+n+' von '+ORG.max_users+' belegt</b><span>Ohne Anmeldung</span><b>unbegrenzt</b><span>Gültig</span><b'+(expired()?' style="color:var(--bad)"':'')+'>'+(ORG.valid_until?'bis '+dDE(ORG.valid_until):'unbegrenzt')+'</b></div>'+
@@ -610,7 +616,7 @@ function plan(hd,m){
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
  h+=fltBar()+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
  if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen = neuer Auftrag</div>';
+ var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen = Dauer · freie Zeit antippen oder markieren = neuer Auftrag</div>';
  if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid([an])+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
  else if(mode=='woche')h+=TGH+weekGrid(monday(a));
  else if(mode=='monat')h+=(mvId?'':'<div class="empty">Auftrag antippen = verschieben · Tag antippen = Details</div>')+monthGrid(a.getFullYear(),a.getMonth(),'full');
@@ -710,7 +716,7 @@ function useS(ds){document.getElementById('f_s').value=ds;document.querySelector
 function tOpts(v){v=m2t(Math.round(t2m(v)/30)*30);var o='';for(var m=0;m<1440;m+=30){var t=m2t(m);o+='<option'+(t==v?' selected':'')+'>'+t+'</option>'}return o}
 function zchg(){var z=document.getElementById('f_z'),e=document.getElementById('f_e');if(e.value<=z.value)e.value=m2t(Math.min(t2m(z.value)+60,1410));sug()}
 var mvG='',DG=null,sup=false;
-document.addEventListener('touchmove',function(e){if(DG&&DG.on)e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',function(e){if(DG&&DG.on||SL&&SL.on)e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',function(e){if(DG)e.preventDefault()});
 document.addEventListener('click',function(e){if(sup){e.stopPropagation();e.preventDefault()}},true);
 document.addEventListener('pointerdown',function(e){
@@ -759,17 +765,34 @@ function dgEnd(ok){if(!DG)return;clearTimeout(DG.tm);
 document.addEventListener('pointerup',function(e){if(DG&&DG.on){DG.cx=e.clientX;DG.cy=e.clientY;dgMove()}dgEnd(true)});
 document.addEventListener('pointercancel',function(){dgEnd(false)});
 var HOL={};
-function mkH(){HOL={};(S.hol||[]).forEach(function(h){HOL[h.d]=h.n})}
 function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);return new Date(y,Math.floor((h+l-7*m+114)/31)-1,(h+l-7*m+114)%31+1)}
 function holList(y){var e=easter(y),k=function(m,d,n){return {d:fmt(new Date(y,m-1,d)),n:n}},o=function(n,t){var x=new Date(e);x.setDate(x.getDate()+n);return {d:fmt(x),n:t}};
  var l=[k(1,1,'Neujahr'),k(1,6,'Dreikönigsfest'),o(1,'Ostermontag'),k(4,25,'Tag der Befreiung'),k(5,1,'Tag der Arbeit'),o(50,'Pfingstmontag'),k(6,2,'Tag der Republik'),k(8,15,'Mariä Himmelfahrt')];
  if(y>=2026)l.push(k(10,4,'Hl. Franz von Assisi'));
  l.push(k(11,1,'Allerheiligen'),k(12,8,'Mariä Empfängnis'),k(12,25,'Weihnachten'),k(12,26,'Stefanitag'));return l}
-function impH(y){var l=holList(y);S.hol=(S.hol||[]).filter(function(h){return h.d.slice(0,4)!=y}).concat(l).sort(function(a,b){return a.d<b.d?-1:1});render();
- sb.from('holidays').upsert(l).then(function(r){if(r.error)fail(r.error)})}
-function clrH(){if(confirm('Alle Feiertage entfernen?')){S.hol=[];render();sb.from('holidays').delete().gte('d','1900-01-01').then(function(r){if(r.error)fail(r.error)})}}
-function holInfo(){var c={};(S.hol||[]).forEach(function(h){var y=h.d.slice(0,4);c[y]=(c[y]||0)+1});var k=Object.keys(c);return k.length?'Importiert: '+k.map(function(y){return y+' ('+c[y]+')'}).join(', '):'Noch nichts importiert.'}
-function hsec(adm){var y=new Date().getFullYear();return '<div class="sub">Gesetzliche Feiertage werden im Kalender markiert. Montage, Planung und Werkstatt werden dort nicht eingeplant.</div>'+(adm?'<div class="row" style="margin-top:8px"><button class="b p" onclick="impH('+y+')">'+y+' importieren</button><button class="b" onclick="impH('+(y+1)+')">'+(y+1)+' importieren</button></div>':'')+'<div class="sub">'+holInfo()+'</div>'+(adm?'<div class="row" style="margin-top:6px"><button class="b" onclick="clrH()">Feiertage entfernen</button></div>':'')}
+// Feiertage: gesetzliche Feiertage Südtirol werden für jedes Jahr automatisch berechnet (kein Import nötig).
+// In der Tabelle holidays stehen nur zusätzliche freie Tage der Firma (z. B. Betriebsurlaub, Patronatsfest).
+var HY={};
+function statHol(y){if(!HY[y]){HY[y]={};holList(y).forEach(function(h){HY[y][h.d]=h.n})}return HY[y]}
+function mkH(){HOL={};var y0=new Date().getFullYear(),ya=+an.slice(0,4),ys={},y;
+ for(y=y0-3;y<=y0+10;y++)ys[y]=1;for(y=ya-1;y<=ya+1;y++)ys[y]=1;
+ Object.keys(ys).forEach(function(k){var m=statHol(+k);for(var d in m)HOL[d]=m[d]});
+ custH().forEach(function(h){HOL[h.d]=h.n})}
+// eigene freie Tage = Einträge, die kein gesetzlicher Feiertag sind (alte Importe werden so ausgeblendet)
+function custH(){return (S.hol||[]).filter(function(h){return statHol(+h.d.slice(0,4))[h.d]!==h.n}).sort(function(a,b){return a.d<b.d?-1:1})}
+function addH(){var d=document.getElementById('h_d').value,n=document.getElementById('h_n').value.trim();
+ if(!d||!n){alert('Bitte Datum und Bezeichnung angeben.');return}
+ S.hol=(S.hol||[]).filter(function(h){return h.d!=d}).concat([{d:d,n:n}]);render();
+ sb.from('holidays').upsert({d:d,n:n}).then(function(r){if(r.error)fail(r.error)})}
+function delH(d){S.hol=(S.hol||[]).filter(function(h){return h.d!=d});render();
+ sb.from('holidays').delete().eq('d',d).then(function(r){if(r.error)fail(r.error)})}
+function hsec(adm){var td=fmt(new Date()),f=function(s){var p=parse(s);return WD[p.getDay()]+' '+p.getDate()+'. '+MN[p.getMonth()]+(s.slice(0,4)!=td.slice(0,4)?' '+s.slice(0,4):'')};
+ var nx=Object.keys(HOL).filter(function(d){return d>=td}).sort().slice(0,4),cu=custH().filter(function(h){return h.d>=td});
+ return '<div class="sub">Die gesetzlichen Feiertage werden für jedes Jahr automatisch berechnet und im Kalender markiert – ein Import ist nicht nötig. Montage, Planung und Werkstatt werden dort nicht eingeplant.</div>'+
+  '<div class="lbl" style="margin-top:12px">Nächste freie Tage</div><div class="kv">'+nx.map(function(d){return '<span>'+f(d)+'</span><b>'+esc(HOL[d])+'</b>'}).join('')+'</div>'+
+  '<div class="lbl" style="margin-top:4px">Zusätzliche freie Tage der Firma</div>'+
+  (cu.length?'<div class="ul">'+cu.map(function(h){return '<div class="ur"><div class="nm">'+esc(h.n)+'<small>'+f(h.d)+'</small></div>'+(adm?'<button class="b d" onclick="delH(\''+h.d+'\')" title="Entfernen">'+ic('trash')+'</button>':'')+'</div>'}).join('')+'</div>':'<div class="sub">Keine eingetragen.</div>')+
+  (adm?'<div class="row" style="margin-top:10px"><input id="h_d" type="date" style="flex:1 1 140px"><input id="h_n" placeholder="z. B. Betriebsurlaub" style="flex:2 1 160px"><button class="b" style="flex:none" onclick="addH()">'+ic('plus')+' Hinzufügen</button></div>':'')}
 function impt(id){var j=byId(id);j.imp=!j.imp;save(j);render()}
 var sw=null;
 document.addEventListener('touchstart',function(e){sw=(tab=='plan'&&e.touches.length==1&&!(DG&&DG.on)&&e.target.closest&&e.target.closest('main'))?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
@@ -796,9 +819,27 @@ function rzEnd(ok){if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){su
  if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
+// Zeitraum markieren wie in Outlook: in freier Zeit drücken (Handy: kurz halten) und ziehen → neuer Auftrag mit dieser Zeit
+var SL=null;
+document.addEventListener('pointerdown',function(e){
+ if(mvId||e.button>0)return;var c=e.target.closest&&e.target.closest('.dcol');
+ if(!c||(e.target!==c&&!e.target.classList.contains('now')))return;
+ SL={c:c,ds:c.dataset.drop,x:e.clientX,y:e.clientY,a:slotMin({currentTarget:c,clientY:e.clientY},true),on:false,t:e.pointerType};
+ if(SL.t!='mouse')SL.tm=setTimeout(function(){if(SL&&!SL.on){SL.on=true;sup=true;slDraw(SL.y);try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}}},350)});
+document.addEventListener('pointermove',function(e){if(!SL)return;
+ if(!SL.on){if(Math.abs(e.clientX-SL.x)>6||Math.abs(e.clientY-SL.y)>6){if(SL.t=='mouse'){SL.on=true;sup=true}else{clearTimeout(SL.tm);SL=null;return}}else return}
+ slDraw(e.clientY)});
+function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);SL.s=Math.min(SL.a,b);SL.e=Math.min(1440,Math.max(SL.a,b)+30);
+ var r=SL.c.querySelector('.slr');if(!r){r=document.createElement('div');r.className='slr';SL.c.appendChild(r)}
+ r.style.top=((SL.s/60-H0)*HH)+'px';r.style.height=((SL.e-SL.s)/60*HH)+'px';r.textContent=m2t(SL.s)+'–'+m2t(SL.e)}
+function slEnd(ok){if(!SL)return;clearTimeout(SL.tm);var z=SL;SL=null;if(!z.on)return;
+ var r=z.c.querySelector('.slr');if(r)r.remove();setTimeout(function(){sup=false},80);
+ if(ok)edit(null,z.ds,m2t(z.s),m2t(z.e))}
+document.addEventListener('pointerup',function(){slEnd(true)});
+document.addEventListener('pointercancel',function(){slEnd(false)});
 var cur={};
-function edit(id,ds,t){
- var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?m2t(t2m(t)+60):'',material:true,notiz:'',done:false};
+function edit(id,ds,t,te){
+ var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
