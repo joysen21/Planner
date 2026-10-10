@@ -444,7 +444,7 @@ function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}docume
 function licTag(s){var m=String(s||'').trim().match(/(\d+)$/);if(!m)return '';var n=parseInt(m[1],10);return n<1000?String(n).padStart(3,'0'):String(n)}
 function showLogin(msg){
  authPage('<form class="login" onsubmit="return doLogin(event)" oninput="LG.inp=Date.now()" onkeydown="if(event.key==\'Enter\')LG.ent=Date.now()">'+authHead('Bitte anmelden')+
- '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'" placeholder="JK.PLANNER.001"'+NC+'>'+
+ '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'"'+NC+'>'+
  '<label>Benutzername</label><input id="l_u" autocomplete="username"'+NC+' required>'+
  '<label>Passwort</label><input id="l_p" type="password" autocomplete="current-password" required>'+
  '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px" onpointerdown="LG.btn=Date.now()">Anmelden</button><div class="sub" style="margin-top:12px;text-align:center">Passwort vergessen? Bitte an den Admin deiner Firma wenden.</div></form>')}
