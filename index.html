@@ -251,6 +251,18 @@ input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
 input[type=color]:hover,input[type=color]:focus-visible{border-color:var(--ac)}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
 .own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
+/* iPhone/Safari: Dialoge immer vollständig sichtbar (Höhe ohne die ein-/ausblendenden Safari-Leisten),
+   Kopfzeile mit „X“ bleibt beim Scrollen oben, nichts lässt sich seitlich verschieben */
+dialog{max-height:85vh;max-height:92dvh;overflow-x:hidden;overscroll-behavior:contain}
+dialog .dt2{position:sticky;top:-16px;z-index:6;background:var(--card);margin:-16px -16px 6px;padding:14px 16px 8px}
+.row>*{min-width:0}
+.g2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;min-height:44px;text-align:left}
+input::-webkit-date-and-time-value{text-align:left}
+html,body{overflow-x:clip}
+html:has(dialog[open]){overflow:hidden}
+/* iPhone zoomt bei Eingabefeldern unter 16 px automatisch hinein – verhindern */
+@supports (-webkit-touch-callout:none){input,select,textarea{font-size:max(16px,1em)}}
 /* Legende & Bedienung (einklappbar) */
 .lgd{margin:0 0 10px}.lgd>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--mu);padding:5px 12px;border-radius:99px;background:var(--card);box-shadow:var(--sh)}
 .lgd>summary::-webkit-details-marker{display:none}.lgd>summary::after{content:"▾";font-size:11px}.lgd[open]>summary::after{content:"▴"}
@@ -431,12 +443,16 @@ function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}docume
 // Der Besitzer der Seite meldet sich mit E-Mail an (Lizenz-ID leer) und sieht die Firmenverwaltung.
 function licTag(s){var m=String(s||'').trim().match(/(\d+)$/);if(!m)return '';var n=parseInt(m[1],10);return n<1000?String(n).padStart(3,'0'):String(n)}
 function showLogin(msg){
- authPage('<form class="login" onsubmit="return doLogin(event)">'+authHead('Bitte anmelden')+
+ authPage('<form class="login" onsubmit="return doLogin(event)" oninput="LG.inp=Date.now()" onkeydown="if(event.key==\'Enter\')LG.ent=Date.now()">'+authHead('Bitte anmelden')+
  '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'" placeholder="JK.PLANNER.001"'+NC+'>'+
  '<label>Benutzername</label><input id="l_u" autocomplete="username"'+NC+' required>'+
  '<label>Passwort</label><input id="l_p" type="password" autocomplete="current-password" required>'+
- '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button><div class="sub" style="margin-top:12px;text-align:center">Passwort vergessen? Bitte an den Admin deiner Firma wenden.</div></form>')}
-function doLogin(e){e.preventDefault();var b=e.target.querySelector('.b.p'),er=document.getElementById('l_e'),
+ '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px" onpointerdown="LG.btn=Date.now()">Anmelden</button><div class="sub" style="margin-top:12px;text-align:center">Passwort vergessen? Bitte an den Admin deiner Firma wenden.</div></form>')}
+// LG: letzte Eingabe / Eingabetaste / Tipp auf „Anmelden“. Passwort-Manager (iPhone-Schlüsselbund, Chrome „Touch to Fill“)
+// füllen die Felder und schicken im selben Moment ab – das wird ignoriert; angemeldet wird nur nach echter Bestätigung.
+var LG={inp:0,ent:0,btn:0};
+function doLogin(e){e.preventDefault();var b=e.target.querySelector('.b.p'),er=document.getElementById('l_e'),now=Date.now();
+ if(!(now-LG.btn<3000||now-LG.ent<1000&&LG.ent-LG.inp>250)){b.focus();return false}
   u=document.getElementById('l_u').value.trim().toLowerCase(),t=licTag(document.getElementById('l_f').value),mail=u.indexOf('@')>-1;
  if(!mail&&!t){er.textContent='Bitte die Lizenz-ID angeben (z. B. JK.PLANNER.001).';return false}
  if(!mail)lsSet('planer_lizenz','JK.PLANNER.'+t);
