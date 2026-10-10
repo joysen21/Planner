@@ -28,13 +28,16 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
   Mitarbeiter → Firmen-Admin setzt es neu; Firmen-Admin → Besitzer setzt es neu.
 - Beim Öffnen zeigt der Plan immer **nur die eigenen Termine**. Oben lässt sich auf *Alle* oder
   eine andere Person umschalten. Aufträge können mehreren Personen zugeteilt werden.
+- **Löschen** dürfen nur der Firmen-Admin und wer den Auftrag angelegt hat; „Erledigte löschen“ nur der Admin.
+- **Darstellung** (Automatisch / Hell / Dunkel) wählt jeder unter *Einstellungen → Mein Konto*; sie wird pro Mitarbeiter gespeichert.
 
 ## Einrichtung
 
 ### 1. Supabase
 1. Projekt anlegen auf <https://supabase.com>.
 2. **SQL Editor** → die Dateien aus `supabase/migrations/` der Reihe nach einfügen und *Run*
-   (`20261009000000_init.sql`, dann `20261010000000_firmen_lizenzen_mitarbeiter.sql`).
+   (`20261009000000_init.sql`, `20261010000000_firmen_lizenzen_mitarbeiter.sql`,
+   dann `20261011000000_loeschrechte_darstellung.sql`).
 3. **Authentication → Sign In / Providers → Email**:
    - *Allow new users to sign up* **ausschalten** (Konten entstehen nur über die App).
    - *Minimum password length* auf **8** setzen.

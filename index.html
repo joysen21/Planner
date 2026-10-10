@@ -242,6 +242,22 @@ input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
 input[type=color]:hover,input[type=color]:focus-visible{border-color:var(--ac)}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
 .own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
+/* Legende & Bedienung (einklappbar) */
+.lgd{margin:0 0 10px}.lgd>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--mu);padding:5px 12px;border-radius:99px;background:var(--card);box-shadow:var(--sh)}
+.lgd>summary::-webkit-details-marker{display:none}.lgd>summary::after{content:"▾";font-size:11px}.lgd[open]>summary::after{content:"▴"}
+.lgd .hint{font-size:12px;color:var(--mu);margin:8px 2px 6px;line-height:1.4}.lgd .lg{margin:6px 2px 0}
+/* Zu viele gleichzeitige Termine: „+n“ */
+.evm{position:absolute;right:2px;width:20px;height:20px;border-radius:99px;background:var(--tx);color:var(--bg);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:3;cursor:pointer}
+/* Kurze Termine einzeilig */
+.ev.cmp{line-height:1.25}.ev.cmp small{display:inline;margin:0}.ev.cmp .evt{font-weight:800}
+.bars .c i.more{font-size:10px;margin-top:2px}
+/* Dunkelmodus: kräftigere Terminfarben, damit weiße Schrift gut lesbar ist */
+:root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
+:root[data-theme="dark"] .ch:not(.pv):not(.planung){background:color-mix(in srgb,var(--c) 66%,#000)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}:root:not([data-theme="light"]) .ch:not(.pv):not(.planung){background:color-mix(in srgb,var(--c) 66%,#000)}}
+.thm button .i{width:16px;height:16px}
+/* Bearbeiten-Dialog im Breitbild zweispaltig */
+@media (min-width:900px){dialog:has(.eg){max-width:920px}.eg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}.eg>div>.sec:first-child{border-top:0;padding-top:0;margin-top:8px}}
 /* Duotone-Icons */
 .i{width:1.2em;height:1.2em;vertical-align:-.22em;flex:none;overflow:visible}
 nav span .i{width:26px;height:26px;display:block;margin:0 auto 2px;vertical-align:0}
@@ -377,9 +393,12 @@ planung:'<path d="M3.3 15.5L15.5 3.3a1.5 1.5 0 0 1 2.1 0l3.1 3.1a1.5 1.5 0 0 1 0
 urlaub:'<circle cx="12" cy="12" r="4.5" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
 logout:'<path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5M10 8l-4 4 4 4M6 12h10"/>',
 split:'<circle cx="6" cy="6" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.3 8L20 19.5M8.3 16L20 4.5"/>',
+moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+info:'<circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".16" stroke="none"/><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
 copy:'<rect x="8" y="8" width="12.5" height="12.5" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="8" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
 function ic(n,c){return '<svg class="i'+(c?' '+c:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>'}
 function boot(){
+ applyTheme(lsGet('planer_theme'));
  var C=window.PLANER_CONFIG||{};
  if(!C.url||!C.anonKey||!window.supabase){document.body.classList.add('auth');document.getElementById('main').innerHTML='<div class="login"><h1>Einrichtung fehlt</h1><p class="sub">In <b>config.js</b> die Supabase-URL und den anon-Key eintragen (siehe README).</p></div>';return}
  sb=window.supabase.createClient(C.url,C.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
@@ -388,6 +407,11 @@ function boot(){
  document.addEventListener('visibilitychange',function(){if(!document.hidden&&ME)rt()})}
 function lsGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
 function lsSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
+// Darstellung: auto (wie das Gerät), hell, dunkel – pro Mitarbeiter gespeichert, lokal gemerkt für den Start
+function applyTheme(t){t=t||'auto';var r=document.documentElement;if(t=='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
+ lsSet('planer_theme',t=='auto'?'':t);var dk=t=='dark'||t=='auto'&&matchMedia('(prefers-color-scheme: dark)').matches,m=document.querySelector('meta[name=theme-color]');if(m)m.content=dk?'#1b1815':'#f5f2ec'}
+function curTheme(){return (ME&&ME.theme)||lsGet('planer_theme')||'auto'}
+function setTheme(t){applyTheme(t);if(ME){ME.theme=t;sb.rpc('set_my_theme',{p_theme:t}).then(function(r){if(r.error)console.warn(r.error.message)})}render()}
 var NC=' autocapitalize="none" autocorrect="off" spellcheck="false"';
 function authHead(t){return '<div class="lo">'+LOGO_H+'</div><h1>Auftragsplaner<small>'+t+'</small></h1>'}
 function authPage(h){ME=null;ORG=null;if(CH){sb.removeChannel(CH);CH=null}document.body.classList.add('auth');document.getElementById('dlg').open&&document.getElementById('dlg').close();document.getElementById('main').innerHTML=h}
@@ -399,7 +423,7 @@ function showLogin(msg){
  '<label>Lizenz-ID</label><input id="l_f" value="'+esc(lsGet('planer_lizenz'))+'" placeholder="JK.PLANNER.001"'+NC+'>'+
  '<label>Benutzername</label><input id="l_u" autocomplete="username"'+NC+' required>'+
  '<label>Passwort</label><input id="l_p" type="password" autocomplete="current-password" required>'+
- '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button></form>')}
+ '<div id="l_e" class="err">'+esc(msg||'')+'</div><button class="b p" style="width:100%;margin-top:8px">Anmelden</button><div class="sub" style="margin-top:12px;text-align:center">Passwort vergessen? Bitte an den Admin deiner Firma wenden.</div></form>')}
 function doLogin(e){e.preventDefault();var b=e.target.querySelector('.b.p'),er=document.getElementById('l_e'),
   u=document.getElementById('l_u').value.trim().toLowerCase(),t=licTag(document.getElementById('l_f').value),mail=u.indexOf('@')>-1;
  if(!mail&&!t){er.textContent='Bitte die Lizenz-ID angeben (z. B. JK.PLANNER.001).';return false}
@@ -416,7 +440,7 @@ async function enter(){
  if(e.error){showLogin('Laden fehlgeschlagen: '+e.error.message);return}
  if(!e.data){await sb.auth.signOut();showLogin('Kein Zugang – die Lizenz ist gesperrt oder die Anmeldung wurde entfernt.');return}
  try{await loadAll()}catch(x){showLogin('Laden fehlgeschlagen: '+(x.message||x));return}
- ME=uById(e.data.id);ME.email=u.email;FLT='me';tab='plan';openId=null;mvId=null;
+ ME=uById(e.data.id);ME.email=u.email;applyTheme(ME.theme||lsGet('planer_theme'));FLT='me';tab='plan';openId=null;mvId=null;
  document.body.classList.remove('auth');subscribe();render()}
 // ---------------------------------------------------------------- Besitzer: Firmen & Lizenzen
 var OWN=[];
@@ -471,7 +495,7 @@ async function loadAll(){
 function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
 function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
-function fromRow(r){return {id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
+function fromRow(r){return {created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
 function toRow(j){return {id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done}}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
 function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}
@@ -504,11 +528,11 @@ function kw(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())
 function who(j){var w=wer(j);return w.length?w.map(uName).join(', '):'niemand zugeteilt'}
 function byId(id){return S.jobs.filter(function(j){return j.id==id})[0]}
 
-function render(){render0();document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Auftrag">'+ic('plus')+'</button>');
- if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>')}
+function render(){render0();if(tab!='mehr')document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Auftrag">'+ic('plus')+'</button>');
+ if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>');detRefresh()}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');
- document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&!j.done&&vis(j)}).length+')';
+ document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&vis(j)}).length+')';
  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});
  if(tab=='plan'){plan(hd,m)}else if(tab=='offen'){
   hd.innerHTML='<h1>Noch ohne Termin'+fltSub()+'</h1>';
@@ -520,15 +544,16 @@ function render0(){mkH();
   // Einstellungen als klar getrennte Abschnitte (Breitbild: zweispaltig)
   var P={konto:pnl(ic('user')+'Mein Konto','<div class="kv"><span>Name</span><b>'+esc(ME.display_name)+'</b><span>Benutzername</span><b>'+esc(ME.username)+(adm?' · Admin':'')+'</b><span>Firma</span><b>'+esc(ORG.name)+'</b><span>Lizenz-ID</span><b>'+esc(ORG.license_id)+'</b></div>'+
    '<label>Neues Passwort</label><div class="row"><input id="pw1" type="password" autocomplete="new-password" placeholder="mind. '+pwMin()+' Zeichen" style="flex:1 1 160px"><button class="b" style="flex:none" onclick="ownPw()">Ändern</button></div>'+
+   '<label>Darstellung</label><div class="seg sm thm">'+[['auto','Automatisch',''],['light','Hell','urlaub'],['dark','Dunkel','moon']].map(function(x){return '<button class="'+(curTheme()==x[0]?'on':'')+'" onclick="setTheme(\''+x[0]+'\')">'+(x[2]?ic(x[2])+' ':'')+x[1]+'</button>'}).join('')+'</div>'+
    '<div class="row" style="margin-top:6px"><button class="b d" style="flex:none" onclick="logout()">'+ic('logout')+' Abmelden</button></div>'),
   lic:adm?pnl(ic('key')+'Lizenz',lsec()):'',
   ma:adm?pnl(ic('users')+'Mitarbeiter',usec(),'wide'):'',
   hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
-  done:pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
+  done:!adm?'':pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
   bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
    '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
   // Breitbild: zwei Spalten, in denen sich die Kästen lückenlos stapeln; Mitarbeiter über die volle Breite
-  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol,P.bk+P.done):cols(P.konto+P.bk,P.hol+P.done))+
+  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol,P.bk+P.done):cols(P.konto,P.hol+P.bk))+
   '<div class="mfoot">'+LOGO_H+'<span>Auftragsplaner</span></div>'
  }
 }
@@ -575,27 +600,31 @@ function uDel(id){if(!confirm(uName(id)+' wirklich löschen? Die Person wird aus
 function ownPw(){var p=document.getElementById('pw1').value;if(p.length<pwMin()){alert('Passwort: mindestens '+pwMin()+' Zeichen.');return}
  sb.auth.updateUser({password:p}).then(function(r){if(r.error)alert(r.error.message);else{document.getElementById('pw1').value='';alert('Passwort geändert.')}})}
 function logout(){sb.auth.signOut().then(function(){showLogin()})}
-function card(j,ds){
- var o=openId==j.id,days=j.start?span(j):[],A=ART[j.art],id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
+function card(j,ds,force){
+ var o=force||openId==j.id,days=j.start?span(j):[],A=ART[j.art],id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
  var pos=ds&&days.length>1?' · Tag '+(days.indexOf(ds)+1)+'/'+days.length:(j.tage>1&&!j.start?' · '+j.tage+' Tage':'');
  var tg='<span class="tag fx">'+(PV(j)?ic('pv')+'provisorisch':ic('pin')+'fix')+'</span>';
  if(!j.material&&!j.done&&mt)tg+='<span class="tag bad">'+ic('alert')+'Material fehlt</span>';
  if(j.adresse)tg+='<span class="tag">'+ic('place')+esc(j.adresse)+'</span>';
  var q=function(f,l,c){return '<button class="b '+(c||'')+'" onclick="'+f+'">'+l+'</button>'};
- var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt" onclick="tog(\''+id+'\')"><div class="top"><div class="k">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?ic('starf'):ic('star'))+'</button>'+A.ic+'</div></div>'+
+ var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt"'+(force?'':' onclick="tog(\''+id+'\')"')+'><div class="top"><div class="k">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?ic('starf'):ic('star'))+'</button>'+A.ic+'</div></div>'+
  '<div class="sub">'+A.n+' · '+(wer(j).length>1?ic('users')+' ':'')+esc(who(j))+pos+(j.zeit?' · '+ic('clock')+' '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div><div class="acts">';
  if(j.start)h+='<div class="lbl">Verschieben</div><div class="g4">'+q("mv('"+id+"',-1)",ic('left')+'Tag')+q("mv('"+id+"',1)",'Tag'+ic('right'))+q("mv('"+id+"',7)",'+1 Wo.')+q("mv('"+id+"',0)",'Offen')+'</div>';
  h+='<div class="g2">'+q("pick('"+id+"')",ic('move')+' Im Kalender')+q("fixt('"+id+"')",PV(j)?ic('pin')+' Fix setzen':ic('pv')+' Provisorisch')+'</div>';
  // Aktionen: Erledigt | Bearbeiten | Löschen, darunter (nur wenn eingetragen) Anrufen | Route
- h+='<div class="ft2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt','p')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+q("del('"+id+"')",ic('trash'),'d')+'</div>';
+ h+='<div class="ft2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt','p')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+(canDel(j)?q("del('"+id+"')",ic('trash'),'d'):'')+'</div>';
  if(j.tel||j.adresse)h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+'</div>';
  h+='</div></div>';
  return h}
 function tog(id){openId=openId==id?null:id;render()}
 function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j.art)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
 function done(id){var j=byId(id);j.done=!j.done;save(j);render()}
-function del(id){if(confirm('Auftrag löschen?')){S.jobs=S.jobs.filter(function(j){return j.id!=id});render();sb.from('jobs').delete().eq('id',id).then(function(r){if(r.error)fail(r.error)})}}
-function clearDone(){var ids=S.jobs.filter(function(j){return j.done}).map(function(j){return j.id});if(!ids.length||!confirm(ids.length+' erledigte Aufträge (aller Benutzer) löschen?'))return;
+// Löschen: nur Admin oder wer den Auftrag angelegt hat (wird zusätzlich in der Datenbank geprüft)
+function canDel(j){return ME.role=='admin'||!!j.created_by&&j.created_by==ME.user_id}
+function del(id){var j=byId(id);if(!j||!canDel(j)){alert('Löschen darf nur der Admin oder wer den Auftrag angelegt hat.');return false}
+ if(!confirm('Auftrag löschen?'))return false;
+ S.jobs=S.jobs.filter(function(x){return x.id!=id});render();sb.from('jobs').delete().eq('id',id).then(function(r){if(r.error)fail(r.error)});return true}
+function clearDone(){if(ME.role!='admin')return;var ids=S.jobs.filter(function(j){return j.done}).map(function(j){return j.id});if(!ids.length||!confirm(ids.length+' erledigte Aufträge (aller Mitarbeiter) löschen?'))return;
  S.jobs=S.jobs.filter(function(j){return !j.done});render();sb.from('jobs').delete().in('id',ids).then(function(r){if(r.error)fail(r.error)})}
 function exp(){var t=JSON.stringify({jobs:S.jobs,hol:S.hol,users:USERS.map(function(u){return {id:u.id,name:u.display_name,username:u.username}})}),a=document.getElementById('bk');a.value=t;a.select();try{navigator.clipboard.writeText(t)}catch(e){}}
 // Übernimmt Backups der alten Handy-Version (wer: b/1/2, Aushilfen a/o) und eigene Sicherungen
@@ -626,33 +655,40 @@ function plan(hd,m){
  else t=''+a.getFullYear();
  hd.innerHTML='<button class="ib" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
- h+=(mode=='team'?'':fltBar())+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div>';
+ h+=(mode=='team'?'':fltBar())+'<details class="lgd"'+(lgOpen()?' open':'')+' ontoggle="lgSet(this.open)"><summary>'+ic('info')+' Legende &amp; Bedienung</summary>'+(mvId?'':'<div class="hint">'+hintTxt()+'</div>')+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div></details>';
  if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- var TGH=mvId?'':'<div class="empty">Halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'')+'</div>';
+ var TGH='';
  if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
  else if(mode=='team')h+=TGH+teamGrid(an);
  else if(mode=='woche')h+=TGH+weekGrid(monday(a));
- else if(mode=='monat')h+=(mvId?'':'<div class="empty">Auftrag antippen = verschieben · Tag antippen = Details</div>')+monthGrid(a.getFullYear(),a.getMonth(),'full');
+ else if(mode=='monat')h+=monthGrid(a.getFullYear(),a.getMonth(),innerWidth<600?'bars':'full');
  else if(mode=='quartal'){h+='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
  else{h+='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
  m.innerHTML=h}
+// Legende/Bedienung: offen/zu merken (Standard: Breitbild offen, Handy zu)
+function lgOpen(){var v=lsGet('planer_lg');return v?v=='1':innerWidth>=900}
+function lgSet(o){lsSet('planer_lg',o?'1':'0')}
+function hintTxt(){if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Auftrag'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
+ if(mode=='monat')return 'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
+ return 'Tag antippen = Tagesansicht · halten und ziehen = verschieben'}
+// Reihenfolge: ganztägige zuerst, dann nach Uhrzeit
+function sortJ(js){return js.slice().sort(function(a,b){return (a.zeit?1:0)-(b.zeit?1:0)||t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')})}
 function dayBlock(ds){var d=parse(ds),js=dm[ds]||[];
- return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Auftrag">'+ic('plus')+'</button>')+'</div>'+(js.length?js.slice().sort(function(a,b){return (a.zeit||'')<(b.zeit||'')?-1:1}).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
+ return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Auftrag">'+ic('plus')+'</button>')+'</div>'+(js.length?sortJ(js).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
 function monthGrid(y,mo,kind){
  var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,h='<div class="mg '+kind+'">';
- if(kind!='full')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
+ if(kind!='full'&&mode!='monat')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
  if(kind!='mini')h+='<div class="gr wl"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>';
  h+='<div class="gr">';
  for(var d=1;d<=n;d++){var dt=new Date(y,mo,d),g=dt.getDay();if(first){for(var p=0;p<(g+6)%7;p++)h+='<div></div>';first=false}
-  var ds=fmt(dt),js=dm[ds]||[],c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
+  var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
   if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){if(ar.indexOf(j.art)<0)ar.push(j.art);if(!PV(j)){fxs[j.art]=1;anyF=true}});var cl=function(a){return fxs[a]?COL[a]:'color-mix(in srgb,'+COL[a]+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
-  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+'</div>';
-  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();chip(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
+  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,mode=='monat'?4:3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(mode=='monat'&&js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+'</div>';
+  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
  return h+'</div></div>'}
 function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 // mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
 var mvE='';
-function chip(id,ds,emp){if(mvId)drop(ds);else{mvId=id;mvG=ds;mvE=emp||'';render()}}
 function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);return}
  if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
  mvG='';mvE='';if(ds&&(mode=='tag'||mode=='team'))an=j.start;mvId=null;save(j);render()}
@@ -674,10 +710,15 @@ function dropAd(ds,emp){var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);ret
 function adClick(ds,emp){if(mvId)dropAd(ds,emp);else if(mode=='tag'||mode=='team')edit(null,ds,'','',emp);else{an=ds;setMode('tag')}}
 // Termin antippen: Tagesansicht = Details öffnen, sonst zum Verschieben auswählen
 function evClick(id,ds,emp){if(mvId){drop(ds);return}
- if(mode!='tag'){chip(id,ds,emp);return}
+ if(mode!='tag'){showDet(id,ds);return}
  openId=id;render();var c=document.querySelector('.dvl .job.open');if(c)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
+// Details wie in Outlook: Auftrag in einem Fenster mit allen Aktionen (bleibt nach Aktionen aktuell)
+function showDet(id,ds){var d=document.getElementById('dlg'),j=byId(id);if(!j)return;if(!(ds&&j.start&&span(j).indexOf(ds)>-1))ds=j.start||'';
+ d.innerHTML='<div class="dt2"><b>Auftrag</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="detv" data-id="'+id+'" data-ds="'+ds+'">'+card(j,ds,true)+'</div>';
+ if(!d.open)d.showModal()}
+function detRefresh(){var d=document.getElementById('dlg'),v=d.open&&d.querySelector('.detv');if(!v)return;if(byId(v.dataset.id))showDet(v.dataset.id,v.dataset.ds);else d.close()}
 function hdr(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
-function pick(id){var j=byId(id);mvId=id;mvG='';mvE='';tab='plan';openId=null;if(mode=='tag'||mode=='team')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
+function pick(id){var j=byId(id),dd=document.getElementById('dlg');if(dd.open)dd.close();mvId=id;mvG='';mvE='';tab='plan';openId=null;if(mode=='tag'||mode=='team')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
 function det(){var j=byId(mvId);if(j.start)an=j.start;openId=mvId;mvId=null;mvE='';setMode('tag')}
 function setMode(k){mode=k;render()}
 function step(n){if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
@@ -712,13 +753,22 @@ function timeGrid(cols,team){
   var pl=js.map(function(j){var s0=t2m(j.zeit),e0=Math.max(t2m(j.ende||j.zeit),s0+30),l=0;while(lanes[l]>s0)l++;lanes[l]=e0;return {j:j,s:s0,e:e0,l:l}}),nl=Math.max(1,lanes.length);
   return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
-   pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH;
-    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc('+(q.l*100/nl)+'% + 2px);width:calc('+(100/nl)+'% - 4px)">'+
-    (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':'')+
-    (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+'</div>'}).join(''));
+   (function(){
+    // Woche: höchstens 2 (Handy: 1) Termine nebeneinander, weitere als „+n“ – Tippen öffnet den Tag
+    var maxL=one||team?99:(wide?2:1),nv=Math.min(nl,maxL),hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
+    var mo=function(x){return '<div class="evm" style="top:'+((x.s/60-h0)*HH+2)+'px" onclick="event.stopPropagation();an=\''+ds+'\';setMode(\'tag\')" title="Weitere Termine – Tag öffnen">+'+x.n+'</div>'};
+    hid.forEach(function(q){if(k&&q.s<k.e){k.n++;k.e=Math.max(k.e,q.e)}else{if(k)out+=mo(k);k={s:q.s,e:q.e,n:1}}});if(k)out+=mo(k);
+    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64;
+     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
+     (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
+     // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
+     (cmp?'<b class="evt">'+j.zeit+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'
+        :esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
+     (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+out})()+'</div>'}).join(''));
  return h+'</div>'}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
-var WIDE=innerWidth>=900;addEventListener('resize',function(){var w=innerWidth>=900;if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
+function bp(){return innerWidth>=900?2:innerWidth>=600?1:0}
+var WIDE=bp();addEventListener('resize',function(){var w=bp();if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
 function nw(){edit(null,tab=='plan'&&(mode=='tag'||mode=='team')?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
@@ -878,21 +928,21 @@ document.addEventListener('pointerup',function(){slEnd(true)});
 document.addEventListener('pointercancel',function(){slEnd(false)});
 var cur={};
 function edit(id,ds,t,te,emp){
- var j=id?Object.assign({},byId(id)):{id:uuid(),kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
+ var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Auftrag')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
- '<div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
+ '<div class="eg"><div><div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'">'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+USERS.map(function(u){return '<button data-v="'+u.id+'">'+esc(u.display_name)+'</button>'}).join('')+'</div>'+
  '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">'+ic('pv')+' Provisorisch</button><button data-v="1">'+ic('pin')+' Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> '+ic('starf','starx')+' Wichtiger Termin</label>'+
- '<div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags</button><button data-v="1">Uhrzeit</button></div>'+
+ '</div><div><div class="sec">Wann</div><div class="seg" id="s_zt"><button data-v="0">Ganztags</button><button data-v="1">Uhrzeit</button></div>'+
  '<div id="tb" class="row" style="margin-top:6px"><div style="flex:1"><label>von</label><select id="f_z" onchange="zchg()">'+tOpts(j.zeit||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="f_e" onchange="sug()">'+tOpts(j.ende||'09:00')+'</select></div></div>'+
  '<div id="db"><label>Dauer in Tagen</label><input id="f_d" oninput="sug()" type="number" min="1" max="60" value="'+j.tage+'"></div>'+
  '<div id="sg"></div><label>Datum (leer = noch offen)</label><input id="f_s" type="date" value="'+j.start+'">'+
  (id&&nDays(byId(id))>1?'<div class="sec">Aufteilen</div><div class="sub">Den mehrtägigen Auftrag in einzelne Einträge teilen – danach lässt sich jeder Teil einzeln verschieben und zuteilen.</div><div class="row" style="margin-top:8px">'+splitUI(byId(id))+'</div>':'')+
  '<div class="sec">Details</div><label>Adresse</label><input id="f_a" value="'+esc(j.adresse)+'"><label>Telefon</label><input id="f_t" type="tel" value="'+esc(j.tel)+'">'+
  '<label class="chk"><input id="f_m" type="checkbox"'+(j.material?' checked':'')+'> Material ist da</label><label>Notiz</label><textarea id="f_n" rows="3">'+esc(j.notiz)+'</textarea>'+
- '<div class="row ft"><button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="sv()">Speichern</button></div>';
+ '</div></div><div class="row ft">'+(id&&canDel(byId(id))?'<button class="b d" style="flex:none" onclick="if(del(\''+id+'\'))document.getElementById(\'dlg\').close()" title="Auftrag löschen">'+ic('trash')+'</button>':'')+'<button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="sv()">Speichern</button></div>';
  var wb=d.querySelectorAll('#s_wer button');function wv(){wb.forEach(function(b){b.classList.toggle('on',j.wer.indexOf(b.dataset.v)>-1)})}
  wb.forEach(function(b){b.onclick=function(){var i=j.wer.indexOf(b.dataset.v);if(i>-1)j.wer.splice(i,1);else j.wer.push(b.dataset.v);wv();sug()}});wv();
  ['art'].forEach(function(k){var s=d.querySelector('#s_'+k);s.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v==j[k]);b.onclick=function(){j[k]=b.dataset.v;s.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x==b)});sug()}})});
@@ -910,7 +960,7 @@ function splitUI(j){var n=nDays(j),o='';for(var k=1;k<n;k++)o+='<option value="'
 function splitJ(id,k){var j=byId(id),n=nDays(j),days=j.start?span(j):[],parts=[];if(k)parts=[k,n-k];else for(var x=0;x<n;x++)parts.push(1);
  if(!confirm('„'+(j.kunde||'Auftrag')+'“ in '+parts.length+' Einträge aufteilen ('+parts.join(' + ')+' Tage)?\n\nNicht gespeicherte Änderungen in diesem Dialog gehen dabei verloren.'))return;
  var o=0,neu=[];
- parts.forEach(function(len,i){var p=i?Object.assign({},j,{id:uuid(),wer:(j.wer||[]).slice()}):j;p.start=j.start?days[o]:'';p.tage=len;o+=len;if(i)neu.push(p);save(p)});
+ parts.forEach(function(len,i){var p=i?Object.assign({},j,{id:uuid(),wer:(j.wer||[]).slice(),created_by:ME.user_id}):j;p.start=j.start?days[o]:'';p.tage=len;o+=len;if(i)neu.push(p);save(p)});
  S.jobs=S.jobs.concat(neu);document.getElementById('dlg').close();render()}
 function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g('f_s').value;
  if(st&&R(j.art)&&isWE(st)){alert(WEMSG);return}
