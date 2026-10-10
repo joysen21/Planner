@@ -110,9 +110,6 @@ header{gap:6px}header h1{font-size:15px;line-height:1.15}.ib{min-width:40px}
 .drg{opacity:.3}
 .dt{box-shadow:inset 0 0 0 2px var(--ac)!important;background-color:color-mix(in srgb,var(--ac) 10%,var(--card))!important}
 .dt.bad{box-shadow:inset 0 0 0 2px var(--bad)!important;background-color:color-mix(in srgb,var(--bad) 10%,var(--card))!important}
-/* Eingeteilte Mitarbeiter unter dem Datum (Woche/Tag) */
-.whp{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin:5px 2px 0}
-.whp i{font-style:normal;font-size:10px;font-weight:600;line-height:1.5;padding:0 6px;border-radius:99px;border:1px solid var(--uc);background:color-mix(in srgb,var(--uc) 16%,var(--card));color:var(--tx);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Team-Ansicht (Outlook „Nebeneinander“): eine Spalte pro Mitarbeiter */
 .tg.team{overflow-x:auto;padding-right:0}.tg.team .wk>:first-child{position:sticky;left:0;z-index:6;background:var(--card)}
 .tmh{border-bottom:3px solid var(--uc,var(--ln));border-radius:0!important;margin:0 4px;padding:6px 4px 5px!important}.tmh .hn{color:var(--mu);font-weight:500}.tmh b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -275,7 +272,10 @@ nav button.on .i{color:var(--ac)}
 .dcol.tdc{background-color:color-mix(in srgb,var(--ac) 6%,var(--card))}
 .now{position:absolute;left:0;right:0;height:2px;background:var(--ur);z-index:3;pointer-events:none}
 .now::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--ur)}
-.ev{border-radius:7px;padding:3px 5px;cursor:grab}.ev small{display:block;font-weight:500;opacity:.9;font-size:.9em;margin-top:1px}
+.ev{border-radius:7px;padding:3px 6px;cursor:grab;border:0}
+/* Personen-Rahmen im Zeitraster nach innen, damit sich benachbarte Einträge nicht überdecken */
+.tg .ch.wp{outline:2px solid var(--pc);outline-offset:-2px}.tg .ch.sel{outline-offset:-3px}
+.ev small.evw{font-weight:600;opacity:1}.ev small{display:block;font-weight:500;opacity:.9;font-size:.9em;margin-top:1px}
 .tg.one .ev{font-size:14px;padding:6px 10px;border-radius:9px}.tg.one .wh2{font-size:13px}
 .tg.one .tgc .ch{font-size:13px;padding:6px 10px}
 /* Abschnitte (Mehr / Einstellungen) */
@@ -677,11 +677,7 @@ function setMode(k){mode=k;render()}
 function step(n){if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
 // Spalten des Zeitrasters: Tage (Tag/Woche) oder Mitarbeiter (Team)
 function dayCols(days){var td=fmt(new Date());return days.map(function(ds){var d=parse(ds);
- return {ds:ds,head:'<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+dayPpl(ds)+'</div>'}})}
-// Unter dem Datum: wer an diesem Tag eingeteilt ist (Farbe des Mitarbeiters; schmal nur die ersten 2 Buchstaben)
-function dayPpl(ds){var ids={};(dm[ds]||[]).forEach(function(j){wer(j).forEach(function(id){ids[id]=1})});
- var us=USERS.filter(function(u){return ids[u.id]}),sh=innerWidth<900;
- return us.length?'<span class="whp">'+us.map(function(u){return '<i style="--uc:'+esc(u.color)+'" title="'+esc(u.display_name)+'">'+esc(sh?u.display_name.slice(0,2):u.display_name)+'</i>'}).join('')+'</span>':''}
+ return {ds:ds,head:'<div class="wh2'+(ds==td?' today':'')+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" onclick="hdr(\''+ds+'\')">'+WD[d.getDay()]+'<b>'+d.getDate()+'</b>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+'</div>'}})}
 function weekGrid(w){var days=[];for(var i=0;i<7;i++){var x=new Date(w);x.setDate(w.getDate()+i);days.push(fmt(x))}return timeGrid(dayCols(days))}
 // Team wie Outlook „Nebeneinander“: ein Tag, eine Spalte pro Mitarbeiter
 function teamGrid(ds){
@@ -703,7 +699,7 @@ function timeGrid(cols,team){
  h+=row('tgh','<div></div>',cols.map(function(c){return c.head}).join(''));
  h+=row('tga','<div class="tl">ganz&shy;tags</div>',cols.map(function(c){var ds=c.ds;
   return '<div class="tgc'+(HOL[ds]?' hol':'')+'" data-drop="'+ds+'" data-ad="1"'+ea(c)+' onclick="adClick(\''+ds+'\''+ce(c)+')">'+colJobs(c).filter(function(j){return !j.zeit}).map(function(j){
-   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+(one?' <small>· '+esc(who(j))+'</small>':'')+'</span>'}).join('')+'</div>'}).join(''));
+   return '<span class="ch '+cls(j)+'" style="'+wS(j)+'"'+att(j,c)+'>'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+' <small>· '+esc(who(j))+'</small></span>'}).join('')+'</div>'}).join(''));
  var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide||team?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
  h+=row('tgb',hl,cols.map(function(c){var ds=c.ds;
   var js=colJobs(c).filter(function(j){return j.zeit}).sort(function(a,b){return t2m(a.zeit)-t2m(b.zeit)}),lanes=[];
@@ -711,8 +707,8 @@ function timeGrid(cols,team){
   return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    pl.map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH;
-    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH)+'px;height:'+hp+'px;left:'+(q.l*100/nl)+'%;width:'+(100/nl)+'%">'+
-    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+(one?' · '+esc(who(j)):'')+(det&&j.adresse?' · '+ic('place')+' '+esc(j.adresse):'')+'</small>'+
+    return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc('+(q.l*100/nl)+'% + 2px);width:calc('+(100/nl)+'% - 4px)">'+
+    (j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'<small>'+j.zeit+(j.ende?'–'+j.ende:'')+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':'')+
     (j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>'}).join('')+'</div>'}).join(''));
  return h+'</div>'}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
@@ -827,6 +823,7 @@ document.addEventListener('touchend',function(e){var s0=sw;sw=null;if(!s0||(DG&&
 function vis(j){if(FLT=='alle')return true;var id=FLT=='me'?ME.id:FLT;return (j.wer||[]).indexOf(id)>-1}
 function setFlt(v){FLT=v;render()}
 function cnt(j){return wer(j).length}
+function icPpl(j){return ic(wer(j).length>1?'users':'user')+' '}
 function pc(j){return cnt(j)>1?ic('users')+cnt(j)+' ':''}
 function fltSub(){return FLT=='alle'||tab=='plan'&&mode=='team'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
 function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+(i?ic(i)+' ':'')+esc(l)+'</button>'};
