@@ -274,7 +274,12 @@ html:has(dialog[open]){overflow:hidden}
 .qrr.a-montage{--c:var(--mo)}.qrr.a-werkstatt{--c:var(--we)}.qrr.a-planung{--c:var(--pl)}.qrr.a-termin{--c:var(--tm)}.qrr.a-urlaub{--c:var(--ur)}
 /* Kundenstamm */
 .ksug button{display:block;width:100%;text-align:left;font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:6px 10px;margin-top:4px;cursor:pointer}.ksug small{display:block;color:var(--mu)}
-.ur.kr input{flex:1 1 160px;width:auto}.ur.kr input:first-child{font-weight:600}
+.job.kc{border-left-color:var(--ac);cursor:pointer}.job.kc:hover{box-shadow:0 4px 16px rgba(0,0,0,.14)}
+.qrr.dn{opacity:.6}
+@media (max-width:599px){.kneu{display:none}}
+/* Fokusrahmen beim Öffnen eines Dialogs nur bei Tastaturbedienung */
+dialog .dt2 .ib:focus:not(:focus-visible){outline:none}
+#kf{min-height:40px}
 /* Lizenz läuft bald ab */
 .note{background:color-mix(in srgb,var(--pl) 18%,var(--card));border:1px solid var(--pl);color:var(--tx);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
 .tag.soon{border-color:var(--pl);color:var(--tx);background:color-mix(in srgb,var(--pl) 20%,transparent)}.soonx{color:var(--tx)}

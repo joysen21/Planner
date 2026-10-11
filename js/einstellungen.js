@@ -8,7 +8,7 @@ function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&vis(j)}).length+')';
  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});
- if(tab=='plan'){plan(hd,m)}else if(tab=='offen'){
+ if(tab=='plan'){plan(hd,m)}else if(tab=='kunden'){kundenView(hd,m)}else if(tab=='offen'){
   hd.innerHTML='<h1>Noch ohne Termin'+fltSub()+'</h1>';
   var o=S.jobs.filter(function(j){return !j.start&&vis(j)});
   m.innerHTML='<div class="tbar"><span class="sp"></span><button class="b" onclick="showSearch()" title="Suchen">'+ic('search')+'<span class="tlb"> Suchen</span></button></div>'+fltBar()+(o.length?'<div class="ol">'+o.map(function(j){return card(j,'')}).join('')+'</div>':'<div class="empty big">'+ic('auftraege')+'<br><b>Nichts offen</b><br><small>Mit '+ic('plus')+' einen Auftrag ohne Termin anlegen</small></div>')
@@ -25,14 +25,13 @@ function render0(){mkH();
   hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
   done:!adm?'':pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
   app:appSec(),
-  kd:pnl(ic('users')+'Kunden',ksec(),'wide'),
   az:adm?pnl(ic('clock')+'Ganztägige Termine','<div class="sub">Ganztägige Termine werden im Kalender in diesem Zeitraum angezeigt.</div>'+
    '<div class="row" style="margin-top:10px"><div style="flex:1"><label>von</label><select id="ad_s">'+tOpts(ORG.allday_start||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="ad_e">'+tOpts(ORG.allday_end||'17:00')+'</select></div></div>'+
    '<div class="row"><button class="b" style="flex:none" onclick="saveAd(this)">Speichern</button></div>'):'',
   bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
    '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
   // Breitbild: zwei Spalten, in denen sich die Kästen lückenlos stapeln; Mitarbeiter über die volle Breite
-  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol+P.app,P.az+P.bk+P.done):cols(P.konto+P.app,P.hol+P.bk))+P.kd+
+  m.innerHTML=(adm?cols(P.konto,P.lic,true)+P.ma+cols(P.hol+P.app,P.az+P.bk+P.done):cols(P.konto+P.app,P.hol+P.bk))+
   '<div class="mfoot">'+LOGO_H+'<span>Planner</span></div>'
  }
 }
@@ -50,37 +49,6 @@ function appSec(){if(isApp())return '';
 function instApp(){if(!IP)return;IP.prompt();IP.userChoice.then(function(){IP=null;render()})}
 function saveAd(b){var a=document.getElementById('ad_s').value,e=document.getElementById('ad_e').value;if(a>=e){alert('Das Ende muss nach dem Beginn liegen.');return}
  b.disabled=true;sb.rpc('admin_set_allday',{p_start:a,p_end:e}).then(function(r){b.disabled=false;if(rpcErr(r))return;ORG.allday_start=a;ORG.allday_end=e;alert('Gespeichert: ganztägige Termine von '+a+' bis '+e+'.');render()})}
-// Kundenstamm: einmal erfassen, beim neuen Termin werden Adresse und Telefon vorgeschlagen
-var CUSTOK=false,KF='';
-function ksec(){if(!CUSTOK)return '<div class="sub">Der Kundenstamm steht nach dem nächsten Datenbank-Update zur Verfügung.</div>';
- return '<div class="sub">Kunden einmal erfassen – beim Anlegen eines Termins werden Name, Adresse und Telefon dann vorgeschlagen.</div>'+
-  '<input id="kf" type="search" placeholder="Kunden filtern …" value="'+esc(KF)+'" oninput="KF=this.value;kList()" style="margin-top:10px">'+
-  '<div class="ul" id="kl" style="margin-top:8px">'+kRows()+'</div>'+
-  '<div class="sec">Neuer Kunde</div><div class="g2"><div class="w"><label>Name</label><input id="k_n" placeholder="z. B. Fam. Huber"></div><div><label>Adresse</label><input id="k_a"></div><div><label>Telefon</label><input id="k_t" type="tel"></div></div>'+
-  '<div class="row"><button class="b p" onclick="kNew(this)">'+ic('plus')+' Kunde anlegen</button></div>'}
-function kRows(){var f=KF.trim().toLowerCase(),ls=S.cust.filter(function(c){return !f||(c.name+' '+c.adresse+' '+c.tel).toLowerCase().indexOf(f)>-1});
- if(!ls.length)return '<div class="sub" style="padding:10px 0">'+(S.cust.length?'Kein Kunde passt zum Filter.':'Noch keine Kunden erfasst.')+'</div>';
- return ls.map(function(c){var q='\''+c.id+'\'';return '<div class="ur kr"><input value="'+esc(c.name)+'" onchange="kUpd('+q+',\'name\',this)" aria-label="Name"><input value="'+esc(c.adresse)+'" placeholder="Adresse" onchange="kUpd('+q+',\'adresse\',this)" aria-label="Adresse"><input value="'+esc(c.tel)+'" placeholder="Telefon" type="tel" onchange="kUpd('+q+',\'tel\',this)" aria-label="Telefon">'+
-  (ME.role=='admin'||c.created_by==ME.user_id?'<button class="b d" onclick="kDel('+q+')" title="Kunde löschen">'+ic('trash')+'</button>':'')+'</div>'}).join('')}
-function kList(){var l=document.getElementById('kl');if(l)l.innerHTML=kRows()}
-function kById(id){return S.cust.filter(function(c){return c.id==id})[0]}
-function kUpd(id,f,el){var c=kById(id),v=el.value.trim();if(f=='name'&&!v){el.value=c.name;return}c[f]=v;var ch={};ch[f]=v;
- sb.from('customers').update(ch).eq('id',id).then(function(r){if(r.error)fail(r.error)})}
-function kSave(name,adresse,tel){var ex=S.cust.filter(function(c){return c.name.toLowerCase()==name.toLowerCase()})[0];
- if(ex){ex.adresse=adresse;ex.tel=tel;return sb.from('customers').update({adresse:adresse,tel:tel}).eq('id',ex.id)}
- var c={id:uuid(),name:name,adresse:adresse,tel:tel};S.cust.push(Object.assign({created_by:ME.user_id},c));S.cust.sort(function(a,b){return a.name.localeCompare(b.name,'de')});
- return sb.from('customers').insert(c)}
-function kNew(b){var g=function(i){return document.getElementById(i).value.trim()},n=g('k_n');if(!n){alert('Bitte einen Namen angeben.');return}
- b.disabled=true;kSave(n,g('k_a'),g('k_t')).then(function(r){b.disabled=false;if(r.error){fail(r.error);return}render()})}
-function kDel(id){var c=kById(id);if(!confirm('Kunde „'+c.name+'“ löschen? Bestehende Termine bleiben unverändert.'))return;
- S.cust=S.cust.filter(function(x){return x.id!=id});kList();sb.from('customers').delete().eq('id',id).then(function(r){if(r.error)fail(r.error)})}
-// Termin-Dialog: Vorschläge aus dem Kundenstamm beim Tippen des Namens
-function kSug(){var el=document.getElementById('ksug'),v=document.getElementById('f_k').value.trim().toLowerCase();if(!el)return;
- var ls=v.length<2?[]:S.cust.filter(function(c){return c.name.toLowerCase().indexOf(v)>-1}).slice(0,6);
- el.innerHTML=ls.map(function(c){return '<button type="button" onclick="kPick(\''+c.id+'\')"><b>'+esc(c.name)+'</b><small>'+esc([c.adresse,c.tel].filter(Boolean).join(' · '))+'</small></button>'}).join('')}
-function kPick(id){var c=kById(id),g=function(i){return document.getElementById(i)};g('f_k').value=c.name;if(c.adresse)g('f_a').value=c.adresse;if(c.tel)g('f_t').value=c.tel;g('ksug').innerHTML=''}
-function kFromDlg(b){var g=function(i){return document.getElementById(i).value.trim()},n=g('f_k');if(!n){alert('Bitte zuerst Kunde / Titel ausfüllen.');return}
- b.disabled=true;kSave(n,g('f_a'),g('f_t')).then(function(r){b.disabled=false;if(r.error){fail(r.error);return}b.innerHTML=ic('check')+' Als Kunde gespeichert'})}
 function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
 function cols(a,b,eq){return '<div class="pgrid'+(eq?' eq':'')+'"><div class="pcol">'+a+'</div><div class="pcol">'+b+'</div></div>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)

@@ -1,8 +1,9 @@
 // Planner – Termin-Dialog: anlegen, bearbeiten, wiederholen, aufteilen, speichern
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
 var cur={};
-function edit(id,ds,t,te,emp){
+function edit(id,ds,t,te,emp,pre){
  var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(ds&&isWE(ds)?'termin':'montage'),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
+ if(!id&&pre)Object.assign(j,pre);
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
  '<div class="eg"><div><div class="sec">Was</div><div class="seg wrap" id="s_art">'+Object.keys(ART).map(function(k){return '<button data-v="'+k+'">'+ART[k].ic+' '+ART[k].n+'</button>'}).join('')+'</div><div class="sub">Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+

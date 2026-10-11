@@ -125,12 +125,47 @@ test.describe('Termine', () => {
   });
 });
 
+test.describe('Kunden', () => {
+  test('Reiter Kunden: Notiz speichern, Termine des Kunden sehen, neuer Termin vorausgefüllt', async ({ page }) => {
+    await login(page);
+    await page.click('nav button[data-t="kunden"]');
+    await expect(page.locator('#hd h1')).toHaveText('Kunden');
+    await page.click('.job.kc:has-text("Fam. Huber")');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Kunde');
+    await expect(page.locator('#dlg .qrr', { hasText: 'Fam. Huber – Küche' })).toBeVisible();   // Termin über den Namen gefunden
+    await page.fill('#k_no', 'E2E Notiz: Schlüssel beim Nachbarn');
+    await page.click('#dlg .ft .b.p');
+    await expect(page.locator('#k_no')).toHaveValue('E2E Notiz: Schlüssel beim Nachbarn');
+    await page.click('#dlg button:has-text("Neuer Termin für diesen Kunden")');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Termin');
+    await expect(page.locator('#f_k')).toHaveValue('Fam. Huber');
+    await expect(page.locator('#f_a')).toHaveValue('Bozen, Hauptstraße 12');
+    const mo = await app(page, () => fmt(monday(new Date())));
+    await page.fill('#f_k', 'Fam. Huber – Nachmessen');
+    await page.fill('#f_s', mo);
+    await page.click('#dlg .ft .b.p');
+    const cid = await app(page, () => S.jobs.filter((j) => j.kunde === 'Fam. Huber – Nachmessen')[0].customer_id);
+    expect(cid, 'Termin ist fest mit dem Kunden verknüpft').toBeTruthy();
+  });
+
+  test('Neuen Kunden über „+“ anlegen', async ({ page }) => {
+    await login(page);
+    await page.click('nav button[data-t="kunden"]');
+    await page.click('#hd .ib.pl');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Kunde');
+    await page.fill('#k_n', 'E2E Kunde');
+    await page.fill('#k_a', 'Teststraße 1');
+    await page.click('#dlg .ft .b.p');
+    await page.click('#dlg .dt2 .ib');
+    await expect(page.locator('.job.kc', { hasText: 'E2E Kunde' })).toBeVisible();
+  });
+});
+
 test.describe('Einstellungen & Lizenz', () => {
-  test('Kein „+“ im Reiter Einstellungen, Kundenstamm vorhanden', async ({ page }) => {
+  test('Kein „+“ im Reiter Einstellungen', async ({ page }) => {
     await login(page);
     await page.click('nav button[data-t="mehr"]');
     await expect(page.locator('#hd .ib.pl')).toHaveCount(0);
-    await expect(page.locator('.pnl h2', { hasText: 'Kunden' })).toBeVisible();
   });
 
   test('Admin sieht Erinnerung 30 Tage vor Lizenzablauf', async ({ page }) => {
@@ -152,7 +187,7 @@ test.describe('Handy / iPhone', () => {
   test('Seite und Termin-Dialog lassen sich nicht seitlich verschieben, „X“ bleibt sichtbar', async ({ page }, info) => {
     test.skip(!isMobile(info), 'nur im Handy-Format');
     await login(page);
-    for (const t of ['plan', 'offen', 'mehr']) {
+    for (const t of ['plan', 'offen', 'kunden', 'mehr']) {
       await page.click(`nav button[data-t="${t}"]`);
       const w = await app(page, () => [document.documentElement.scrollWidth, innerWidth]);
       expect(w[0], `kein seitliches Scrollen (${t})`).toBeLessThanOrEqual(w[1]);

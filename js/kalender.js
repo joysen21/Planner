@@ -133,13 +133,15 @@ function showSearch(){var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>Suchen</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
   '<input id="q" type="search" placeholder="Kunde, Adresse, Telefon, Notiz, Mitarbeiter …" oninput="doSearch()" autocomplete="off"'+NC+'><div id="qr" class="qr"></div>';
  if(!d.open)d.showModal();var q=document.getElementById('q');q.value=SQ;q.focus();doSearch()}
+// Trefferzeile (Suche, Kunden-Detail): Datum, Titel, Art · Mitarbeiter · Adresse – Tippen öffnet die Details
+function qRow(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+(j.done?' dn':'')+'" onclick="showDet(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+(j.done?' · erledigt':'')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'}
 function doSearch(){var q=document.getElementById('q');if(!q)return;SQ=q.value;var t=SQ.trim().toLowerCase(),out=document.getElementById('qr'),td=fmt(new Date());
  if(t.length<2){out.innerHTML='<div class="sub">Mindestens 2 Zeichen eingeben.</div>';return}
  var hit=S.jobs.filter(function(j){return [j.kunde,j.adresse,j.tel,j.notiz,who(j),ART[j.art].n].join(' ').toLowerCase().indexOf(t)>-1});
  var up=hit.filter(function(j){return j.start&&j.start>=td}).sort(function(a,b){return a.start<b.start?-1:a.start>b.start?1:t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')}),
   op=hit.filter(function(j){return !j.start}),
   pa=hit.filter(function(j){return j.start&&j.start<td}).sort(function(a,b){return a.start<b.start?1:-1});
- var row=function(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+'" onclick="showDet(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'};
+ var row=qRow;
  var grp=function(t,l){return l.length?'<div class="lbl" style="margin-top:12px">'+t+' ('+l.length+')</div>'+l.slice(0,40).map(row).join(''):''};
  out.innerHTML=hit.length?grp('Kommend',up)+grp('Ohne Termin',op)+grp('Vergangen',pa):'<div class="sub">Nichts gefunden.</div>'}
 // Drucken bzw. „Als PDF speichern“: aktuelle Ansicht, Querformat, immer hell
@@ -197,7 +199,7 @@ function timeGrid(cols,team){
 function bp(){return innerWidth>=900?2:innerWidth>=600?1:0}
 var WIDE=bp();addEventListener('resize',function(){var w=bp();if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
-function nw(){edit(null,tab=='plan'&&(mode=='tag'||mode=='team')?an:'')}
+function nw(){if(tab=='kunden'){kEdit();return}edit(null,tab=='plan'&&(mode=='tag'||mode=='team')?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
 function conflict(ds,c){return S.jobs.some(function(o){
  if(o.id==c.id||o.done||!o.start)return false;

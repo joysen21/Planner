@@ -42,8 +42,8 @@
       ],
       holidays: [],
       customers: [
-        { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', created_by: 'u-stefan' },
-        { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', created_by: 'u-stefan' }
+        { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', notiz: 'Hund im Garten – vorher anrufen.', created_by: 'u-stefan' },
+        { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', notiz: '', created_by: 'u-stefan' }
       ]
     };
   }

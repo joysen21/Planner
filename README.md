@@ -33,7 +33,9 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 - **Ganztägige Termine** erscheinen im Kalender als Block im Zeitraum der Firma (Standard 08:00–17:00), den der Admin unter *Einstellungen → Ganztägige Termine* festlegt.
 - **Kalender**: Woche wahlweise **Mo–Fr** oder **Mo–So** (Umschalter über dem Kalender, pro Gerät gemerkt); Samstag/Sonntag sind leicht grau.
 - **Suchen** (über dem Kalender und in „Offen“): Kunde, Adresse, Telefon, Notiz, Art, Mitarbeiter – kommende, offene und vergangene Aufträge.
-- **Kundenstamm** unter *Einstellungen → Kunden*; beim neuen Termin schlägt das Feld „Kunde / Titel“ passende Kunden vor und füllt Adresse/Telefon. „Als Kunde speichern“ übernimmt die Angaben aus dem Termin.
+- **Kunden** als eigener Reiter: Liste mit Suche; im Detail Name, Adresse, Telefon, **Notizen**, Anrufen/Route und alle **Termine des Kunden** (geplant, ohne Termin, vergangen) sowie „Neuer Termin für diesen Kunden“.
+  Im Termin-Dialog schlägt „Kunde / Titel“ passende Kunden vor und füllt Adresse/Telefon; der Termin wird dann fest mit dem Kunden verknüpft.
+  Ältere Termine ohne Verknüpfung werden über den Namen zugeordnet („Fam. Huber – Küche“ gehört zu „Fam. Huber“).
 - **Wiederkehrende Termine**: beim Anlegen „Wiederholen“ (wöchentlich, alle 2 Wochen, monatlich) bis zu einem Datum; beim Löschen wahlweise auch alle folgenden Termine der Serie.
 - **Drucken / PDF**: Knopf „Drucken“ über dem Kalender – druckt die aktuelle Ansicht im Querformat (oder „Als PDF speichern“).
 - **Lizenz-Erinnerung**: der Firmen-Admin sieht 30 Tage vor Ablauf einen Hinweis; auf der Besitzer-Seite sind bald ablaufende Firmen markiert.
@@ -46,7 +48,8 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 2. **SQL Editor** → die Dateien aus `supabase/migrations/` der Reihe nach einfügen und *Run*
    (`20261009000000_init.sql`, `20261010000000_firmen_lizenzen_mitarbeiter.sql`,
    `20261011000000_loeschrechte_darstellung.sql`, `20261012000000_besitzer_benutzerverwaltung.sql`,
-   `20261013000000_ganztags_zeitraum.sql`, dann `20261014000000_kunden_serien.sql`).
+   `20261013000000_ganztags_zeitraum.sql`, `20261014000000_kunden_serien.sql`,
+   dann `20261015000000_kunden_notizen_verknuepfung.sql`).
 3. **Authentication → Sign In / Providers → Email**:
    - *Allow new users to sign up* **ausschalten** (Konten entstehen nur über die App).
    - *Minimum password length* auf **8** setzen.
@@ -96,6 +99,7 @@ einfügen → *Einfügen & übernehmen*. „Beide“ und Aushilfen werden den pa
 | `js/besitzer.js` | Besitzer-Seite: Firmen, Lizenzen, Benutzer |
 | `js/daten.js` | Laden, Speichern, Live-Aktualisierung, Datums-/Mitarbeiter-Hilfen |
 | `js/einstellungen.js` | Seitenaufbau, Einstellungen, Mitarbeiter, Kunden |
+| `js/kunden.js` | Reiter Kunden: Liste, Detail mit Notizen und Terminen, Vorschläge im Termin-Dialog |
 | `js/kalender.js` | Auftragskarten, Kalenderansichten, Zeitraster, Ziehen & Ablegen, Feiertage, Suche, Drucken |
 | `js/termin.js` | Termin-Dialog: anlegen, bearbeiten, wiederholen, aufteilen |
 | `js/start.js` | Navigation, App-Start, Service Worker |
