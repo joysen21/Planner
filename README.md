@@ -1,6 +1,6 @@
 # Planner
 
-Auftrags- und Einsatzplaner (JoKe Smart Solutions) als einzelne Web-Seite (`index.html`), Daten in **Supabase**, Hosting auf **Vercel**.
+Auftrags- und Einsatzplaner (JoKe Smart Solutions) als Web-App ohne Build-Schritt, Daten in **Supabase**, Hosting auf **Vercel**.
 Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 
 ## Firmen, Lizenzen & Anmeldung
@@ -31,6 +31,12 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
   eine andere Person umschalten. Aufträge können mehreren Personen zugeteilt werden.
 - **Löschen** dürfen nur der Firmen-Admin und wer den Auftrag angelegt hat; „Erledigte löschen“ nur der Admin.
 - **Ganztägige Termine** erscheinen im Kalender als Block im Zeitraum der Firma (Standard 08:00–17:00), den der Admin unter *Einstellungen → Ganztägige Termine* festlegt.
+- **Kalender**: Woche wahlweise **Mo–Fr** oder **Mo–So** (Umschalter über dem Kalender, pro Gerät gemerkt); Samstag/Sonntag sind leicht grau.
+- **Suchen** (über dem Kalender und in „Offen“): Kunde, Adresse, Telefon, Notiz, Art, Mitarbeiter – kommende, offene und vergangene Aufträge.
+- **Kundenstamm** unter *Einstellungen → Kunden*; beim neuen Termin schlägt das Feld „Kunde / Titel“ passende Kunden vor und füllt Adresse/Telefon. „Als Kunde speichern“ übernimmt die Angaben aus dem Termin.
+- **Wiederkehrende Termine**: beim Anlegen „Wiederholen“ (wöchentlich, alle 2 Wochen, monatlich) bis zu einem Datum; beim Löschen wahlweise auch alle folgenden Termine der Serie.
+- **Drucken / PDF**: Knopf „Drucken“ über dem Kalender – druckt die aktuelle Ansicht im Querformat (oder „Als PDF speichern“).
+- **Lizenz-Erinnerung**: der Firmen-Admin sieht 30 Tage vor Ablauf einen Hinweis; auf der Besitzer-Seite sind bald ablaufende Firmen markiert.
 - **Darstellung** (Automatisch / Hell / Dunkel) wählt jeder unter *Einstellungen → Mein Konto*; sie wird pro Mitarbeiter gespeichert.
 
 ## Einrichtung
@@ -40,7 +46,7 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 2. **SQL Editor** → die Dateien aus `supabase/migrations/` der Reihe nach einfügen und *Run*
    (`20261009000000_init.sql`, `20261010000000_firmen_lizenzen_mitarbeiter.sql`,
    `20261011000000_loeschrechte_darstellung.sql`, `20261012000000_besitzer_benutzerverwaltung.sql`,
-   dann `20261013000000_ganztags_zeitraum.sql`).
+   `20261013000000_ganztags_zeitraum.sql`, dann `20261014000000_kunden_serien.sql`).
 3. **Authentication → Sign In / Providers → Email**:
    - *Allow new users to sign up* **ausschalten** (Konten entstehen nur über die App).
    - *Minimum password length* auf **8** setzen.
@@ -80,5 +86,33 @@ In der alten Version auf dem Handy: *Mehr → Backup kopieren*. In der neuen Ver
 Mitarbeiter mit **denselben Namen** anlegen (z. B. Uwe, Stefan, Asterix, Obelix), dann *Einstellungen → Backup*
 einfügen → *Einfügen & übernehmen*. „Beide“ und Aushilfen werden den passenden Mitarbeitern zugeordnet.
 
-## Lokal testen
-Einen beliebigen statischen Server im Ordner starten, z. B. `npx serve .`, und die angezeigte Adresse öffnen.
+## Aufbau des Codes
+| Datei | Inhalt |
+|---|---|
+| `index.html` | Seitengerüst, lädt CSS und Skripte in dieser Reihenfolge |
+| `css/app.css` | gesamte Gestaltung (hell/dunkel, Handy/Breitbild, Druck) |
+| `js/demo.js` | Demo-Modus (nur mit `?demo`) – ersetzt Supabase durch Beispieldaten im Browser |
+| `js/grundlagen.js` | Zustand, Logo, Icons, Start, Darstellung, Anmeldung |
+| `js/besitzer.js` | Besitzer-Seite: Firmen, Lizenzen, Benutzer |
+| `js/daten.js` | Laden, Speichern, Live-Aktualisierung, Datums-/Mitarbeiter-Hilfen |
+| `js/einstellungen.js` | Seitenaufbau, Einstellungen, Mitarbeiter, Kunden |
+| `js/kalender.js` | Auftragskarten, Kalenderansichten, Zeitraster, Ziehen & Ablegen, Feiertage, Suche, Drucken |
+| `js/termin.js` | Termin-Dialog: anlegen, bearbeiten, wiederholen, aufteilen |
+| `js/start.js` | Navigation, App-Start, Service Worker |
+
+Alle Skripte sind klassische Skripte (keine Module) mit globalen Funktionen. Code, der beim Laden sofort läuft,
+darf nur Funktionen aus **derselben oder früheren** Dateien aufrufen.
+
+## Lokal testen / Demo
+Einen statischen Server im Ordner starten, z. B. `npx serve .`, und die angezeigte Adresse öffnen.
+**Demo-Modus** ohne Datenbank: Adresse mit `?demo` öffnen (`?demo=neu` setzt die Beispieldaten zurück).
+Anmeldung: Lizenz-ID `1`, Benutzer `stefan` (Admin), `uwe` oder `miraculix`, beliebiges Passwort.
+
+## Automatische Tests
+Oberflächentests mit Playwright im Demo-Modus – in **Chrome**, **Safari** (WebKit) und auf dem **iPhone** (WebKit, Touch):
+```bash
+npm install
+npx playwright install webkit chromium
+npm test
+```
+Nur Safari/iPhone: `npm run test:safari`. Die Tests liegen in `tests/`; `.vercelignore` hält die Testumgebung aus dem Deployment heraus.

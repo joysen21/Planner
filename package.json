@@ -1,0 +1,13 @@
+{
+  "name": "planner",
+  "private": true,
+  "description": "Planner (JoKe Smart Solutions) – nur für die automatischen Tests; die App selbst braucht keinen Build.",
+  "scripts": {
+    "test": "playwright test",
+    "test:safari": "playwright test --project=safari-desktop --project=iphone",
+    "serve": "npx --yes serve@14.2.4 -l 5181 ."
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}

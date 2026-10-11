@@ -1,0 +1,8 @@
+# Nur die App ausliefern – Testumgebung nicht hochladen (sonst installiert Vercel unnötig Pakete)
+node_modules
+tests
+test-results
+playwright-report
+package.json
+package-lock.json
+playwright.config.js
