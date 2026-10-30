@@ -14,6 +14,7 @@ function card(j,ds,force){
  h+='<div class="g2">'+q("pick('"+id+"')",ic('move')+' Im Kalender')+q("fixt('"+id+"')",PV(j)?ic('pin')+' Fix setzen':ic('pv')+' Provisorisch')+'</div>';
  // Aktionen: Erledigt | Bearbeiten | Löschen, darunter (nur wenn eingetragen) Anrufen | Route
  h+='<div class="ft2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt','p')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+(canDel(j)?q("del('"+id+"')",ic('trash'),'d'):'')+'</div>';
+ h+=regieBtn(j);
  if(j.tel||j.adresse)h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+'</div>';
  h+='</div></div>';
  return h}

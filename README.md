@@ -40,6 +40,9 @@ Kein Build-Schritt: Vercel liefert die Dateien direkt aus.
 - **Drucken / PDF**: Knopf „Drucken“ über dem Kalender – druckt die aktuelle Ansicht im Querformat (oder „Als PDF speichern“).
 - **Lizenz-Erinnerung**: der Firmen-Admin sieht 30 Tage vor Ablauf einen Hinweis; auf der Besitzer-Seite sind bald ablaufende Firmen markiert.
 - **Darstellung** (Automatisch / Hell / Dunkel) wählt jeder unter *Einstellungen → Mein Konto*; sie wird pro Mitarbeiter gespeichert.
+- **Regiebericht** (nur mit ERP-Modul und Recht „Regie“): im Termin *Regiebericht* – Stunden je Mitarbeiter (±½ h, vorbelegt aus der Uhrzeit),
+  Material aus dem ERP-Artikelstamm (ohne Preise) oder freier Text, Fotos, Notiz und Kundenunterschrift; *An Büro senden* übergibt ihn der ERP.
+  Je Tag ein Bericht; der Termin braucht einen mit der ERP verknüpften Kunden. Gespeichert wird in den ERP-Tabellen `erp_regie*`.
 
 ## Einrichtung
 

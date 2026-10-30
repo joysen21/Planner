@@ -50,6 +50,7 @@ search:'<circle cx="10.5" cy="10.5" r="6.5" fill="currentColor" fill-opacity=".1
 print:'<rect x="4" y="9" width="16" height="8" rx="2" fill="currentColor" fill-opacity=".16" stroke="none"/><path d="M7 9V3.5h10V9M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="6.5" rx="1"/>',
 repeat:'<path d="M4 12a7 7 0 0 1 12-4.9L18 9" /><path d="M18 4v5h-5M20 12a7 7 0 0 1-12 4.9L6 15"/><path d="M6 20v-5h5"/>',
 kunde:'<rect x="3" y="5" width="18" height="14" rx="3" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.3"/><path d="M5.6 16.2a3.6 3.6 0 0 1 6.8 0M14.5 10h4M14.5 13.5h3"/>',
+regie:'<rect x="5" y="4.5" width="14" height="17.5" rx="3" fill="currentColor" fill-opacity=".14" stroke="none"/><path d="M9 4.5H8a3 3 0 0 0-3 3V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V7.5a3 3 0 0 0-3-3h-1"/><rect x="9" y="2.5" width="6" height="4" rx="1.5" fill="currentColor" fill-opacity=".3"/><path d="M9 12.5h1.5l1.2-2.2 1.6 4.4 1.2-2.2H15M9 17.5h6"/>',
 copy:'<rect x="8" y="8" width="12.5" height="12.5" rx="2.5" fill="currentColor" fill-opacity=".16" stroke="none"/><rect x="8" y="8" width="12.5" height="12.5" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
 function ic(n,c){return '<svg class="i'+(c?' '+c:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>'}
 function boot(){

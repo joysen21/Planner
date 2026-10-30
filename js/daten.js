@@ -6,6 +6,7 @@ async function loadAll(){
  USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;ORG=r[3].data;
  // Kundenstamm (fehlt die Tabelle noch, läuft die App ohne ihn weiter)
  CUSTOK=!r[4].error;S.cust=CUSTOK?r[4].data:[];
+ await regieRights();
  if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}
   // Darstellung: laufende Auswahl behalten, sonst Änderung von einem anderen Gerät übernehmen
   if(THP)ME.theme=THP;else if(ME.theme&&ME.theme!=(lsGet('planer_theme')||'auto'))applyTheme(ME.theme)}}
@@ -14,7 +15,7 @@ function daysLeft(v){v=v===undefined?ORG&&ORG.valid_until:v;if(!v)return null;re
 function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
 function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
-function fromRow(r){return {customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
+function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id:r.erp_order_id||null,customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
 function toRow(j){var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;return o}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
 function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}

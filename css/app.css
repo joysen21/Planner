@@ -1,5 +1,5 @@
 /* Planner – Gestaltung (aus index.html ausgelagert) */
-:root{--bg:#f4f1ec;--card:#fff;--tx:#2b2620;--mu:#8a8177;--ln:#e3ddd3;--ac:#8a5a2b;--mo:#3d8b4f;--we:#2f6fa8;--pl:#e0b020;--tm:#8e5bc0;--ur:#d03a3a;--bad:#c0392b;--ok:#3d8b4f;
+:root{--bg:#f4f1ec;--paper:#fff;--ink:#1a1f1c;--paper-ln:#d5d0c8;--paper-mu:#8a8177;--card:#fff;--tx:#2b2620;--mu:#8a8177;--ln:#e3ddd3;--ac:#8a5a2b;--mo:#3d8b4f;--we:#2f6fa8;--pl:#e0b020;--tm:#8e5bc0;--ur:#d03a3a;--bad:#c0392b;--ok:#3d8b4f;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1815;--card:#26221d;--tx:#f0ebe3;--mu:#a0968a;--ln:#3a342d;--ac:#d9a066;--mo:#5cb872;--we:#5aa0dc;--pl:#e8c547;--tm:#b08ae0;--ur:#e8655a}}
 :root[data-theme="dark"]{--bg:#1b1815;--card:#26221d;--tx:#f0ebe3;--mu:#a0968a;--ln:#3a342d;--ac:#d9a066;--mo:#5cb872;--we:#5aa0dc;--pl:#e8c547;--tm:#b08ae0;--ur:#e8655a}
@@ -373,3 +373,32 @@ nav button.on .i{color:var(--ac)}
 .ev.rzon{box-shadow:0 0 0 2px var(--tx),0 6px 16px rgba(0,0,0,.25);z-index:4}
 @media (pointer:fine){.rz,.sh .rz{height:7px;cursor:ns-resize}.rz::after{display:none}.ev:hover .rz::after{display:block}.rz.rt::after{top:2px}.rz.rb::after,.sh .rz.rb::after{bottom:2px}}
 .warn{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);color:var(--tx);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
+/* Regiebericht (ERP): Stunden und Material mit +/−, Fotos, Unterschrift */
+.rgb{color:var(--ac);border-color:var(--ac)}
+.rgh{display:flex;gap:6px;align-items:center;margin:2px 0 6px}
+.rgk{margin:2px 0 8px}.rgk .k{font-size:18px}
+.rgs{font-weight:600;color:var(--ac)}.rgs.eingereicht{color:var(--we)}.rgs.freigegeben,.rgs.abgerechnet{color:var(--ok)}
+.rgd{flex-wrap:wrap;margin:6px 0}.rgd button{flex:none;min-height:36px;padding:0 10px;font-size:13px}
+.rgt{float:right;color:var(--tx);letter-spacing:0;text-transform:none;font-size:14px}
+.rgl{display:flex;flex-direction:column;gap:6px}
+.rgr{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:6px 6px 6px 12px}
+.rgr .nm{flex:1;min-width:0;font-weight:500;overflow-wrap:anywhere}.rgr .nm small{display:block;font-weight:400;color:var(--mu);font-size:12px}.rgr .nm small.bad{color:var(--bad)}
+.stp{display:flex;align-items:center;gap:4px;flex:none}
+.stp button{width:44px;height:44px;border-radius:10px;border:1px solid var(--ln);background:var(--card);color:var(--tx);font-size:22px;line-height:1}
+.stp button:active{transform:scale(.94)}
+.rgv{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
+.rgx{min-width:36px;height:36px;flex:none;border:0;background:none;color:var(--mu)}
+.rgadd{margin-top:8px;color:var(--mu)}
+.rgsr{margin-top:8px}.rgsr .ksug button small{display:block}
+.rgph{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:8px}
+.rgph figure{position:relative;margin:0}.rgph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--ln);background:var(--bg);display:block}
+.rgph figure .rgx{position:absolute;top:2px;right:2px;background:var(--card);border-radius:99px;width:30px;min-width:30px;height:30px}
+.rgcam{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;aspect-ratio:1;margin:0;border:1px dashed var(--ln);border-radius:10px;color:var(--ac);font-size:14px;cursor:pointer}
+.rgcam input{position:absolute;width:1px;height:1px;opacity:0}
+.rgpad{position:relative;height:170px;margin-top:8px;border:1px dashed var(--ln);border-radius:12px;background:var(--paper);touch-action:none}
+.rgpad canvas{width:100%;height:100%;display:block}
+.rgpad span{position:absolute;left:24px;right:24px;bottom:30px;border-top:1px solid var(--paper-ln);padding-top:4px;text-align:center;color:var(--paper-mu);font-size:13px;pointer-events:none}
+.rgpad.on span{display:none}.rgpad .rgx{position:absolute;top:4px;right:4px;color:var(--paper-mu)}
+.rgsig{background:var(--paper);border:1px solid var(--ln);border-radius:12px;padding:6px;margin-bottom:8px}.rgsig img{display:block;width:100%;height:110px;object-fit:contain}.rgsig .sub{color:var(--paper-mu);padding:0 6px}
+.rgok{text-align:center;padding:16px 4px}.rgok>.i{width:48px;height:48px;color:var(--ok)}.rgok h2{margin:8px 0 4px}.rgok .row{margin-top:16px}
+#rg_e.ok{color:var(--ok)}

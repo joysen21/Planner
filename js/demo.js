@@ -22,16 +22,17 @@
     };
     return {
       organizations: [{ id: 'demo-org', nr: 1, license_id: 'JK.PLANNER.001', name: 'Demo Tischlerei', max_users: 5, valid_until: null,
-        active: true, note: '', allday_start: '08:00', allday_end: '17:00' }],
+        active: true, note: '', allday_start: '08:00', allday_end: '17:00', modules: ['planner', 'erp'] }],
       employees: [
-        { id: 'e-stefan', org_id: 'demo-org', user_id: 'u-stefan', username: 'stefan', display_name: 'Stefan', role: 'admin', color: '#8a5a2b', theme: 'auto' },
-        { id: 'e-uwe', org_id: 'demo-org', user_id: 'u-uwe', username: 'uwe', display_name: 'Uwe', role: 'user', color: '#1e7be0', theme: 'auto' },
+        { id: 'e-stefan', org_id: 'demo-org', user_id: 'u-stefan', username: 'stefan', display_name: 'Stefan', role: 'admin', color: '#8a5a2b', theme: 'auto', erp_labor_article_id: 'a-std' },
+        { id: 'e-uwe', org_id: 'demo-org', user_id: 'u-uwe', username: 'uwe', display_name: 'Uwe', role: 'user', color: '#1e7be0', theme: 'auto', erp_labor_article_id: 'a-std' },
         { id: 'e-miraculix', org_id: 'demo-org', user_id: 'u-miraculix', username: 'miraculix', display_name: 'Miraculix', role: 'user', color: '#d03a3a', theme: 'auto' },
         { id: 'e-asterix', org_id: 'demo-org', user_id: null, username: null, display_name: 'Asterix', role: 'user', color: '#3d8b4f', theme: 'auto' },
         { id: 'e-obelix', org_id: 'demo-org', user_id: null, username: null, display_name: 'Obelix', role: 'user', color: '#8e5bc0', theme: 'auto' }
       ],
       jobs: [
-        job({ kunde: 'Fam. Huber – Küche', art: 'montage', wer: ['e-stefan', 'e-uwe'], start: d(0), zeit: '08:00', ende: '12:00', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', imp: true }),
+        job({ kunde: 'Fam. Huber – Küche', art: 'montage', wer: ['e-stefan', 'e-uwe'], start: d(0), zeit: '08:00', ende: '12:00', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', imp: true,
+          erp_customer_id: 'k-huber', notiz: 'AU-2026-0001 · Küche montieren\n- 1 Stk Küchenzeile Eiche' }),
         job({ kunde: 'Aufmaß Gruber', art: 'termin', wer: ['e-stefan'], start: d(0), zeit: '13:00', ende: '14:00', fix: false, adresse: 'Meran, Lauben 5' }),
         job({ kunde: 'Werkstatt Schrank', art: 'werkstatt', wer: ['e-asterix'], start: d(1), tage: 2, material: false }),
         job({ kunde: 'Bad Pichler', art: 'montage', wer: ['e-uwe', 'e-obelix'], start: d(2), zeit: '07:30', ende: '16:00', adresse: 'Brixen, Domplatz 3' }),
@@ -41,6 +42,13 @@
         job({ kunde: 'Erledigt: Haustür', art: 'montage', wer: ['e-stefan'], start: d(-3), done: true })
       ],
       holidays: [],
+      // ERP-Teil (Regieberichte): Rechte, Artikel ohne Preise, Berichte
+      erp_articles: [
+        { id: 'a-std', number: 'A-00006', kind: 'leistung', name_de: 'Arbeitsstunde Monteur', unit: 'h' },
+        { id: 'a-sil', number: 'A-00008', kind: 'material', name_de: 'Silikon transparent', unit: 'Stk' },
+        { id: 'a-schr', number: 'A-00011', kind: 'material', name_de: 'Montageschrauben 5×60', unit: 'Pkg' }
+      ],
+      erp_regie: [], erp_regie_hours: [], erp_regie_material: [], erp_regie_photos: [], files: {},
       customers: [
         { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', notiz: 'Hund im Garten – vorher anrufen.', created_by: 'u-stefan' },
         { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', notiz: '', created_by: 'u-stefan' }
@@ -86,8 +94,10 @@
     }
     if (this.act === 'insert' || this.act === 'upsert') {
       [].concat(this.p).forEach(function (row) {
+        if (key === 'id' && !row.id) row = Object.assign({ id: uid() }, row);
         var i = t.findIndex(function (r) { return r[key] === row[key]; });
         var base = { org_id: 'demo-org', created_by: session && session.user.id };
+        if (me.t === 'erp_regie') Object.assign(base, { status: 'entwurf', number: '' });   // Vorgaben der Tabelle
         if (i > -1) t[i] = Object.assign(t[i], row); else t.push(Object.assign(base, row));
       });
     }
@@ -114,11 +124,18 @@
     rpc: function (name, a) {
       var me = session && empByUser(session.user.id);
       if (name === 'is_owner') return ok(false);
+      if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write' }, isSystem: false } } : null);
+      if (name === 'erp_regie_articles') { var q = String(a.p_search || '').toLowerCase(); return ok(DB.erp_articles.filter(function (x) { return (!a.p_kind || x.kind === a.p_kind) && (x.name_de + ' ' + x.number).toLowerCase().indexOf(q) > -1; })); }
       if (name === 'set_my_theme') { if (me) me.theme = a.p_theme; persist(); return ok(null); }
       if (name === 'admin_set_allday') { if (!me || me.role !== 'admin') return err('Nur der Admin darf das.'); DB.organizations[0].allday_start = a.p_start; DB.organizations[0].allday_end = a.p_end; persist(); return ok(null); }
       if (name === 'admin_add_employee') { var id = uid(); DB.employees.push({ id: id, org_id: 'demo-org', user_id: null, username: null, display_name: a.p_display_name, role: 'user', color: a.p_color || '#2f6fa8', theme: 'auto' }); persist(); return ok(id); }
       return err('Im Demo-Modus nicht verfügbar.');
     },
+    // Dateien (Fotos, Unterschrift) als data:-Adresse im Browser
+    storage: { from: function () { return {
+      upload: function (path, blob) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { DB.files[path] = fr.result; persist(); res({ data: { path: path }, error: null }); }; fr.readAsDataURL(blob); }); },
+      createSignedUrl: function (path) { return DB.files[path] ? ok({ signedUrl: DB.files[path] }) : err('Datei nicht gefunden.'); }
+    }; } },
     channel: function () { var c = { on: function () { return c; }, subscribe: function () { return c; } }; return c; },
     removeChannel: function () {}
   };

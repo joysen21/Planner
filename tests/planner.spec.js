@@ -207,3 +207,70 @@ test.describe('Handy / iPhone', () => {
     expect(breit, 'Dialog nicht breiter als der Bildschirm').toBeLessThanOrEqual(0);
   });
 });
+
+test.describe('Regiebericht (ERP)', () => {
+  const oeffne = (page, kunde) => app(page, (k) => showDet(S.jobs.find((j) => j.kunde.startsWith(k)).id), kunde);
+  const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
+
+  test('Monteur erfasst Stunden, Material und Unterschrift und sendet ans Büro', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .rgb');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Regiebericht');
+    // je eingeteiltem Mitarbeiter eine Zeile, Stunden aus der Uhrzeit des Termins (08:00–12:00)
+    await expect(page.locator('#dlg .rgr')).toHaveCount(2);
+    await expect(page.locator('#dlg .rgt')).toHaveText('8,0 h');
+    await page.getByRole('button', { name: 'Eine halbe Stunde mehr für Uwe' }).click();
+    await expect(page.locator('#dlg .rgt')).toHaveText('8,5 h');
+
+    await page.fill('#rg_q', 'Sil');
+    await page.getByRole('button', { name: /^Silikon transparent/ }).click();
+    await page.getByRole('button', { name: 'Silikon transparent erhöhen' }).click();
+    await expect(page.locator('#dlg .rgr', { hasText: 'Silikon' }).locator('.rgv')).toHaveText('2 Stk');
+    await page.fill('#rg_q', 'Dübel 8 mm');
+    await page.getByRole('button', { name: /als freien Text/ }).click();
+    await page.fill('#rg_n', 'Sockelleiste fehlt noch.');
+
+    await page.fill('#rg_sn', 'Maria Huber');
+    await page.locator('#rg_c').evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    const c = await page.locator('#rg_c').boundingBox();
+    await page.mouse.move(c.x + 30, c.y + 100);
+    await page.mouse.down();
+    for (const [x, y] of [[80, 50], [130, 110], [180, 60], [230, 100]]) await page.mouse.move(c.x + x, c.y + y, { steps: 4 });
+    await page.mouse.up();
+
+    await page.getByRole('button', { name: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    const d = await db(page);
+    expect(d.erp_regie).toHaveLength(1);
+    expect(d.erp_regie[0]).toMatchObject({ status: 'eingereicht', customer_id: 'k-huber', signer_name: 'Maria Huber', remark: 'Sockelleiste fehlt noch.' });
+    expect(d.erp_regie[0].signature_path).toMatch(/^demo-org\/regie\/.+\.png$/);
+    expect(d.erp_regie_hours.map((h) => [h.employee_id, h.hours, h.article_id])).toEqual([['e-stefan', 4, 'a-std'], ['e-uwe', 4.5, 'a-std']]);
+    expect(d.erp_regie_material.map((m) => [m.article_id, m.text, m.qty])).toEqual([['a-sil', 'Silikon transparent', 2], [null, 'Dübel 8 mm', 1]]);
+
+    // danach nur noch ansehen
+    await page.getByRole('button', { name: 'Bericht ansehen' }).click();
+    await expect(page.locator('#dlg .note')).toContainText('liegt im Büro');
+    await expect(page.getByRole('button', { name: 'An Büro senden' })).toHaveCount(0);
+    await expect(page.locator('#dlg .rgsig img')).toHaveAttribute('src', /^data:image\/png/);
+  });
+
+  test('Entwurf speichern und später weitermachen; ohne ERP-Kunde nur ein Hinweis', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .rgb');
+    await page.getByRole('button', { name: 'Eine halbe Stunde weniger für Stefan' }).click();
+    await page.locator('#dlg .ft .b', { hasText: 'Speichern' }).click();
+    await expect(page.locator('#rg_e')).toHaveText('Gespeichert');
+    await page.click('#dlg .dt2 .ib');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .rgb');
+    await expect(page.locator('#dlg .rgt')).toHaveText('7,5 h');
+    await expect(page.locator('#dlg .rgs')).toHaveText('Entwurf');
+    await page.click('#dlg .dt2 .ib');
+
+    await oeffne(page, 'Bad Pichler');
+    await expect(page.locator('#dlg .rgb')).toHaveCount(0);
+    await expect(page.locator('#dlg .rgh')).toContainText('nicht mit der ERP verknüpft');
+  });
+});
