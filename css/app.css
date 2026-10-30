@@ -389,6 +389,7 @@ nav button.on .i{color:var(--ac)}
 .rgv{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-size:15px}
 .rgx{min-width:36px;height:36px;flex:none;border:0;background:none;color:var(--mu)}
 .rgadd{margin-top:8px;color:var(--mu)}
+.rgvb{margin:-2px 0 6px}.rgrec{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.rgrec .sub{width:100%}.rgrec .chip{font:inherit;font-size:14px;min-height:40px;padding:6px 12px;border-radius:20px;border:1px solid var(--ln);background:var(--card);color:var(--tx);cursor:pointer}.rgpdf{margin-top:10px}.rgpdf .row{justify-content:center}
 .rgsr{margin-top:8px}.rgsr .ksug button small{display:block}
 .rgph{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:8px}
 .rgph figure{position:relative;margin:0}.rgph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--ln);background:var(--bg);display:block}

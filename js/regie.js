@@ -56,7 +56,7 @@ function rgRender(){var d=document.getElementById('dlg'),j=RG.job,r=RG.r,ro=RG.r
  if(r.status=='eingereicht')h+='<div class="note">'+ic('info')+' Der Bericht liegt im Büro und wird dort geprüft. Änderungen macht jetzt das Büro.</div>';
  if(r.status=='freigegeben'||r.status=='abgerechnet')h+='<div class="note">'+ic('check')+' Vom Büro freigegeben'+(r.number?' als '+esc(r.number):'')+'.</div>';
 
- h+='<div class="sec">Arbeitszeit <span class="rgt">'+rgFmt(tot)+'</span></div><div class="rgl">'+RG.hours.map(function(x,i){return '<div class="rgr"><div class="nm">'+esc(uName(x.employee_id))+(x.article_id?'':'<small class="bad">ohne Leistungsartikel – das Büro ergänzt ihn</small>')+'</div>'+
+ h+='<div class="sec">Arbeitszeit <span class="rgt">'+rgFmt(tot)+'</span></div>'+(!r.id&&!ro&&RG.hours.length?'<div class="sub rgvb">Aus dem Termin vorbelegt'+(j.zeit?' ('+esc(j.zeit)+(j.ende?'–'+esc(j.ende):'')+')':'')+'. Bitte prüfen.</div>':'')+'<div class="rgl">'+RG.hours.map(function(x,i){return '<div class="rgr"><div class="nm">'+esc(uName(x.employee_id))+(x.article_id?'':'<small class="bad">ohne Leistungsartikel – das Büro ergänzt ihn</small>')+'</div>'+
   (ro?'<b class="rgv">'+rgFmt(x.hours)+'</b>':'<div class="stp"><button aria-label="Eine halbe Stunde weniger für '+esc(uName(x.employee_id))+'" onclick="rgH('+i+',-0.5)">−</button><b class="rgv">'+rgFmt(x.hours)+'</b><button aria-label="Eine halbe Stunde mehr für '+esc(uName(x.employee_id))+'" onclick="rgH('+i+',0.5)">+</button></div><button class="ib rgx" aria-label="'+esc(uName(x.employee_id))+' entfernen" onclick="rgDelH('+i+')">'+ic('x')+'</button>')+'</div>'}).join('')+
   (RG.hours.length?'':'<div class="empty">Noch keine Stunden.</div>')+'</div>';
  var free=USERS.filter(function(u){return !RG.hours.some(function(x){return x.employee_id==u.id})});
@@ -65,7 +65,7 @@ function rgRender(){var d=document.getElementById('dlg'),j=RG.job,r=RG.r,ro=RG.r
  h+='<div class="sec">Material</div><div class="rgl">'+RG.mat.map(function(x,i){return '<div class="rgr"><div class="nm">'+esc(x.text)+(x.nr?'<small>'+esc(x.nr)+'</small>':'')+'</div>'+
   (ro?'<b class="rgv">'+x.qty.toLocaleString('de-DE')+' '+esc(x.unit)+'</b>':'<div class="stp"><button aria-label="'+esc(x.text)+' verringern" onclick="rgQ('+i+',-1)">−</button><b class="rgv">'+x.qty.toLocaleString('de-DE')+' '+esc(x.unit)+'</b><button aria-label="'+esc(x.text)+' erhöhen" onclick="rgQ('+i+',1)">+</button></div><button class="ib rgx" aria-label="'+esc(x.text)+' entfernen" onclick="rgDelM('+i+')">'+ic('x')+'</button>')+'</div>'}).join('')+
   (RG.mat.length?'':'<div class="empty">Kein Material.</div>')+'</div>';
- if(!ro)h+='<div class="rgsr"><input id="rg_q" type="search" placeholder="＋ Artikel suchen (Nummer oder Name)" autocomplete="off" oninput="rgSearch(this.value)" aria-label="Artikel suchen"><div id="rg_res" class="ksug"></div></div>';
+ if(!ro)h+='<div class="rgsr"><input id="rg_q" type="search" placeholder="＋ Artikel suchen (Nummer oder Name)" autocomplete="off" oninput="rgSearch(this.value)" aria-label="Artikel suchen"><div id="rg_res" class="ksug"></div></div>'+rgRecentHtml();
 
  h+='<div class="sec">Fotos &amp; Notiz</div><div class="rgph">'+RG.photos.map(function(x){return '<figure><img data-p="'+esc(x.path)+'" src="'+esc(RG.urls[x.path]||'')+'" alt="Foto">'+(ro?'':'<button class="ib rgx" aria-label="Foto entfernen" onclick="rgDelP(\''+x.id+'\')">'+ic('x')+'</button>')+'</figure>'}).join('')+
   (ro?'':'<label class="rgcam">'+ic('plus')+'<span>Foto</span><input type="file" accept="image/*" capture="environment" multiple onchange="rgPhotos(this)"></label>')+'</div>'+
@@ -77,6 +77,7 @@ function rgRender(){var d=document.getElementById('dlg'),j=RG.job,r=RG.r,ro=RG.r
  else if(ro)h+='<div class="empty">Nicht unterschrieben.</div>';
  else h+='<input id="rg_sn" placeholder="Name des Kunden" value="'+esc(r.signer_name)+'" oninput="RG.r.signer_name=this.value"><div class="rgpad"><canvas id="rg_c" aria-label="Unterschriftsfeld"></canvas><span>Hier unterschreiben lassen</span><button class="ib rgx" aria-label="Unterschrift löschen" onclick="rgClear()">'+ic('undo')+'</button></div>';
 
+ if(r.signature_path)h+=rgPdfBtn();
  h+='<div id="rg_e" class="err"></div>';
  if(!ro)h+='<div class="row ft"><button class="b" onclick="rgSave(false)">'+ic('save')+' Speichern</button><button class="b p" onclick="rgSave(true)">'+ic('check')+' An Büro senden</button></div>';
  d.innerHTML=h;if(!ro)rgPad()}
@@ -92,7 +93,15 @@ function rgSearch(s){clearTimeout(rgT);var el=document.getElementById('rg_res');
   var l=r.data||[];RG.found=l;
   el.innerHTML=l.slice(0,8).map(function(a,i){return '<button type="button" onclick="rgPick('+i+')">'+esc(a.name_de)+'<small>'+esc(a.number)+' · '+esc(a.unit)+'</small></button>'}).join('')+
    '<button type="button" onclick="rgFree()">„'+esc(s)+'“ als freien Text<small>ohne Artikelnummer</small></button>'})},250)}
-function rgPick(i){var a=RG.found[i];RG.mat.push({article_id:a.id,text:a.name_de,nr:a.number,qty:1,unit:a.unit||'Stk'});RG.dirty=true;rgRender()}
+// Gleicher Artikel nochmal = eine Zeile mehr Menge, keine zweite Zeile
+function rgAddArt(a){var x=RG.mat.filter(function(m){return m.article_id==a.id})[0];if(x)x.qty+=1;else RG.mat.push({article_id:a.id,text:a.text,nr:a.nr,qty:1,unit:a.unit});rgRemember(a);RG.dirty=true;rgRender()}
+function rgPick(i){var a=RG.found[i];rgAddArt({id:a.id,text:a.name_de,nr:a.number,unit:a.unit||'Stk'})}
+// Zuletzt verwendetes Material je Firma auf diesem Gerät
+function rgRecentKey(){return 'planner-regie-recent:'+ORG.id}
+function rgRecent(){try{return JSON.parse(localStorage.getItem(rgRecentKey())||'[]')}catch(e){return []}}
+function rgRemember(a){var l=[a].concat(rgRecent().filter(function(x){return x.id!=a.id})).slice(0,6);try{localStorage.setItem(rgRecentKey(),JSON.stringify(l))}catch(e){}}
+function rgRecentHtml(){var l=rgRecent();if(!l.length)return '';return '<div class="rgrec"><span class="sub">Zuletzt verwendet</span>'+l.map(function(a,i){return '<button type="button" class="chip" aria-label="'+esc(a.text)+' hinzufügen" onclick="rgAddRecent('+i+')">＋ '+esc(a.text)+'</button>'}).join('')+'</div>'}
+function rgAddRecent(i){var a=rgRecent()[i];if(a)rgAddArt(a)}
 function rgFree(){var s=document.getElementById('rg_q').value.trim();if(!s)return;RG.mat.push({article_id:null,text:s.slice(0,300),qty:1,unit:'Stk'});RG.dirty=true;rgRender()}
 function rgSwitch(ds){if(RG.dirty&&!confirm('Ungespeicherte Änderungen verwerfen?'))return;regie(RG.job.id,ds)}
 function rgClose(){if(RG&&RG.dirty&&!RG.ro&&!confirm('Ungespeicherte Änderungen verwerfen?'))return;RG=null;document.getElementById('dlg').close()}
@@ -143,6 +152,6 @@ async function rgSave(send,quiet){var r=RG.r,el=document.getElementById('rg_e');
  catch(e){rgErr(e);bs.forEach(function(b){b.disabled=false});return false}}
 function rgDone(){var tot=rgHours(RG.hours.reduce(function(s,x){return s+x.hours},0)),n=RG.mat.length,d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>Regiebericht</b><button class="ib" onclick="rgClose()" aria-label="Schließen">'+ic('x')+'</button></div>'+
- '<div class="rgok">'+ic('check')+'<h2>Bericht übermittelt</h2><p class="sub">'+rgFmt(tot)+' und '+n+' Materialposition'+(n==1?'':'en')+' liegen jetzt im Büro als Grundlage für die Rechnung.</p>'+
+ '<div class="rgok">'+ic('check')+'<h2>Bericht übermittelt</h2><p class="sub">'+rgFmt(tot)+' und '+n+' Materialposition'+(n==1?'':'en')+' liegen jetzt im Büro als Grundlage für die Rechnung.</p>'+(RG.r.signature_path?rgPdfBtn():'')+
  '<div class="row"><button class="b" onclick="regie(\''+RG.job.id+'\',\''+RG.r.work_date+'\')">Bericht ansehen</button><button class="b p" onclick="rgClose()">Fertig</button></div></div>'}
 function rgToast(t){var el=document.getElementById('rg_e');if(!el)return;el.className='ok';el.textContent=t;setTimeout(function(){if(el.isConnected){el.textContent='';el.className='err'}},2000)}

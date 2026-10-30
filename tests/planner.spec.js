@@ -255,6 +255,52 @@ test.describe('Regiebericht (ERP)', () => {
     await expect(page.locator('#dlg .rgsig img')).toHaveAttribute('src', /^data:image\/png/);
   });
 
+  test('Zuletzt verwendetes Material und PDF für den Kunden', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .rgb');
+    await expect(page.locator('#dlg .rgvb')).toContainText('08:00–12:00');
+    await page.fill('#rg_q', 'Sil');
+    await page.getByRole('button', { name: /^Silikon transparent/ }).click();
+    // Chip erhöht die vorhandene Zeile statt eine zweite anzulegen
+    await page.getByRole('button', { name: 'Silikon transparent hinzufügen' }).click();
+    await expect(page.locator('#dlg .rgr', { hasText: 'Silikon' })).toHaveCount(1);
+    await expect(page.locator('#dlg .rgr', { hasText: 'Silikon' }).locator('.rgv')).toHaveText('2 Stk');
+    await page.fill('#rg_n', 'Nur fürs Büro');
+    await expect(page.getByRole('button', { name: 'PDF für den Kunden' })).toHaveCount(0);
+
+    await page.fill('#rg_sn', 'Maria Huber');
+    await page.locator('#rg_c').evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    const c = await page.locator('#rg_c').boundingBox();
+    await page.mouse.move(c.x + 30, c.y + 100);
+    await page.mouse.down();
+    for (const [x, y] of [[80, 50], [130, 110], [180, 60]]) await page.mouse.move(c.x + x, c.y + y, { steps: 4 });
+    await page.mouse.up();
+    await page.getByRole('button', { name: 'Speichern', exact: true }).click();
+
+    await page.getByRole('button', { name: 'PDF für den Kunden' }).click();
+    const dl = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'PDF herunterladen' }).click();
+    const file = await dl;
+    expect(file.suggestedFilename()).toMatch(/^Regiebericht_.+\.pdf$/);
+    const chunks = [];
+    for await (const x of await file.createReadStream()) chunks.push(x);
+    const pdf = Buffer.concat(chunks).toString('latin1');
+    expect(pdf.startsWith('%PDF-1.4')).toBe(true);
+    expect(pdf.endsWith('%%EOF\n')).toBe(true);
+    expect(pdf).toContain('(Regiebericht)');
+    expect(pdf).toContain('(Maria Huber');
+    expect(pdf).toContain('(Silikon transparent)');
+    expect(pdf).toContain('/DCTDecode');
+    // Die Notiz ist fürs Büro und bleibt draußen
+    expect(pdf).not.toContain('Nur fürs Büro');
+    // Verweise im Inhaltsverzeichnis zeigen wirklich auf die Objekte
+    const start = Number(/startxref\n(\d+)/.exec(pdf)[1]);
+    expect(pdf.slice(start, start + 4)).toBe('xref');
+    const offsets = [...pdf.slice(start).matchAll(/^(\d{10}) 00000 n /gm)].map((m) => Number(m[1]));
+    offsets.forEach((o, i) => expect(pdf.slice(o, o + 10)).toContain(`${i + 1} 0 obj`));
+  });
+
   test('Entwurf speichern und später weitermachen; ohne ERP-Kunde nur ein Hinweis', async ({ page }) => {
     await login(page, 'uwe');
     await oeffne(page, 'Fam. Huber');
