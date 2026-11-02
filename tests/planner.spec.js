@@ -40,6 +40,26 @@ test.describe('Anmeldung', () => {
 });
 
 test.describe('Kalender', () => {
+  test('Desktop: Zurück, Heute und Weiter stehen gemeinsam links oben, am Handy wie bisher', async ({ page }, info) => {
+    await login(page);
+    const x = (title) => page.locator(`#hd [title="${title}"]`).boundingBox().then((b) => b.x);
+    const titel = (await page.locator('#hd h1').boundingBox()).x;
+    if (isMobile(info)) {
+      expect(await x('Zurück')).toBeLessThan(titel);
+      expect(await x('Heute')).toBeGreaterThan(titel);
+      return;
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const [zurueck, heute, weiter] = [await x('Zurück'), await x('Heute'), await x('Weiter')];
+    const h1 = (await page.locator('#hd h1').boundingBox()).x;
+    expect(await x('Neuer Termin')).toBeLessThan(zurueck);
+    expect(zurueck).toBeLessThan(heute);
+    expect(heute).toBeLessThan(weiter);
+    expect(weiter).toBeLessThan(h1);
+    await page.click('#hd [title="Weiter"]');
+    await expect(page.locator('#hd [title="Heute"]')).toBeVisible();
+  });
+
   test('Woche: Sa/So grau, umschaltbar auf Mo–Fr (bleibt gemerkt)', async ({ page }) => {
     await login(page);
     await expect(page.locator('.tgh .wh2')).toHaveCount(7);

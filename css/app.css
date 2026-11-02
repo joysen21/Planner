@@ -350,6 +350,7 @@ nav button.on .i{color:var(--ac)}
  .nlg{display:block;padding:2px 0 16px;margin:0 18px 8px;border-bottom:1px solid var(--ln)}.nlg .jki{width:52px;height:52px;margin:0 auto}
  nav button.on::before{top:18%;bottom:18%;left:0;right:auto;width:3px;height:auto;border-radius:0 3px 3px 0}
  header{padding:8px 28px;height:64px}header h1{font-size:19px}
+ #hd .ib.pl{order:-2}#hd .pnav{order:-1}
  main{max-width:1480px;padding:16px 28px 40px}
  .modes{max-width:520px;top:calc(env(safe-area-inset-top,0px) + 64px)}
  .mvb{top:calc(env(safe-area-inset-top,0px) + 120px)}

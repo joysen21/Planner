@@ -59,7 +59,7 @@ function plan(hd,m){
  else if(mode=='monat')t=MF[a.getMonth()]+' '+a.getFullYear();
  else if(mode=='quartal'){var e2=new Date(a.getFullYear(),a.getMonth()+2,1);t=MN[a.getMonth()]+'–'+MN[e2.getMonth()]+' '+e2.getFullYear()}
  else t=''+a.getFullYear();
- hd.innerHTML='<button class="ib" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
+ hd.innerHTML='<button class="ib pnav" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib pnav" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib pnav" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
  h+='<div class="tbar">'+(mode=='woche'?'<div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>':'')+
   '<span class="sp"></span><button class="b" onclick="showSearch()" title="Suchen">'+ic('search')+'<span class="tlb"> Suchen</span></button><button class="b" onclick="printPlan()" title="Drucken / als PDF speichern">'+ic('print')+'<span class="tlb"> Drucken</span></button></div>';
