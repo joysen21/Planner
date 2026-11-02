@@ -158,6 +158,51 @@ test.describe('Kunden', () => {
     await page.click('#dlg .ft .b.p');
     await page.click('#dlg .dt2 .ib');
     await expect(page.locator('.job.kc', { hasText: 'E2E Kunde' })).toBeVisible();
+    await expect(page.locator('.job.kc', { hasText: 'E2E Kunde' }).locator('.tag.kerp')).toBeVisible();
+  });
+
+  test('ERP-Kunde: Stammdaten nur lesbar, Notiz bleibt bearbeitbar, kein Löschen', async ({ page }) => {
+    await login(page);
+    await page.click('nav button[data-t="kunden"]');
+    await page.click('.job.kc:has-text("Fam. Huber")');
+    await expect(page.locator('#k_n')).toHaveCount(0);
+    await expect(page.locator('#dlg .kro')).toContainText('Bozen, Hauptstraße 12');
+    await expect(page.locator('#dlg .khint')).toContainText('werden dort geändert');
+    await expect(page.locator('#dlg .ft .b.d')).toHaveCount(0);
+    await page.fill('#k_no', 'Neue Notiz');
+    await page.click('#dlg .ft .b.p');
+    await page.click('#dlg .dt2 .ib');
+    await expect(page.locator('.job.kc', { hasText: 'Fam. Huber' })).toContainText('Neue Notiz');
+  });
+
+  test('Nicht verknüpfter Kunde bleibt bearbeitbar und zeigt den Hinweis', async ({ page }) => {
+    await login(page);
+    await page.click('nav button[data-t="kunden"]');
+    await expect(page.locator('.job.kc', { hasText: 'Gruber' }).locator('.tag.bad')).toHaveText('Nicht verknüpft');
+    await page.click('.job.kc:has-text("Gruber")');
+    await expect(page.locator('#k_n')).toHaveValue('Gruber');
+    await expect(page.locator('#dlg .khint.kw')).toContainText('Noch nicht mit der ERP verknüpft');
+  });
+
+  test('Im Termin neuen Kunden anlegen: mit Recht als ERP-Kunde, ohne Recht nur ein Hinweis', async ({ page }) => {
+    await login(page);
+    await neuerTermin(page);
+    await page.fill('#f_k', 'Gasser Anna');
+    await page.fill('#f_a', 'Platz 3, 39031 Bruneck');
+    await page.click('#ksug button:has-text("Als Kunde anlegen")');
+    await expect(page.locator('#ksug button')).toContainText('Als Kunde gespeichert');
+    expect(await app(page, () => S.cust.filter((c) => c.name === 'Gasser Anna')[0].erp_customer_id)).toBeTruthy();
+    await page.evaluate(() => document.getElementById('dlg').close());
+
+    await login(page, 'uwe');
+    await page.click('nav button[data-t="kunden"]');
+    await expect(page.locator('.kneu')).toHaveCount(0);
+    await expect(page.locator('#hd .ib.pl')).toHaveCount(0);
+    await page.click('nav button[data-t="plan"]');
+    await neuerTermin(page);
+    await page.fill('#f_k', 'Niemand Neu');
+    await expect(page.locator('#ksug .khint.kw')).toContainText('trotzdem speichern');
+    await expect(page.locator('#ksug button')).toHaveCount(0);
   });
 });
 

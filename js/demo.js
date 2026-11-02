@@ -50,8 +50,8 @@
       ],
       erp_regie: [], erp_regie_hours: [], erp_regie_material: [], erp_regie_photos: [], files: {},
       customers: [
-        { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', notiz: 'Hund im Garten – vorher anrufen.', created_by: 'u-stefan' },
-        { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', notiz: '', created_by: 'u-stefan' }
+        { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', notiz: 'Hund im Garten – vorher anrufen.', created_by: 'u-stefan', erp_customer_id: 'k-huber', archived: false },
+        { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', notiz: '', created_by: 'u-stefan', erp_customer_id: null, archived: false }
       ]
     };
   }
@@ -126,6 +126,7 @@
       if (name === 'is_owner') return ok(false);
       if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write' }, isSystem: false } } : null);
       if (name === 'erp_regie_articles') { var q = String(a.p_search || '').toLowerCase(); return ok(DB.erp_articles.filter(function (x) { return (!a.p_kind || x.kind === a.p_kind) && (x.name_de + ' ' + x.number).toLowerCase().indexOf(q) > -1; })); }
+      if (name === 'erp_planner_customer_create') { if (!me || me.role !== 'admin') return err('Keine Berechtigung.'); var nc = { id: uid(), org_id: 'demo-org', name: a.p_name, adresse: a.p_address || '', tel: a.p_phone || '', notiz: '', archived: false, erp_customer_id: 'k-' + uid(), created_by: null }; DB.customers.push(nc); persist(); return ok(nc); }
       if (name === 'set_my_theme') { if (me) me.theme = a.p_theme; persist(); return ok(null); }
       if (name === 'admin_set_allday') { if (!me || me.role !== 'admin') return err('Nur der Admin darf das.'); DB.organizations[0].allday_start = a.p_start; DB.organizations[0].allday_end = a.p_end; persist(); return ok(null); }
       if (name === 'admin_add_employee') { var id = uid(); DB.employees.push({ id: id, org_id: 'demo-org', user_id: null, username: null, display_name: a.p_display_name, role: 'user', color: a.p_color || '#2f6fa8', theme: 'auto' }); persist(); return ok(id); }

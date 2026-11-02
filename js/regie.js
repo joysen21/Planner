@@ -3,11 +3,13 @@
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
 var RG=null;   // offener Bericht: {job, r (Kopf), hours, mat, photos, urls, others, ro, dirty, signed}
 var RGOK=false; // darf Regieberichte schreiben (aus erp_me)
+var KWR=false,KRD=false; // darf ERP-Kunden anlegen bzw. sehen (aus erp_me)
 
 // Recht aus der ERP holen (fehlt das ERP-Modul oder die Funktion, bleibt Regie aus)
-async function regieRights(){RGOK=false;if(!ORG||(ORG.modules||[]).indexOf('erp')<0)return;
+async function regieRights(){RGOK=false;KWR=false;KRD=false;if(!ORG||(ORG.modules||[]).indexOf('erp')<0)return;
  try{var r=await sb.rpc('erp_me');var m=r.data;if(r.error||!m)return;
-  RGOK=m.employee.plannerRole=='admin'||!!(m.role&&(m.role.isSystem||m.role.perms&&m.role.perms.regie=='write'))}catch(e){}}
+  var all=m.employee.plannerRole=='admin'||!!(m.role&&m.role.isSystem),pm=m.role&&m.role.perms||{};
+  RGOK=all||pm.regie=='write';KWR=all||pm.kunden=='write';KRD=KWR||pm.kunden=='read'}catch(e){}}
 // ERP-Kunde des Termins: direkt am Termin oder über den verknüpften Planner-Kunden
 function erpCust(j){if(j.erp_customer_id)return j.erp_customer_id;var c=j.customer_id&&(S.cust||[]).filter(function(x){return x.id==j.customer_id})[0];return c&&c.erp_customer_id||null}
 function regieBtn(j){if(!RGOK||!j.start||j.art=='urlaub')return '';
