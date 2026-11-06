@@ -103,6 +103,38 @@ test.describe('Kalender', () => {
 });
 
 test.describe('Termine', () => {
+  test('Uhrzeit im 15-Minuten-Takt wählbar und gespeichert', async ({ page }) => {
+    await login(page);
+    const mo = await app(page, () => fmt(monday(new Date())));
+    await neuerTermin(page);
+    await page.fill('#f_k', 'E2E Viertelstunde');
+    await page.fill('#f_s', mo);
+    await page.click('#s_zt button[data-v="1"]');
+    await expect(page.locator('#f_z option')).toHaveCount(96);
+    await page.selectOption('#f_z', '08:15');
+    await page.selectOption('#f_e', '09:45');
+    await page.click('#dlg .ft .b.p');
+    expect(await app(page, () => { const j = S.jobs.find((x) => x.kunde === 'E2E Viertelstunde'); return [j.zeit, j.ende]; })).toEqual(['08:15', '09:45']);
+  });
+
+  test('Mehrere Termine nebeneinander: Kunde senkrecht im Balken, Details im Tooltip', async ({ page }) => {
+    test.skip(isMobile(test.info()), 'am Handy steht in der Woche nur ein Termin je Tag nebeneinander');
+    await login(page);
+    await app(page, () => {
+      const td = fmt(new Date());
+      const base = S.jobs.find((j) => j.zeit) || S.jobs[0];
+      [['E2E Links', '09:00', '11:00'], ['E2E Rechts', '09:30', '10:30']].forEach(([k, z, e]) => S.jobs.push({ ...base, id: uuid(), kunde: k, start: td, tage: 1, zeit: z, ende: e, series: null, done: false }));
+      an = td; setMode('woche');
+    });
+    const v = page.locator('.ev.vt', { hasText: 'E2E Links' });
+    await expect(v).toBeVisible();
+    await expect(v).toHaveAttribute('title', /E2E Links · 09:00–11:00/);
+    expect(await v.locator('.evv').evaluate((el) => getComputedStyle(el).writingMode)).toBe('vertical-rl');
+    await expect(page.locator('.ev.vt', { hasText: 'E2E Rechts' })).toBeVisible();
+    // allein am Tag bleibt der Termin waagrecht
+    await expect(page.locator('.ev:not(.vt)').first()).toBeVisible();
+  });
+
   test('Neuer Termin wird angelegt und im Kalender angezeigt', async ({ page }) => {
     await login(page);
     const mo = await app(page, () => fmt(monday(new Date())));
@@ -168,14 +200,36 @@ test.describe('Kunden', () => {
     expect(cid, 'Termin ist fest mit dem Kunden verknüpft').toBeTruthy();
   });
 
-  test('Neuen Kunden über „+“ anlegen', async ({ page }) => {
+  test('Neuen Kunden über „+“ mit allen Stammdaten anlegen wie in der ERP', async ({ page }) => {
     await login(page);
     await page.click('nav button[data-t="kunden"]');
     await page.click('#hd .ib.pl');
-    await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Kunde');
-    await page.fill('#k_n', 'E2E Kunde');
-    await page.fill('#k_a', 'Teststraße 1');
-    await page.click('#dlg .ft .b.p');
+    const k = page.locator('#kdlg');
+    await expect(k.locator('.dt2 b')).toHaveText('Neuer Kunde');
+    // Art steuert die Felder: Privat ohne MwSt.-Nr., SDI und PEC
+    await k.locator('.seg button', { hasText: 'Privat' }).click();
+    await expect(k.locator('#kn_vat_id')).toHaveCount(0);
+    await expect(k.locator('#kn_sdi_code')).toHaveCount(0);
+    await k.locator('.seg button', { hasText: 'Firma' }).click();
+    await k.locator('#kn_save').click();
+    await expect(k.locator('#kn_e_name')).toHaveText('Pflichtfeld.');
+    await k.locator('#kn_name').fill('E2E Kunde');
+    await k.locator('#kn_vat_id').fill('123');
+    await k.locator('#kn_save').click();
+    await expect(k.locator('#kn_e_vat_id')).toContainText('Partita IVA');
+    await k.locator('#kn_vat_id').fill('IT 00743110157');
+    await k.locator('#kn_street').fill('Teststraße 1');
+    await k.locator('#kn_zip').fill('39031');
+    await expect(k.locator('#kn_city')).toHaveValue('Bruneck');
+    await expect(k.locator('#kn_province')).toHaveValue('BZ');
+    await k.locator('#kn_sdi_code').fill('m5uxcr1');
+    await k.locator('#kn_email').fill('info@e2e.it');
+    await k.locator('#kn_save').click();
+    await expect(k).not.toBeVisible();
+    const sent = await app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')).erpCustomers.at(-1));
+    expect(sent).toMatchObject({ kind: 'firma', name: 'E2E Kunde', vat_id: '00743110157', sdi_code: 'M5UXCR1', zip: '39031', city: 'Bruneck', province: 'BZ', country: 'IT', email: 'info@e2e.it' });
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Kunde');
+    await expect(page.locator('#dlg .kro')).toContainText('Teststraße 1, 39031 Bruneck');
     await page.click('#dlg .dt2 .ib');
     await expect(page.locator('.job.kc', { hasText: 'E2E Kunde' })).toBeVisible();
     await expect(page.locator('.job.kc', { hasText: 'E2E Kunde' }).locator('.tag.kerp')).toBeVisible();
@@ -210,8 +264,20 @@ test.describe('Kunden', () => {
     await page.fill('#f_k', 'Gasser Anna');
     await page.fill('#f_a', 'Platz 3, 39031 Bruneck');
     await page.click('#ksug button:has-text("Als Kunde anlegen")');
-    await expect(page.locator('#ksug button')).toContainText('Als Kunde gespeichert');
+    // Fenster über dem Termin, vorbelegt aus Name und Adresse
+    const k = page.locator('#kdlg');
+    await expect(k.locator('#kn_name')).toHaveValue('Gasser Anna');
+    await expect(k.locator('#kn_street')).toHaveValue('Platz 3');
+    await expect(k.locator('#kn_zip')).toHaveValue('39031');
+    await expect(k.locator('#kn_city')).toHaveValue('Bruneck');
+    await k.locator('.seg button', { hasText: 'Privat' }).click();
+    await k.locator('#kn_phone').fill('0474 1');
+    await k.locator('#kn_save').click();
+    await expect(k).not.toBeVisible();
+    await expect(page.locator('#ksug .khint')).toContainText('Kunde angelegt und übernommen');
+    await expect(page.locator('#f_t')).toHaveValue('0474 1');
     expect(await app(page, () => S.cust.filter((c) => c.name === 'Gasser Anna')[0].erp_customer_id)).toBeTruthy();
+    expect(await app(page, () => cur.j.customer_id === S.cust.filter((c) => c.name === 'Gasser Anna')[0].id)).toBe(true);
     await page.evaluate(() => document.getElementById('dlg').close());
 
     await login(page, 'uwe');

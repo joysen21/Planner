@@ -25,7 +25,8 @@ function kListHtml(){var f=KF.trim().toLowerCase(),td=fmt(new Date());
 function kListe(){var l=document.getElementById('kl');if(l)l.innerHTML=kListHtml()}
 
 // ---------------------------------------------------------------- Detail bzw. neuer Kunde
-function kEdit(id){var c=id?kById(id):{id:'',name:'',adresse:'',tel:'',notiz:''},d=document.getElementById('dlg'),q='\''+(id||'')+'\'';if(!c)return;
+function kEdit(id){if(!id&&kErp()){kNeuDlg({},function(c){if(tab=='kunden')render();kEdit(c.id)});return}
+ var c=id?kById(id):{id:'',name:'',adresse:'',tel:'',notiz:''},d=document.getElementById('dlg'),q='\''+(id||'')+'\'';if(!c)return;
  var erpUrl=window.PLANER_CONFIG&&PLANER_CONFIG.erpUrl,ln=!!c.erp_customer_id;
  d.innerHTML='<div class="dt2"><b>'+(id?'Kunde':'Neuer Kunde')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
   '<div class="eg"><div>'+(id&&!ln&&kErp()?'<div class="khint kw">Noch nicht mit der ERP verknüpft. Änderungen gelten nur im Planner, und ein Regiebericht ist noch nicht möglich. Das Büro ordnet den Kunden in der ERP zu.</div>':'')+'<div class="sec">Stammdaten</div>'+
@@ -70,8 +71,10 @@ function kSave(name,adresse,tel){var ex=S.cust.filter(function(c){return c.name.
  return sb.from('customers').insert(c)}
 function kSug(){var el=document.getElementById('ksug'),v=document.getElementById('f_k').value.trim().toLowerCase();if(!el)return;
  var ls=v.length<2?[]:S.cust.filter(function(c){return !c.archived&&c.name.toLowerCase().indexOf(v)>-1}).slice(0,6);
- if(!ls.length&&v.length>=2&&kErp()&&!(S.cust||[]).some(function(c){return c.name.toLowerCase()==v})){el.innerHTML=KWR?'<div class="khint"><b>Kein Kunde mit diesem Namen</b><br>Lege ihn an, dann ist er sofort auch in der ERP. Adresse und Telefon stehen unten unter Details, Rechnungsdaten ergänzt das Büro später.<div class="row" style="margin:8px 0 0"><button type="button" class="b p" style="flex:none" onclick="kFromDlg(this)">'+ic('plus')+' Als Kunde anlegen</button></div></div>':'<div class="khint kw">Kein Kunde mit diesem Namen. Du kannst den Termin trotzdem speichern. Einen Regiebericht gibt es erst, wenn das Büro den Kunden zugeordnet hat.</div>';return}
+ if(!ls.length&&v.length>=2&&kErp()&&!(S.cust||[]).some(function(c){return c.name.toLowerCase()==v})){el.innerHTML=KWR?'<div class="khint"><b>Kein Kunde mit diesem Namen</b><br>Lege ihn mit allen Stammdaten an, dann ist er sofort auch in der ERP.<div class="row" style="margin:8px 0 0"><button type="button" class="b p" style="flex:none" onclick="kFromDlg(this)">'+ic('plus')+' Als Kunde anlegen</button></div></div>':'<div class="khint kw">Kein Kunde mit diesem Namen. Du kannst den Termin trotzdem speichern. Einen Regiebericht gibt es erst, wenn das Büro den Kunden zugeordnet hat.</div>';return}
  el.innerHTML=ls.map(function(c){return '<button type="button" onclick="kPick(\''+c.id+'\')"><b>'+esc(c.name)+'</b><small>'+esc([c.adresse,c.tel].filter(Boolean).join(' · '))+'</small></button>'}).join('')}
 function kPick(id){var c=kById(id),g=function(i){return document.getElementById(i)};g('f_k').value=c.name;if(c.adresse)g('f_a').value=c.adresse;if(c.tel)g('f_t').value=c.tel;g('ksug').innerHTML='';cur.j.customer_id=c.id}
 function kFromDlg(b){var g=function(i){return document.getElementById(i).value.trim()},n=g('f_k');if(!n){alert('Bitte zuerst Kunde / Titel ausfüllen.');return}
+ if(kErp()){kNeuDlg(Object.assign({name:n,phone:g('f_t')},kSplitAdr(g('f_a'))),function(c){var el=function(i){return document.getElementById(i)};if(!el('f_k'))return;
+  el('f_k').value=c.name;el('f_a').value=c.adresse||'';el('f_t').value=c.tel||'';el('ksug').innerHTML='<div class="khint">'+ic('check')+' Kunde angelegt und übernommen.</div>';cur.j.customer_id=c.id});return}
  b.disabled=true;kSave(n,g('f_a'),g('f_t')).then(function(r){b.disabled=false;if(r.error){fail(r.error);return}cur.j.customer_id=KLAST;b.innerHTML=ic('check')+' Als Kunde gespeichert'})}

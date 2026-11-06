@@ -406,3 +406,18 @@ nav button.on .i{color:var(--ac)}
 #rg_e.ok{color:var(--ok)}
 .khint{font-size:14px;line-height:1.4;padding:9px 11px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);margin-top:8px}.khint.kw{border-color:var(--bad)}.ksug .khint button{width:auto;display:inline-flex;margin:0}
 .kro{border:1px solid var(--ln);border-radius:12px;padding:2px 12px;background:var(--card)}.kro>div{padding:8px 0;border-bottom:1px solid var(--ln)}.kro>div:last-child{border-bottom:0}.kro small{display:block;font-size:12px;color:var(--mu)}.tag.kerp{border-color:var(--ac);color:var(--ac)}
+/* Neuer Kunde mit allen Stammdaten: Felder in zwei Spalten, am Handy eine */
+#kdlg{max-width:640px}
+.kg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px}
+.kg .kf.w{grid-column:1/-1}
+.kg input,.kg select{width:100%}
+.ferr{display:block;color:var(--bad,#b42318);font-size:12px;margin-top:3px}
+.kg [aria-invalid="true"]{border-color:var(--bad,#b42318)}
+@media (max-width:520px){.kg{grid-template-columns:minmax(0,1fr)}}
+/* Termine nebeneinander im Stundenraster: Kunde senkrecht, von unten nach oben lesbar */
+.ev.vt{display:flex;align-items:center;justify-content:center;padding:4px 1px}
+.ev.vt .evv{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%;font-weight:700;line-height:1.1}
+.ev.vt .evv .i{transform:rotate(90deg)}
+/* Termine nebeneinander im Stundenraster: Kunde senkrecht, von unten nach oben lesbar */
+.ev.vt{display:flex;align-items:center;justify-content:center;padding:4px 1px}
+.ev.vt .evv{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%;font-weight:700;line-height:1.1}

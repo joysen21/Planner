@@ -103,12 +103,13 @@ function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);retur
 // Team-Ansicht: in eine andere Mitarbeiter-Spalte gezogen = statt der Ausgangsperson die Zielperson zuteilen
 function reassign(j,from,to){if(!to||!from||from==to)return;
  var w=(j.wer||[]).filter(function(x){return x!=from});if(to!='-'&&w.indexOf(to)<0)w.push(to);j.wer=w}
-// Uhrzeit (Minuten, 30er-Raster) an der Zeigerposition in einer Stundenspalte
+// Uhrzeit (Minuten, im Raster STEP) an der Zeigerposition in einer Stundenspalte
+var STEP=15;
 // Ganztägige Termine erscheinen im Raster über den Zeitraum der Firma (Einstellung des Admins, Standard 08:00–17:00)
 function adWin(){return {s:t2m(ORG&&ORG.allday_start||'08:00'),e:t2m(ORG&&ORG.allday_end||'17:00')}}
 // Beginn/Ende eines Termins im Raster (Minuten)
 function jWin(j){if(!j.zeit){var a=adWin();return {s:a.s,e:a.e}}var s0=t2m(j.zeit);return {s:s0,e:Math.max(t2m(j.ende||j.zeit),s0+30)}}
-function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/30):Math.round(m/30))*30;return Math.max(0,Math.min(1410,m))}
+function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.clientY-r.top)/HH+H0)*60;m=(down?Math.floor(m/STEP):Math.round(m/STEP))*STEP;return Math.max(0,Math.min(1440-STEP,m))}
 // Stundenspalte: im Verschiebemodus Ziel (ganztägige Termine bleiben ganztägig), sonst freie Zeit = neuer Termin
 function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
  if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)),null,emp);return}
@@ -188,7 +189,10 @@ function timeGrid(cols,team){
     var maxL=one||team?99:(wide?2:1),nv=Math.min(nl,maxL),hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
     var mo=function(x){return '<div class="evm" style="top:'+((x.s/60-h0)*HH+2)+'px" onclick="event.stopPropagation();an=\''+ds+'\';setMode(\'tag\')" title="Weitere Termine – Tag öffnen">+'+x.n+'</div>'};
     hid.forEach(function(q){if(k&&q.s<k.e){k.n++;k.e=Math.max(k.e,q.e)}else{if(k)out+=mo(k);k={s:q.s,e:q.e,n:1}}});if(k)out+=mo(k);
-    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64;
+    // Mehrere Termine nebeneinander: die Spalten werden schmal, der Kunde steht dann senkrecht im Balken (Rest im Tooltip)
+    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,vt=nv>1;
+     if(vt)return '<div class="ch ev vt '+cls(j)+'"'+att(j,c)+' title="'+esc([j.kunde||'?',j.zeit?j.zeit+(j.ende?'–'+j.ende:''):'ganztags',who(j)].join(' · '))+'" style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
+      '<span class="evv">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'?')+'</span>'+(j.done?'':(hp>=36?'<i class="rz rt" data-rz="t"></i>':'')+'<i class="rz rb" data-rz="b"></i>')+'</div>';
      return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
      (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
      // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
@@ -221,8 +225,8 @@ function sug(){
  var f=function(x){var a=parse(x);return WD[a.getDay()]+' '+a.getDate()+'.'+(a.getMonth()+1)+'.'};
  el.innerHTML=out.length?'<label>Freie Plätze (tippen zum Übernehmen)</label><div class="row">'+out.map(function(o){return '<button class="b" data-s="'+o.s+'" onclick="useS(\''+o.s+'\')">'+f(o.s)+(o.e!=o.s?' – '+f(o.e):'')+(c.zeit?' '+c.zeit:'')+'</button>'}).join('')+'</div>':'<div class="sub">Kein freier Platz in den nächsten 6 Monaten.</div>'}
 function useS(ds){document.getElementById('f_s').value=ds;document.querySelectorAll('#sg .b').forEach(function(b){b.classList.toggle('p',b.dataset.s==ds)})}
-function tOpts(v){v=m2t(Math.round(t2m(v)/30)*30);var o='';for(var m=0;m<1440;m+=30){var t=m2t(m);o+='<option'+(t==v?' selected':'')+'>'+t+'</option>'}return o}
-function zchg(){var z=document.getElementById('f_z'),e=document.getElementById('f_e');if(e.value<=z.value)e.value=m2t(Math.min(t2m(z.value)+60,1410));sug()}
+function tOpts(v){v=m2t(Math.round(t2m(v)/STEP)*STEP);var o='';for(var m=0;m<1440;m+=STEP){var t=m2t(m);o+='<option'+(t==v?' selected':'')+'>'+t+'</option>'}return o}
+function zchg(){var z=document.getElementById('f_z'),e=document.getElementById('f_e');if(e.value<=z.value)e.value=m2t(Math.min(t2m(z.value)+60,1440-STEP));sug()}
 var mvG='',DG=null,sup=false;
 document.addEventListener('touchmove',function(e){if(DG&&DG.on||SL&&SL.on||RZ)e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',function(e){if(DG||RZ||RZP)e.preventDefault()});
@@ -330,8 +334,8 @@ document.addEventListener('pointerdown',function(e){var h=e.target.closest&&e.ta
 document.addEventListener('pointermove',function(e){
  if(RZP){if(Math.abs(e.clientX-RZP.x)>8||Math.abs(e.clientY-RZP.y)>8){clearTimeout(RZP.tm);RZP=null}return}
  if(!RZ)return;
- var r=RZ.col.getBoundingClientRect(),m=Math.round(((e.clientY-r.top)/HH*60+H0*60)/30)*30;
- if(RZ.side=='b')RZ.e=Math.max(RZ.s+30,Math.min(H1*60,m));else RZ.s=Math.min(RZ.e-30,Math.max(H0*60,m));
+ var r=RZ.col.getBoundingClientRect(),m=Math.round(((e.clientY-r.top)/HH*60+H0*60)/STEP)*STEP;
+ if(RZ.side=='b')RZ.e=Math.max(RZ.s+STEP,Math.min(H1*60,m));else RZ.s=Math.min(RZ.e-STEP,Math.max(H0*60,m));
  RZ.ev.style.top=((RZ.s/60-H0)*HH+1)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH-2)+'px'});
 function rzEnd(ok){if(RZP){clearTimeout(RZP.tm);RZP=null}if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
  if(ok){j.zeit=m2t(z.s);j.ende=m2t(z.e);save(j)}render()}
@@ -347,7 +351,7 @@ document.addEventListener('pointerdown',function(e){
 document.addEventListener('pointermove',function(e){if(!SL)return;
  if(!SL.on){if(Math.abs(e.clientX-SL.x)>6||Math.abs(e.clientY-SL.y)>6){if(SL.t=='mouse'){SL.on=true;sup=true}else{clearTimeout(SL.tm);SL=null;return}}else return}
  slDraw(e.clientY)});
-function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);SL.s=Math.min(SL.a,b);SL.e=Math.min(1440,Math.max(SL.a,b)+30);
+function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);SL.s=Math.min(SL.a,b);SL.e=Math.min(1440,Math.max(SL.a,b)+STEP);
  var r=SL.c.querySelector('.slr');if(!r){r=document.createElement('div');r.className='slr';SL.c.appendChild(r)}
  r.style.top=((SL.s/60-H0)*HH)+'px';r.style.height=((SL.e-SL.s)/60*HH)+'px';r.textContent=m2t(SL.s)+'–'+m2t(SL.e)}
 function slEnd(ok){if(!SL)return;clearTimeout(SL.tm);var z=SL;SL=null;if(!z.on)return;
