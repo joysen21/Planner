@@ -61,11 +61,12 @@ h2{font-size:16px;margin:16px 0 6px}
 .mini .c{min-height:0;height:24px;padding:2px;border-radius:4px;border-width:1px}.mini .c i{font-size:9px}.mini .gr{gap:2px}.mini .mt{font-size:13px}
 .mini .c.m{background:var(--mo)}.mini .c.w{background:var(--we)}.mini .c.x{background:linear-gradient(135deg,var(--mo) 50%,var(--we) 50%)}
 .mini .c.m i,.mini .c.w i,.mini .c.x i{color:#fff}
-.job.a-werkstatt{border-left-color:var(--we)}.job.a-planung{border-left-color:var(--pl)}.job.a-termin{border-left-color:var(--tm)}.job.a-urlaub{border-left-color:var(--ur)}
-.ch.planung{background:var(--pl);color:#2b2620}.ch.termin{background:var(--tm)}.ch.urlaub{background:var(--ur)}
-.bar.planung{background:var(--pl)}.bar.termin{background:var(--tm)}.bar.urlaub{background:var(--ur)}
+.job.a-werkstatt{border-left-color:var(--we)}.job.a-planung{border-left-color:var(--pl)}.job.a-termin{border-left-color:var(--c)}.job.a-urlaub{border-left-color:var(--ur)}
+.ch.planung{background:var(--pl);color:#2b2620}.ch.termin{background:var(--c)}.ch.urlaub{background:var(--ur)}
+.bar.planung{background:var(--pl)}.bar.termin{background:var(--c)}.bar.urlaub{background:var(--ur)}
 .mini .c.f i{color:#fff;text-shadow:0 0 2px rgba(0,0,0,.6)}
 .seg.wrap{flex-wrap:wrap}.seg.wrap button{flex:1 1 30%}
+.svd{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px}
 .lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mu);margin-bottom:8px}.lg b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
 .c.wd{background:transparent;border-style:dashed}
 .wk{display:grid;grid-template-columns:30px repeat(7,minmax(0,1fr))}

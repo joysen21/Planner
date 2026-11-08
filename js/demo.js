@@ -44,7 +44,8 @@
       holidays: [],
       // ERP-Teil (Regieberichte): Rechte, Artikel ohne Preise, Berichte
       erp_articles: [
-        { id: 'a-std', number: 'A-00006', kind: 'leistung', name_de: 'Arbeitsstunde Monteur', unit: 'h' },
+        { id: 'a-std', number: 'A-00006', kind: 'leistung', name_de: 'Arbeitsstunde Monteur', unit: 'h', plan_color: '', active: true },
+        { id: 'a-mon', number: 'A-00007', kind: 'leistung', name_de: 'Montage vor Ort', unit: 'h', plan_color: '#378add', active: true },
         { id: 'a-sil', number: 'A-00008', kind: 'material', name_de: 'Silikon transparent', unit: 'Stk' },
         { id: 'a-schr', number: 'A-00011', kind: 'material', name_de: 'Montageschrauben 5×60', unit: 'Pkg' }
       ],
@@ -125,6 +126,7 @@
       var me = session && empByUser(session.user.id);
       if (name === 'is_owner') return ok(false);
       if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write' }, isSystem: false } } : null);
+      if (name === 'erp_plan_services') return ok(DB.erp_articles.filter(function (x) { return x.kind === 'leistung'; }).map(function (x) { return { id: x.id, number: x.number, name_de: x.name_de, name_it: x.name_it || '', plan_color: x.plan_color || '', active: x.active !== false }; }));
       if (name === 'erp_regie_articles') { var q = String(a.p_search || '').toLowerCase(); return ok(DB.erp_articles.filter(function (x) { return (!a.p_kind || x.kind === a.p_kind) && (x.name_de + ' ' + x.number).toLowerCase().indexOf(q) > -1; })); }
       if (name === 'erp_planner_customer_create') { if (!me || me.role !== 'admin') return err('Keine Berechtigung.'); var q = a.p; if (q) { DB.erpCustomers = (DB.erpCustomers || []).concat([q]); } var nc = { id: uid(), org_id: 'demo-org', name: q ? [q.name, q.name2].filter(Boolean).join(' ') : a.p_name, adresse: q ? [q.street, [q.zip, q.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : a.p_address || '', tel: q ? q.phone || '' : a.p_phone || '', notiz: '', archived: false, erp_customer_id: 'k-' + uid(), created_by: null }; DB.customers.push(nc); persist(); return ok(nc); }
       if (name === 'set_my_theme') { if (me) me.theme = a.p_theme; persist(); return ok(null); }

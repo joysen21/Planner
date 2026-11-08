@@ -1,7 +1,7 @@
 // Planner – Auftragskarten, Kalenderansichten, Zeitraster, Ziehen & Ablegen, Feiertage, Filter
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
 function card(j,ds,force){
- var o=force||openId==j.id,days=j.start?span(j):[],A=ART[j.art],id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
+ var o=force||openId==j.id,days=j.start?span(j):[],A={n:jName(j),ic:ART[j.art].ic},id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
  var pos=ds&&days.length>1?' · Tag '+(days.indexOf(ds)+1)+'/'+days.length:(j.tage>1&&!j.start?' · '+j.tage+' Tage':'');
  var tg='<span class="tag fx">'+(PV(j)?ic('pv')+'provisorisch':ic('pin')+'fix')+'</span>';
  if(!j.material&&!j.done&&mt)tg+='<span class="tag bad">'+ic('alert')+'Material fehlt</span>';
@@ -19,7 +19,7 @@ function card(j,ds,force){
  h+='</div></div>';
  return h}
 function tog(id){openId=openId==id?null:id;render()}
-function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j.art)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
+function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
 function done(id){var j=byId(id);j.done=!j.done;save(j);render()}
 // Löschen: nur Admin oder wer den Auftrag angelegt hat (wird zusätzlich in der Datenbank geprüft)
 function canDel(j){return ME.role=='admin'||!!j.created_by&&j.created_by==ME.user_id}
@@ -63,7 +63,7 @@ function plan(hd,m){
  h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
  h+='<div class="tbar">'+(mode=='woche'?'<div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>':'')+
   '<span class="sp"></span><button class="b" onclick="showSearch()" title="Suchen">'+ic('search')+'<span class="tlb"> Suchen</span></button><button class="b" onclick="printPlan()" title="Drucken / als PDF speichern">'+ic('print')+'<span class="tlb"> Drucken</span></button></div>';
- h+=(mode=='team'?'':fltBar())+'<details class="lgd"'+(lgOpen()?' open':'')+' ontoggle="lgSet(this.open)"><summary>'+ic('info')+' Legende &amp; Bedienung</summary>'+(mvId?'':'<div class="hint">'+hintTxt()+'</div>')+'<div class="lg">'+Object.keys(ART).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div></details>';
+ h+=(mode=='team'?'':fltBar())+'<details class="lgd"'+(lgOpen()?' open':'')+' ontoggle="lgSet(this.open)"><summary>'+ic('info')+' Legende &amp; Bedienung</summary>'+(mvId?'':'<div class="hint">'+hintTxt()+'</div>')+'<div class="lg">'+svcList().map(function(a){return '<span><b style="background:'+(a.plan_color||SVC_DEF)+'"></b>'+esc(a.name_de||a.name_it)+'</span>'}).join('')+Object.keys(ART).filter(function(k){return !SVC.length||k=='termin'||k=='urlaub'||S.jobs.some(function(j){return j.art==k&&!j.article_id})}).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div></details>';
  if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
  var TGH='';
  if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
@@ -90,15 +90,15 @@ function monthGrid(y,mo,kind){
  h+='<div class="gr">';
  for(var d=1;d<=n;d++){var dt=new Date(y,mo,d),g=dt.getDay();if(first){for(var p=0;p<(g+6)%7;p++)h+='<div></div>';first=false}
   var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
-  if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){if(ar.indexOf(j.art)<0)ar.push(j.art);if(!PV(j)){fxs[j.art]=1;anyF=true}});var cl=function(a){return fxs[a]?COL[a]:'color-mix(in srgb,'+COL[a]+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
+  if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){var k=jCol(j);if(ar.indexOf(k)<0)ar.push(k);if(!PV(j)){fxs[k]=1;anyF=true}});var cl=function(a){return fxs[a]?a:'color-mix(in srgb,'+a+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
   else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,mode=='monat'?4:3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(mode=='monat'&&js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+'</div>';
   else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
  return h+'</div></div>'}
 function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 // mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
 var mvE='';
-function drop(ds){var j=byId(mvId);if(ds&&R(j.art)&&isWE(ds)){alert(WEMSG);return}
- if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
+function drop(ds){var j=byId(mvId);if(ds&&R(j)&&isWE(ds)){alert(WEMSG);return}
+ if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
  mvG='';mvE='';if(ds&&(mode=='tag'||mode=='team'))an=j.start;mvId=null;save(j);render()}
 // Team-Ansicht: in eine andere Mitarbeiter-Spalte gezogen = statt der Ausgangsperson die Zielperson zuteilen
 function reassign(j,from,to){if(!to||!from||from==to)return;
@@ -113,7 +113,7 @@ function slotMin(e,down){var r=e.currentTarget.getBoundingClientRect(),m=((e.cli
 // Stundenspalte: im Verschiebemodus Ziel (ganztägige Termine bleiben ganztägig), sonst freie Zeit = neuer Termin
 function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
  if(!mvId){if(e.target===e.currentTarget||e.target.classList.contains('now'))edit(null,ds,m2t(slotMin(e,true)),null,emp);return}
- var j=byId(mvId);if(R(j.art)&&isWE(ds)){alert(WEMSG);return}
+ var j=byId(mvId);if(R(j)&&isWE(ds)){alert(WEMSG);return}
  var m0=slotMin(e);
  if(j.zeit){var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}
  reassign(j,mvE,emp);drop(ds)}
@@ -136,10 +136,10 @@ function showSearch(){var d=document.getElementById('dlg');
   '<input id="q" type="search" placeholder="Kunde, Adresse, Telefon, Notiz, Mitarbeiter …" oninput="doSearch()" autocomplete="off"'+NC+'><div id="qr" class="qr"></div>';
  if(!d.open)d.showModal();var q=document.getElementById('q');q.value=SQ;q.focus();doSearch()}
 // Trefferzeile (Suche, Kunden-Detail): Datum, Titel, Art · Mitarbeiter · Adresse – Tippen öffnet die Details
-function qRow(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+(j.done?' dn':'')+'" onclick="showDet(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+(j.done?' · erledigt':'')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'}
+function qRow(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+(j.done?' dn':'')+'" style="'+wS(j)+'" onclick="showDet(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+(j.done?' · erledigt':'')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'}
 function doSearch(){var q=document.getElementById('q');if(!q)return;SQ=q.value;var t=SQ.trim().toLowerCase(),out=document.getElementById('qr'),td=fmt(new Date());
  if(t.length<2){out.innerHTML='<div class="sub">Mindestens 2 Zeichen eingeben.</div>';return}
- var hit=S.jobs.filter(function(j){return [j.kunde,j.adresse,j.tel,j.notiz,who(j),ART[j.art].n].join(' ').toLowerCase().indexOf(t)>-1});
+ var hit=S.jobs.filter(function(j){return [j.kunde,j.adresse,j.tel,j.notiz,who(j),jName(j)].join(' ').toLowerCase().indexOf(t)>-1});
  var up=hit.filter(function(j){return j.start&&j.start>=td}).sort(function(a,b){return a.start<b.start?-1:a.start>b.start?1:t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')}),
   op=hit.filter(function(j){return !j.start}),
   pa=hit.filter(function(j){return j.start&&j.start<td}).sort(function(a,b){return a.start<b.start?1:-1});
@@ -257,9 +257,9 @@ function dgPrev(d){var m=document.getElementById('main');
  m.querySelectorAll('.dpv').forEach(function(x){x.remove()});m.querySelectorAll('.dt').forEach(function(x){x.classList.remove('dt','bad')});
  if(!d)return '';
  var j=byId(DG.id),ds=d.dataset.drop,grid=d.classList.contains('dcol'),t=Object.assign({},j),st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(DG.ds));
- for(;i>0;i--)st=R(j.art)?nextWork(st,-1):addDays(st,-1);t.start=st;
+ for(;i>0;i--)st=R(j)?nextWork(st,-1):addDays(st,-1);t.start=st;
  if(grid&&j.zeit){var s0=slotMin({currentTarget:d,clientY:DG.cy-DG.oy}),du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;t.zeit=m2t(s0);t.ende=m2t(s0+du)}
- var bad=R(j.art)&&isWE(ds);if(bad){d.classList.add('dt','bad');return 'nur Werktage'}
+ var bad=R(j)&&isWE(ds);if(bad){d.classList.add('dt','bad');return 'nur Werktage'}
  var es=d.dataset.emp?'[data-emp="'+d.dataset.emp+'"]':'',hasGrid=!!m.querySelector('.dcol'),sel=d.classList.contains('wh2')?'.wh2':'.c',w=jWin(t),lbl=t.zeit?t.zeit+'–'+t.ende:'ganztags';
  span(t).forEach(function(x){
   var c=hasGrid?m.querySelector('.dcol[data-drop="'+x+'"]'+es):null;

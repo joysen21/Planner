@@ -32,7 +32,7 @@ async function regie(id,ds){var j=byId(id),d=document.getElementById('dlg');if(!
 function rgNew(j,day,all){var h=rgDefHours(j);
  var title=(j.notiz||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return l&&l.charAt(0)!='-'})[0]||j.kunde||'';
  RG={job:j,r:{id:null,status:'entwurf',work_date:day,job_id:j.id,customer_id:erpCust(j),order_id:j.erp_order_id||null,title:title.slice(0,200),remark:'',signature_path:null,signer_name:'',signed_at:null},
-  hours:wer(j).map(function(id){var u=uById(id);return {employee_id:id,hours:h,article_id:u&&u.erp_labor_article_id||null}}),
+  hours:wer(j).map(function(id){var u=uById(id);return {employee_id:id,hours:h,article_id:j.article_id||u&&u.erp_labor_article_id||null}}),
   mat:[],photos:[],urls:{},others:all,ro:false,dirty:false,signed:false};
  rgRender()}
 
@@ -86,7 +86,7 @@ function rgRender(){var d=document.getElementById('dlg'),j=RG.job,r=RG.r,ro=RG.r
 
 function rgH(i,dx){var x=RG.hours[i];x.hours=Math.max(0,Math.min(24,rgHours(x.hours+dx)));RG.dirty=true;rgRender()}
 function rgDelH(i){RG.hours.splice(i,1);RG.dirty=true;rgRender()}
-function rgAddH(id){if(!id)return;var u=uById(id);RG.hours.push({employee_id:id,hours:rgDefHours(RG.job),article_id:u&&u.erp_labor_article_id||null});RG.dirty=true;rgRender()}
+function rgAddH(id){if(!id)return;var u=uById(id);RG.hours.push({employee_id:id,hours:rgDefHours(RG.job),article_id:RG.job.article_id||u&&u.erp_labor_article_id||null});RG.dirty=true;rgRender()}
 function rgQ(i,dx){var x=RG.mat[i];x.qty=Math.max(1,x.qty+dx);RG.dirty=true;rgRender()}
 function rgDelM(i){RG.mat.splice(i,1);RG.dirty=true;rgRender()}
 var rgT=null;

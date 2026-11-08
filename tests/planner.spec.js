@@ -451,3 +451,26 @@ test.describe('Regiebericht (ERP)', () => {
     await expect(page.locator('#dlg .rgh')).toContainText('nicht mit der ERP verknüpft');
   });
 });
+
+test.describe('Leistung aus der ERP', () => {
+  test('„Was“ bietet die Leistungsartikel; Termin zeigt Name und Farbe, Regie nimmt die Leistung', async ({ page }) => {
+    await login(page);
+    const mo = await app(page, () => fmt(monday(new Date())));
+    await neuerTermin(page);
+    const was = page.locator('#s_art button');
+    await expect(was.filter({ hasText: 'Montage vor Ort' })).toHaveCount(1);
+    await expect(was.filter({ hasText: 'Urlaub' })).toHaveCount(1);
+    // feste Arten wie Werkstatt nur, wenn der Termin sie schon hat
+    await expect(was.filter({ hasText: 'Werkstatt' })).toHaveCount(0);
+    await page.fill('#f_k', 'E2E Leistung');
+    await page.fill('#f_s', mo);
+    await was.filter({ hasText: 'Montage vor Ort' }).click();
+    await page.click('#dlg .ft .b.p');
+    expect(await app(page, () => { const j = S.jobs.find((x) => x.kunde === 'E2E Leistung'); return [j.art, j.article_id, toRow(j).article_id, jName(j), R(j)]; }))
+      .toEqual(['termin', 'a-mon', 'a-mon', 'Montage vor Ort', true]);
+    const ev = page.locator('.ev', { hasText: 'E2E Leistung' }).first();
+    await expect(ev).toBeVisible();
+    expect(await ev.evaluate((el) => el.style.getPropertyValue('--c'))).toBe('#378add');
+    await expect(page.locator('.lg')).toContainText('Montage vor Ort');
+  });
+});

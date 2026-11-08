@@ -6,6 +6,7 @@ async function loadAll(){
  USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;ORG=r[3].data;
  // Kundenstamm (fehlt die Tabelle noch, läuft die App ohne ihn weiter)
  CUSTOK=!r[4].error;S.cust=CUSTOK?r[4].data:[];
+ await loadServices();
  await regieRights();
  if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}
   // Darstellung: laufende Auswahl behalten, sonst Änderung von einem anderen Gerät übernehmen
@@ -15,8 +16,8 @@ function daysLeft(v){v=v===undefined?ORG&&ORG.valid_until:v;if(!v)return null;re
 function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
 function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
-function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id:r.erp_order_id||null,customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
-function toRow(j){var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;return o}
+function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id:r.erp_order_id||null,customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,article_id:r.article_id||null,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
+function toRow(j){var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;if(SVCOK)o.article_id=j.article_id||null;return o}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
 function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}
 function reload(){return loadAll().then(render).catch(function(e){alert('Laden fehlgeschlagen: '+(e.message||e))})}
@@ -31,7 +32,7 @@ function uName(id){var u=uById(id);return u?u.display_name:'?'}
 function wer(j){return (j.wer||[]).filter(uById)}
 function pcol(j){var w=wer(j);return w.length>1?'var(--pb)':w.length?uById(w[0]).color:''}
 function wC(j){return pcol(j)?' wp':''}
-function wS(j){var c=pcol(j);return c?'--pc:'+c+';':''}
+function wS(j){var c=pcol(j),s=svcOf(j);return (c?'--pc:'+c+';':'')+(s?'--c:'+(s.plan_color||SVC_DEF)+';':'')}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
@@ -39,10 +40,11 @@ function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.se
 function addDays(s,n){var d=parse(s);d.setDate(d.getDate()+n);return fmt(d)}
 function norm(s){var d=parse(s);while(d.getDay()==0||d.getDay()==6||HOL[fmt(d)])d.setDate(d.getDate()+1);return fmt(d)}
 function nextWork(s,dir){var d=parse(s);do{d.setDate(d.getDate()+dir)}while(d.getDay()==0||d.getDay()==6||HOL[fmt(d)]);return fmt(d)}
-function R(a){return a=='montage'||a=='werkstatt'||a=='planung'}
+// Werktage: Montage, Werkstatt, Planung und Termine mit Leistungsartikel; R(j) nimmt den Termin, R('montage') die Art
+function R(a){if(a&&typeof a=='object')return !!a.article_id||R(a.art);return a=='montage'||a=='werkstatt'||a=='planung'}
 function isWE(ds){var g=parse(ds).getDay();return g==0||g==6||!!HOL[ds]}
 var WEMSG='Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage).',HH=28,H0=6;
-function span(j){var out=[],r=R(j.art),d=r?norm(j.start):j.start,n=Math.max(1,j.tage||1);for(var i=0;i<n;i++){out.push(d);d=r?nextWork(d,1):addDays(d,1)}return out}
+function span(j){var out=[],r=R(j),d=r?norm(j.start):j.start,n=Math.max(1,j.tage||1);for(var i=0;i<n;i++){out.push(d);d=r?nextWork(d,1):addDays(d,1)}return out}
 function t2m(t){var p=(t||'0:0').split(':');return +p[0]*60+(+p[1]||0)}
 function m2t(m){m=Math.max(0,Math.min(1439,m));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 var WD=['So','Mo','Di','Mi','Do','Fr','Sa'],MN=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -50,3 +52,12 @@ function kw(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())
 function who(j){var w=wer(j);return w.length?w.map(uName).join(', '):'niemand zugeteilt'}
 function byId(id){return S.jobs.filter(function(j){return j.id==id})[0]}
 
+// Leistungsartikel aus der ERP (Name und Farbe, ohne Preise): Termine mit article_id zeigen deren Namen und Farbe.
+// Fehlt das ERP-Modul oder die Funktion erp_plan_services (Migration noch nicht gelaufen), bleibt die Liste leer und article_id wird nicht gespeichert.
+var SVC=[],SVCOK=false,SVC_DEF='#1d9e75';
+async function loadServices(){SVC=[];SVCOK=false;if(!ORG||(ORG.modules||[]).indexOf('erp')<0)return;
+ try{var r=await sb.rpc('erp_plan_services');if(!r.error){SVC=r.data||[];SVCOK=true}}catch(e){}}
+function svcOf(j){return j&&j.article_id?SVC.filter(function(a){return a.id==j.article_id})[0]||null:null}
+function svcList(keep){return SVC.filter(function(a){return a.active||a.id==keep})}
+function jName(j){var s=svcOf(j);return s?s.name_de||s.name_it:ART[j.art].n}
+function jCol(j){var s=svcOf(j);return s?s.plan_color||SVC_DEF:COL[j.art]}
