@@ -422,3 +422,12 @@ nav button.on .i{color:var(--ac)}
 /* Termine nebeneinander im Stundenraster: Kunde senkrecht, von unten nach oben lesbar */
 .ev.vt{display:flex;align-items:center;justify-content:center;padding:4px 1px}
 .ev.vt .evv{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%;font-weight:700;line-height:1.1}
+
+/* Dauer in Stunden (Termin-Dialog) */
+.hrow{display:flex;gap:6px;align-items:stretch}.hrow>.b{flex:0 0 44px;font-size:20px;padding:0}
+.hbx{flex:1;position:relative;display:flex}.hbx input{flex:1;text-align:right;padding-right:28px;font-variant-numeric:tabular-nums}
+.hbx span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none}
+.hch{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.hch .b{flex:0 0 auto;min-height:34px;padding:0 12px;font-size:14px}
+.hch .b.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.hsum{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--ln);font-size:14px}
+.hsum small{display:block;color:var(--mu);margin-top:2px}

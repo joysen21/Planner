@@ -25,8 +25,9 @@ function render0(){mkH();
   hol:pnl(ic('flag')+'Feiertage Südtirol',hsec(adm)),
   done:!adm?'':pnl(ic('check')+'Erledigte Aufträge','<div class="sub">'+nd+' erledigte Aufträge (aller Mitarbeiter) sind gespeichert.</div><div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="clearDone()"'+(nd?'':' disabled')+'>Erledigte löschen</button></div>'),
   app:appSec(),
-  az:adm?pnl(ic('clock')+'Ganztägige Termine','<div class="sub">Ganztägige Termine werden im Kalender in diesem Zeitraum angezeigt.</div>'+
+  az:adm?pnl(ic('clock')+(HRS()?'Arbeitstag':'Ganztägige Termine'),'<div class="sub">'+(HRS()?'Termine werden in Stunden geplant. Ein Arbeitstag beginnt um „von“ und dauert die Arbeitsstunden pro Tag; längere Termine laufen am nächsten Tag weiter. Urlaub wird im Zeitraum „von“–„bis“ angezeigt.':'Ganztägige Termine werden im Kalender in diesem Zeitraum angezeigt.')+'</div>'+
    '<div class="row" style="margin-top:10px"><div style="flex:1"><label>von</label><select id="ad_s">'+tOpts(ORG.allday_start||'08:00')+'</select></div><div style="flex:1"><label>bis</label><select id="ad_e">'+tOpts(ORG.allday_end||'17:00')+'</select></div></div>'+
+   (HRS()?'<label for="ad_h">Arbeitsstunden pro Tag</label><input id="ad_h" inputmode="decimal" style="max-width:120px" value="'+String(dayH()).replace('.',',')+'"><div class="sub">1 bis 24 Stunden, in Schritten von 0,25. Bestehende Termine behalten ihre Stunden, Tage und Uhrzeiten rechnen sich neu.</div>':'')+
    '<div class="row"><button class="b" style="flex:none" onclick="saveAd(this)">Speichern</button></div>'):'',
   bk:pnl(ic('save')+'Backup','<div class="sub">Die Daten liegen in der Datenbank und sind auf allen Geräten gleich. Hier kann eine Sicherung kopiert werden'+(adm?' – oder ein Backup der alten Handy-Version eingefügt und übernommen werden.':'.')+'</div>'+
    '<div class="row" style="margin-top:10px"><button class="b" onclick="exp()">Backup kopieren</button>'+(adm?'<button class="b p" onclick="imp()">Einfügen &amp; übernehmen</button>':'')+'</div><textarea id="bk" rows="4" placeholder="'+(adm?'Backup hier einfügen':'')+'"></textarea>')};
@@ -47,8 +48,11 @@ function appSec(){if(isApp())return '';
    :isIOS()?'<div class="sub" style="margin-top:8px">Auf dem iPhone/iPad: in <b>Safari</b> unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.</div>'
    :'<div class="sub" style="margin-top:8px">Im Browser-Menü <b>„App installieren“</b> bzw. <b>„Zum Startbildschirm hinzufügen“</b> wählen.</div>'))}
 function instApp(){if(!IP)return;IP.prompt();IP.userChoice.then(function(){IP=null;render()})}
-function saveAd(b){var a=document.getElementById('ad_s').value,e=document.getElementById('ad_e').value;if(a>=e){alert('Das Ende muss nach dem Beginn liegen.');return}
- b.disabled=true;sb.rpc('admin_set_allday',{p_start:a,p_end:e}).then(function(r){b.disabled=false;if(rpcErr(r))return;ORG.allday_start=a;ORG.allday_end=e;alert('Gespeichert: ganztägige Termine von '+a+' bis '+e+'.');render()})}
+function saveAd(b){var a=document.getElementById('ad_s').value,e=document.getElementById('ad_e').value,he=document.getElementById('ad_h'),h=he?parseFloat(he.value.replace(',','.')):null;if(a>=e){alert('Das Ende muss nach dem Beginn liegen.');return}
+ if(he&&!(h>=1&&h<=24&&h*4==Math.round(h*4))){alert('Bitte 1 bis 24 Arbeitsstunden pro Tag angeben, in Schritten von 0,25.');return}
+ b.disabled=true;sb.rpc('admin_set_allday',{p_start:a,p_end:e}).then(function(r){if(rpcErr(r)){b.disabled=false;return}ORG.allday_start=a;ORG.allday_end=e;
+  if(!he||h==dayH()){b.disabled=false;alert('Gespeichert: ganztägige Termine von '+a+' bis '+e+'.');reload();return}
+  sb.rpc('erp_set_day_hours',{p_hours:h}).then(function(r2){b.disabled=false;if(rpcErr(r2))return;ORG.day_hours=h;alert('Gespeichert: Arbeitstag ab '+a+', '+hTxt(h)+' pro Tag.');reload()})})}
 function pnl(t,b,c){return '<section class="pnl'+(c?' '+c:'')+'"><h2>'+t+'</h2>'+b+'</section>'}
 function cols(a,b,eq){return '<div class="pgrid'+(eq?' eq':'')+'"><div class="pcol">'+a+'</div><div class="pcol">'+b+'</div></div>'}
 // Lizenz: belegte Anmeldungen und Laufzeit (ändern kann nur der Besitzer der Seite)

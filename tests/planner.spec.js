@@ -109,12 +109,38 @@ test.describe('Termine', () => {
     await neuerTermin(page);
     await page.fill('#f_k', 'E2E Viertelstunde');
     await page.fill('#f_s', mo);
-    await page.click('#s_zt button[data-v="1"]');
-    await expect(page.locator('#f_z option')).toHaveCount(96);
-    await page.selectOption('#f_z', '08:15');
-    await page.selectOption('#f_e', '09:45');
+    await expect(page.locator('#f_b option')).toHaveCount(96);
+    await page.selectOption('#f_b', '08:15');
+    await page.fill('#f_h', '1,5');
     await page.click('#dlg .ft .b.p');
-    expect(await app(page, () => { const j = S.jobs.find((x) => x.kunde === 'E2E Viertelstunde'); return [j.zeit, j.ende]; })).toEqual(['08:15', '09:45']);
+    expect(await app(page, () => { const j = S.jobs.find((x) => x.kunde === 'E2E Viertelstunde'); return [j.zeit, j.ende, j.stunden, j.tage]; })).toEqual(['08:15', '09:45', 1.5, 1]);
+  });
+
+  test('Dauer in Stunden: mehr als ein Arbeitstag läuft am nächsten Tag weiter, Urlaub bleibt in Tagen', async ({ page }) => {
+    await login(page);
+    const mo = await app(page, () => fmt(monday(new Date())));
+    await neuerTermin(page);
+    await page.fill('#f_k', 'E2E Stunden');
+    await page.fill('#f_s', mo);
+    await expect(page.locator('#s_zt')).toBeHidden();
+    await page.selectOption('#f_b', '13:00');
+    await page.click('.hch .b[data-h="16"]');
+    await page.click('#hs');
+    await expect(page.locator('#hs')).toContainText('3 Arbeitstage');
+    await expect(page.locator('#hs')).toContainText('um 13:00');
+    await page.click('#f_h');
+    await page.keyboard.press('ArrowUp');
+    await expect(page.locator('#f_h')).toHaveValue('16,25');
+    await page.fill('#f_h', '12');
+    await page.click('#dlg .ft .b.p');
+    expect(await app(page, () => { const j = S.jobs.find((x) => x.kunde === 'E2E Stunden'); return [j.stunden, j.tage, j.zeit, j.ende]; })).toEqual([12, 3, '13:00', '09:00']);
+    // Gespeichert wird auch die Spalte stunden
+    expect(await app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')).jobs.find((x) => x.kunde === 'E2E Stunden').stunden)).toBe(12);
+    // Urlaub: Dauer in Tagen wie bisher
+    await neuerTermin(page);
+    await page.click('#s_art button[data-v="kind:urlaub"]');
+    await expect(page.locator('#f_d')).toBeVisible();
+    await expect(page.locator('#hb')).toBeHidden();
   });
 
   test('Mehrere Termine nebeneinander: Kunde senkrecht im Balken, Details im Tooltip', async ({ page }) => {

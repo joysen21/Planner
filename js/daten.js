@@ -3,7 +3,7 @@
 async function loadAll(){
  var r=await Promise.all([sb.from('employees').select('*').order('display_name'),sb.from('jobs').select('*'),sb.from('holidays').select('d,n').order('d'),sb.from('organizations').select('*').single(),sb.from('customers').select('*').order('name')]);
  r.slice(0,4).forEach(function(x){if(x.error)throw x.error});
- USERS=r[0].data;S.jobs=r[1].data.map(fromRow);S.hol=r[2].data;ORG=r[3].data;
+ USERS=r[0].data;ORG=r[3].data;S.jobs=r[1].data.map(fromRow).map(fit);S.hol=r[2].data;
  // Kundenstamm (fehlt die Tabelle noch, läuft die App ohne ihn weiter)
  CUSTOK=!r[4].error;S.cust=CUSTOK?r[4].data:[];
  await loadServices();
@@ -16,8 +16,9 @@ function daysLeft(v){v=v===undefined?ORG&&ORG.valid_until:v;if(!v)return null;re
 function expired(){return !!(ORG&&ORG.valid_until&&ORG.valid_until<fmt(new Date()))}
 function dDE(s){var p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
 function nLogins(){return USERS.filter(function(u){return u.user_id}).length}
-function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id:r.erp_order_id||null,customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,article_id:r.article_id||null,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done}}
-function toRow(j){var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;if(SVCOK)o.article_id=j.article_id||null;return o}
+function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id:r.erp_order_id||null,customer_id:r.customer_id||null,series:r.series||null,created_by:r.created_by||null,id:r.id,kunde:r.kunde,adresse:r.adresse,tel:r.tel,art:r.art,article_id:r.article_id||null,wer:r.wer||[],start:r.start||'',tage:r.tage,zeit:r.zeit,ende:r.ende,fix:r.fix,imp:r.imp,material:r.material,notiz:r.notiz,done:r.done,stunden:r.stunden!=null?+r.stunden:null}}
+function toRow(j){if(HRS()){if(j.art=='urlaub')j.stunden=Math.max(1,j.tage||1)*dayH();else fit(j)}
+ var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;if(SVCOK)o.article_id=j.article_id||null;if(HRS())o.stunden=j.stunden;return o}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
 function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}
 function reload(){return loadAll().then(render).catch(function(e){alert('Laden fehlgeschlagen: '+(e.message||e))})}
@@ -45,6 +46,30 @@ function R(a){if(a&&typeof a=='object')return !!a.article_id||R(a.art);return a=
 function isWE(ds){var g=parse(ds).getDay();return g==0||g==6||!!HOL[ds]}
 var WEMSG='Montage, Planung und Werkstatt nur an Werktagen (Mo–Fr, ohne Feiertage).',HH=28,H0=6;
 function span(j){var out=[],r=R(j),d=r?norm(j.start):j.start,n=Math.max(1,j.tage||1);for(var i=0;i<n;i++){out.push(d);d=r?nextWork(d,1):addDays(d,1)}return out}
+// Termine in Stunden (ERP Abschnitt 63): HRS() = Migration gelaufen (organizations.day_hours vorhanden), sonst wie bisher in Tagen.
+// Arbeitstag = day_hours Stunden ab Arbeitsbeginn (allday_start), ohne Pause. Mehr Stunden laufen am nächsten Tag ab Arbeitsbeginn weiter.
+// Gleiche Regel wie erp_private.job_layout in der Datenbank und jobLayout im ERP. Urlaub/Abwesend bleibt in Tagen.
+function HRS(){return !!(ORG&&ORG.day_hours!=null)}
+function dayH(){return +(ORG&&ORG.day_hours)||8}
+function d0m(){return t2m(ORG&&ORG.allday_start||'08:00')}
+function hrsJ(j){return HRS()&&j.art!='urlaub'}
+function rH(h){return Math.min(8784,Math.max(0.25,Math.round((+h||0)*4)/4))}
+function hTxt(h){return String(rH(h)).replace('.',',')+' h'}
+// Stunden + Beginn → Tage, Beginn, Ende am letzten Tag (ganztägig = ab Arbeitsbeginn volle Arbeitstage)
+function lay(h,z){var d0=d0m(),dm=Math.round(dayH()*60),s=z?t2m(z):d0,m=Math.round(rH(h)*60),e=d0+dm;
+ if(s==d0&&m%dm==0)return {tage:m/dm,zeit:'',ende:''};
+ if(m<=dm||m<=e-s||s>=e)return {tage:1,zeit:m2t(s),ende:m2t(Math.min(1439,s+m))};
+ var r=m-(e-s),n=Math.ceil(r/dm);return {tage:1+n,zeit:m2t(s),ende:m2t(d0+r-(n-1)*dm)}}
+// Umkehrung: Stunden aus Tagen, Beginn und Ende (für Einträge ohne Stunden)
+function hFrom(j){var dm=Math.round(dayH()*60),d0=d0m(),n=Math.max(1,j.tage||1),m;
+ if(!j.zeit)m=n*dm;else if(n==1)m=t2m(j.ende||j.zeit)-t2m(j.zeit);else m=(d0+dm-t2m(j.zeit))+(n-2)*dm+((j.ende?t2m(j.ende):d0+dm)-d0);
+ return rH(m/60)}
+// Tage, Beginn und Ende passend zu den Stunden setzen
+function fit(j){if(!hrsJ(j))return j;if(j.stunden==null)j.stunden=hFrom(j);j.stunden=rH(j.stunden);return Object.assign(j,lay(j.stunden,j.zeit))}
+// Zeitfenster eines Termins in Stunden am i-ten von n Tagen (Minuten)
+function hWin(j,i,n){var d0=d0m(),E=d0+Math.round(dayH()*60),s=j.zeit?t2m(j.zeit):d0;
+ if(n<=1)return j.zeit?{s:s,e:j.ende?t2m(j.ende):s+60}:{s:d0,e:E};
+ return {s:i==0?s:d0,e:i==n-1&&j.ende?t2m(j.ende):E}}
 function t2m(t){var p=(t||'0:0').split(':');return +p[0]*60+(+p[1]||0)}
 function m2t(m){m=Math.max(0,Math.min(1439,m));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 var WD=['So','Mo','Di','Mi','Do','Fr','Sa'],MN=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];

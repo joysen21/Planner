@@ -22,7 +22,7 @@
     };
     return {
       organizations: [{ id: 'demo-org', nr: 1, license_id: 'JK.PLANNER.001', name: 'Demo Tischlerei', max_users: 5, valid_until: null,
-        active: true, note: '', allday_start: '08:00', allday_end: '17:00', modules: ['planner', 'erp'] }],
+        active: true, note: '', allday_start: '08:00', allday_end: '17:00', day_hours: 8, modules: ['planner', 'erp'] }],
       employees: [
         { id: 'e-stefan', org_id: 'demo-org', user_id: 'u-stefan', username: 'stefan', display_name: 'Stefan', role: 'admin', color: '#8a5a2b', theme: 'auto', erp_labor_article_id: 'a-std' },
         { id: 'e-uwe', org_id: 'demo-org', user_id: 'u-uwe', username: 'uwe', display_name: 'Uwe', role: 'user', color: '#1e7be0', theme: 'auto', erp_labor_article_id: 'a-std' },
@@ -131,6 +131,7 @@
       if (name === 'erp_planner_customer_create') { if (!me || me.role !== 'admin') return err('Keine Berechtigung.'); var q = a.p; if (q) { DB.erpCustomers = (DB.erpCustomers || []).concat([q]); } var nc = { id: uid(), org_id: 'demo-org', name: q ? [q.name, q.name2].filter(Boolean).join(' ') : a.p_name, adresse: q ? [q.street, [q.zip, q.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : a.p_address || '', tel: q ? q.phone || '' : a.p_phone || '', notiz: '', archived: false, erp_customer_id: 'k-' + uid(), created_by: null }; DB.customers.push(nc); persist(); return ok(nc); }
       if (name === 'set_my_theme') { if (me) me.theme = a.p_theme; persist(); return ok(null); }
       if (name === 'admin_set_allday') { if (!me || me.role !== 'admin') return err('Nur der Admin darf das.'); DB.organizations[0].allday_start = a.p_start; DB.organizations[0].allday_end = a.p_end; persist(); return ok(null); }
+      if (name === 'erp_set_day_hours') { if (!me || me.role !== 'admin') return err('Keine Berechtigung.'); DB.organizations[0].day_hours = a.p_hours; persist(); return ok(null); }
       if (name === 'admin_add_employee') { var id = uid(); DB.employees.push({ id: id, org_id: 'demo-org', user_id: null, username: null, display_name: a.p_display_name, role: 'user', color: a.p_color || '#2f6fa8', theme: 'auto' }); persist(); return ok(id); }
       return err('Im Demo-Modus nicht verfügbar.');
     },
