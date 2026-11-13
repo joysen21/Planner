@@ -13,9 +13,9 @@
     anonKey: 'sb_publishable_mvrfGuXmKG2lXUyjgIEc1A_fMENBK0E'
   };
   var test = {
-    url: '',      // Testprojekt: Project URL
+    url: 'https://emcakpenzsybviairwlh.supabase.co',
     erpUrl: 'https://test-erp.joke-solutions.eu',
-    anonKey: '',  // Testprojekt: publishable/anon Key
+    anonKey: 'sb_publishable_aXEVa5e2s9u7NE__okPdTQ_Orn4nGkU',
     test: true
   };
   window.PLANER_CONFIG = location.hostname === LIVE_HOST ? live : test;
