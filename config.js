@@ -9,7 +9,7 @@
   var LIVE_HOST = 'planner.joke-solutions.eu';
   var live = {
     url: 'https://vuaqhpxolvjsrzbvyekl.supabase.co',
-    erpUrl: 'https://handwerk-erp-ivory.vercel.app',
+    erpUrl: 'https://valier.joke-solutions.eu',
     anonKey: 'sb_publishable_mvrfGuXmKG2lXUyjgIEc1A_fMENBK0E'
   };
   var test = {
