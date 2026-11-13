@@ -431,3 +431,8 @@ nav button.on .i{color:var(--ac)}
 .hch .b.on{background:var(--ac);border-color:var(--ac);color:#fff}
 .hsum{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--ln);font-size:14px}
 .hsum small{display:block;color:var(--mu);margin-top:2px}
+/* Testumgebung (config.js): oranges Band oben, verschiebt nichts und fängt keine Klicks ab */
+:root{--test-band:#c2410c;--test-band-ink:#fff}
+.test-band{position:fixed;inset:0 0 auto 0;top:env(safe-area-inset-top,0px);z-index:10000;height:3px;background:var(--test-band);pointer-events:none}
+.test-band span{position:absolute;top:0;left:50%;transform:translateX(-50%);padding:1px 10px 2px;border-radius:0 0 6px 6px;background:var(--test-band);color:var(--test-band-ink);font:600 11px/1.4 Outfit,system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap}
+@media print{.test-band{display:none}}
