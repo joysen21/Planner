@@ -640,6 +640,44 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Termin');
   });
 
+  test('Monat: Mo–Fr blendet Sa/So aus (gilt auch für die Woche), Wochenend-Termine als Hinweis am Freitag', async ({ page }) => {
+    await login(page);
+    await filter(page, 'Alle');
+    const sa = await app(page, () => {
+      const sa = addDays(fmt(monday(new Date())), 5), base = S.jobs.find((j) => j.art === 'termin');
+      S.jobs.push({ ...base, id: uuid(), kunde: 'E2E Notdienst', start: sa, tage: 1, zeit: '09:00', ende: '10:00', series: null, done: false });
+      an = fmt(monday(new Date())); return sa;
+    });
+    await ansicht(page, 'Monat');
+    await menu(page);
+    await page.click('.wwt button:has-text("Mo–Fr")');
+    if (await page.locator('.dd').count()) await page.click('.dd .ddf .b.p');   // Handy: Menü mit „Fertig“ schließen
+    await expect(page.locator('.mg .gr.wl span')).toHaveCount(5);
+    await expect(page.locator('.mg .c.wd:not(.hol)')).toHaveCount(0);
+    const hinweis = page.locator('.c i.wem').first();
+    await expect(hinweis).toContainText('Sa/So');
+    await hinweis.click();
+    expect(await app(page, () => [mode, an])).toEqual(['tag', sa]);
+    await ansicht(page, 'Woche');
+    await expect(page.locator('.tgh .wh2')).toHaveCount(5);
+  });
+
+  test('Handy-Monat: Tag antippen zeigt die Termine darunter, noch einmal antippen öffnet den Tag', async ({ page }, info) => {
+    test.skip(!isMobile(info), 'nur im Handy-Format');
+    await login(page);
+    await filter(page, 'Alle');
+    const mo = await app(page, () => fmt(monday(new Date())));
+    await ansicht(page, 'Monat');
+    await page.click(`.mg .c[data-drop="${mo}"]`);
+    await expect(page.locator(`.mg .c.sel[data-drop="${mo}"]`)).toHaveCount(1);
+    await expect(page.locator('.mdl .agr', { hasText: 'Huber' })).toBeVisible();
+    await page.locator('.mdl .agr', { hasText: 'Huber' }).click();
+    await expect(page.locator('#dlg .detv')).toContainText('Fam. Huber');
+    await page.evaluate(() => document.getElementById('dlg').close());
+    await page.click(`.mg .c[data-drop="${mo}"]`);
+    expect(await app(page, () => mode)).toBe('tag');
+  });
+
   test('Handy: Aufklapp-Menü mit Ansicht, Mitarbeitern und Darstellung; Auswahl schließt es', async ({ page }, info) => {
     test.skip(!isMobile(info), 'nur im Handy-Format');
     await login(page);

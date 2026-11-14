@@ -75,7 +75,7 @@ function plan(hd,m){
  else if(mode=='liste')h=agenda();
  else if(mode=='team')h=teamGrid(an);
  else if(mode=='woche')h=weekGrid(monday(a));
- else if(mode=='monat')h=monthGrid(a.getFullYear(),a.getMonth(),innerWidth<600?'bars':'full');
+ else if(mode=='monat')h=innerWidth<600?monthGrid(a.getFullYear(),a.getMonth(),'bars')+mDay(an):monthGrid(a.getFullYear(),a.getMonth(),'full');
  else if(mode=='quartal'){h='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
  else{h='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
  if(W)m.innerHTML='<div class="plw'+(sb?'':' nosb')+'">'+(sb?'<aside class="sbar" aria-label="Seitenleiste">'+sideBar()+'</aside>':'')+'<div class="plc">'+mv+'<div class="swp">'+h+'</div></div></div>';
@@ -85,24 +85,28 @@ function lgOpen(){var v=lsGet('planer_lg');return v?v=='1':innerWidth>=900}
 function lgSet(o){lsSet('planer_lg',o?'1':'0')}
 function hintTxt(){if(mode=='liste')return 'Termin antippen = Details · Tag antippen = Tagesansicht · wischen = 30 Tage weiter';
  if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
- if(mode=='monat')return 'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
+ if(mode=='monat')return innerWidth<600?'Tag antippen = Termine darunter · noch einmal antippen = Tagesansicht · halten und ziehen = verschieben':'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
  return 'Tag antippen = Tagesansicht · halten und ziehen = verschieben'}
 // Reihenfolge: ganztägige zuerst, dann nach Uhrzeit
 function sortJ(js){return js.slice().sort(function(a,b){return (a.zeit?1:0)-(b.zeit?1:0)||t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')})}
 function dayBlock(ds){var d=parse(ds),js=dm[ds]||[];
  return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Termin">'+ic('plus')+'</button>')+'</div>'+(js.length?sortJ(js).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
+// Monat/3 Monate: mit Mo–Fr (Schalter WW5) ohne Sa/So; liegen dort Termine, steht am Freitag „+n Sa/So“
 function monthGrid(y,mo,kind){
- var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,h='<div class="mg '+kind+'">';
+ var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,f5=WW5&&kind!='mini',pk=mode=='monat'&&kind=='bars',h='<div class="mg '+kind+'">';
  if(kind!='full'&&mode!='monat')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
- if(kind!='mini')h+='<div class="gr wl"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>';
- h+='<div class="gr">';
- for(var d=1;d<=n;d++){var dt=new Date(y,mo,d),g=dt.getDay();if(first){for(var p=0;p<(g+6)%7;p++)h+='<div></div>';first=false}
-  var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
+ if(kind!='mini')h+='<div class="gr wl'+(f5?' w5':'')+'"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span>'+(f5?'':'<span>Sa</span><span>So</span>')+'</div>';
+ h+='<div class="gr'+(f5?' w5':'')+'">';
+ for(var d=1;d<=n;d++){var dt=new Date(y,mo,d),g=dt.getDay();if(first){for(var p=0;p<(f5?(g>=1&&g<=5?g-1:0):(g+6)%7);p++)h+='<div></div>';first=false}
+  if(f5&&(g==0||g==6))continue;
+  var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':'')+(pk&&ds==an?' sel':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
+  var we=f5?weHint(ds,g,d):'';
   if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){var k=jCol(j);if(ar.indexOf(k)<0)ar.push(k);if(!PV(j)){fxs[k]=1;anyF=true}});var cl=function(a){return fxs[a]?a:'color-mix(in srgb,'+a+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
-  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,mode=='monat'?4:3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(mode=='monat'&&js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+'</div>';
-  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+'</div>'}
+  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,mode=='monat'?4:3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(mode=='monat'&&js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+we+'</div>';
+  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+we+'</div>'}
  return h+'</div></div>'}
-function cell(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
+// Handy-Monat: erstes Antippen zeigt die Termine des Tages darunter, zweites öffnet die Tagesansicht
+function cell(ds){if(mvId)drop(ds);else if(mode=='monat'&&innerWidth<600&&an!=ds){an=ds;render()}else{an=ds;setMode('tag')}}
 // mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
 var mvE='';
 function drop(ds){var j=byId(mvId);if(ds&&R(j)&&isWE(ds)){alert(WEMSG);return}
@@ -220,7 +224,7 @@ function timeGrid(cols,team){
 function bp(){return innerWidth>=900?2:innerWidth>=600?1:0}
 var WIDE=bp();addEventListener('resize',function(){var w=bp();if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
-function nw(){if(tab=='kunden'){kEdit();return}edit(null,tab=='plan'&&(mode=='tag'||mode=='team')?an:'')}
+function nw(){if(tab=='kunden'){kEdit();return}edit(null,tab=='plan'&&(mode=='tag'||mode=='team'||mode=='monat'&&innerWidth<600)?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
 function conflict(ds,c){return S.jobs.some(function(o){
  if(o.id==c.id||o.done||!o.start)return false;

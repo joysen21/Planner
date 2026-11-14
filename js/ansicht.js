@@ -46,7 +46,7 @@ function setCM(v){CM=v=='ma'?'ma':'art';lsSet('planer_cm',CM=='ma'?'ma':'');rend
 function modesSeg(){return '<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>'}
 function gridMode(){return mode=='tag'||mode=='team'||mode=='woche'}
 function optsH(){var o='';
- if(mode=='woche')o+='<div class="sbt">Woche</div><div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>';
+ if(mode=='woche'||mode=='monat'||mode=='quartal')o+='<div class="sbt">Tage</div><div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>';
  o+='<div class="sbt">Farbe</div><div class="seg sm cmt"><button class="'+(CM=='art'?'on':'')+'" onclick="setCM(\'art\')">nach Art</button><button class="'+(CM=='ma'?'on':'')+'" onclick="setCM(\'ma\')">nach Mitarbeiter</button></div>';
  if(gridMode())o+='<div class="sbt">Stundenhöhe</div><div class="seg sm zmt">'+[[.7,'Kompakt'],[1,'Normal'],[1.4,'Groß']].map(function(z){return '<button class="'+(Math.abs(ZF-z[0])<.02?'on':'')+'" onclick="setZoom('+z[0]+')">'+z[1]+'</button>'}).join('')+'</div>';
  return o}
@@ -89,7 +89,7 @@ function agRow(j,ds){var tl=tLbl(j,ds).split('–');
 function capScr(){if(SCRL)return;var g=document.querySelector('#main .tg'),b=g&&g.querySelector('.tgb');if(!b)return;
  var off=b.getBoundingClientRect().top-g.getBoundingClientRect().top+g.scrollTop;
  SCR={k:mode,min:g.scrollTop/HH*60+H0*60,yr:off,x:g.scrollLeft}}
-function fitGrid(){var g=tab=='plan'&&document.querySelector('#main .tg');document.body.classList.toggle('pfit',!!g);fitMonth();if(!g){SCRL=false;return}
+function fitGrid(){var g=tab=='plan'&&document.querySelector('#main .tg');document.body.classList.toggle('pfit',tab=='plan');fitMonth();if(!g){SCRL=false;return}
  g.style.maxHeight='';var r=g.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
  g.style.maxHeight=Math.max(300,Math.floor(innerHeight-(r.top+scrollY)-pb-8))+'px';
  var b=g.querySelector('.tgb');if(!b)return;
@@ -164,8 +164,17 @@ document.addEventListener('keydown',function(e){
 function gridAvail(){var W=innerWidth>=900,el=document.getElementById('hd'),top=(el?el.getBoundingClientRect().height:56)+(W?12:6)+56+(mvId?110:0);
  return Math.max(0,innerHeight-top-(W?16:68))}
 // Monat: Zellen so hoch, dass der Monat den Bildschirm füllt
-function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&document.querySelector('#main .swp>.mg>.gr:last-child');if(!gr)return;
+function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&innerWidth>=600&&document.querySelector('#main .swp>.mg>.gr:last-child');if(!gr)return;
  var cs=gr.querySelectorAll('.c');cs.forEach(function(c){c.style.minHeight=''});
- var n=Math.ceil(gr.children.length/7),r=gr.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0,
+ var n=Math.ceil(gr.children.length/(gr.classList.contains('w5')?5:7)),r=gr.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0,
   h=Math.floor((innerHeight-(r.top+scrollY)-pb-(innerWidth<900?40:44))/n)-3;
- if(h>(innerWidth<900?60:124))cs.forEach(function(c){c.style.minHeight=h+'px'})}
+ h=Math.max(innerWidth<900?60:90,h);cs.forEach(function(c){c.style.minHeight=h+'px'})}
+// Wochenende ausgeblendet: Hinweis am Freitag (bzw. am ersten Werktag, wenn der Monat mit Sa/So beginnt)
+function weHint(ds,g,d){var dd=g==5?[addDays(ds,1),addDays(ds,2)]:(d<=3&&g==1?[addDays(ds,-2),addDays(ds,-1)].filter(function(x){return x.slice(0,7)==ds.slice(0,7)}):[]),ids={};
+ dd.forEach(function(x){(dm[x]||[]).forEach(function(j){ids[j.id]=1})});var k=Object.keys(ids).length;if(!k)return '';
+ var t=dd.filter(function(x){return (dm[x]||[]).length})[0];
+ return '<i class="wem" onclick="event.stopPropagation();an=\''+t+'\';setMode(\'tag\')" title="Termine am Wochenende – Tag öffnen">+'+k+' Sa/So</i>'}
+// Handy-Monat: Termine des gewählten Tages unter dem Monat
+function mDay(ds){var p=parse(ds),js=sortJ(dm[ds]||[]);
+ return '<div class="agd mdl"><div class="mdh"><b>'+WD[p.getDay()]+' '+p.getDate()+'. '+MN[p.getMonth()]+'</b>'+(ds==fmt(new Date())?'<span>Heute</span>':'')+(HOL[ds]?'<em>'+ic('flag')+' '+esc(HOL[ds])+'</em>':'')+
+  '<button class="lk" onclick="hdr(\''+ds+'\')">Tagesansicht</button></div>'+(js.length?js.map(function(j){return agRow(j,ds)}).join(''):'<div class="empty">Keine Termine</div>')+'</div>'}

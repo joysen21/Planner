@@ -551,3 +551,13 @@ kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radiu
  .plw{display:block!important}.ttl .i{display:none}
  .tg{max-height:none!important;overflow:visible!important}.swp{transform:none!important}
 }
+
+/* Monat ohne Sa/So, Hinweis auf Wochenend-Termine, Handy-Monat mit Tagesliste */
+.gr.w5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.c i.wem{display:block;margin-top:3px;font-size:10px;font-weight:700;color:var(--ac);cursor:pointer;white-space:nowrap}
+.mg.bars .c.sel{background:color-mix(in srgb,var(--ac) 14%,var(--card))}
+.mdl{margin-top:12px}
+.mdh{display:flex;align-items:baseline;gap:8px;padding:2px 2px 0}
+.mdh b{font-size:15px}.mdh span{font-size:12px;font-weight:700;color:#fff;background:var(--ac);border-radius:99px;padding:1px 8px}.mdh em{font-style:normal;font-size:12px;color:var(--mu)}.mdh em .i{width:13px;height:13px;vertical-align:-2px}
+.mdh .lk{margin-left:auto}
+@media (max-width:599px){.swp>.mg.bars .c{min-height:50px}}
