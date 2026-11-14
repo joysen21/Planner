@@ -1,11 +1,11 @@
 // Planner – Seitenaufbau (render), Einstellungen, Mitarbeiter, Kunden, App installieren
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
-function render(){render0();if(tab!='mehr'&&(tab!='kunden'||kNew()))document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Termin">'+ic('plus')+'</button>');
+function render(){render0();if(tab!='mehr'&&(tab!='kunden'||kNew()))document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="Neuer Termin" aria-keyshortcuts="N">'+ic('plus')+'<span class="pll">Neu</span></button>');
  if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>');
  else if(ME.role=='admin'&&daysLeft()!=null&&daysLeft()<=30)document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="note">'+ic('clock')+' Die Lizenz läuft '+(daysLeft()==0?'<b>heute</b>':'in <b>'+daysLeft()+' Tag'+(daysLeft()==1?'':'en')+'</b>')+' ab (am '+dDE(ORG.valid_until)+'). Zur Verlängerung bitte an JoKe Smart Solutions wenden.</div>');
- detRefresh()}
+ detRefresh();fitGrid()}
 function render0(){mkH();
- var hd=document.getElementById('hd'),m=document.getElementById('main');
+ var hd=document.getElementById('hd'),m=document.getElementById('main');hd.className='';document.body.classList.remove('ddo');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&vis(j)}).length+')';
  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});
  if(tab=='plan'){plan(hd,m)}else if(tab=='kunden'){kundenView(hd,m)}else if(tab=='offen'){
@@ -96,7 +96,7 @@ function uUname(id){var u=uById(id),v=prompt('Neuer Benutzername für '+u.displa
 function uPw(id){var p=prompt('Neues Passwort für '+uName(id)+' (mind. 8 Zeichen):');if(p==null)return;if(p.length<8){alert('Passwort: mindestens 8 Zeichen.');return}
  sb.rpc('admin_set_password',{p_id:id,p_password:p}).then(function(r){if(!rpcErr(r))alert('Passwort geändert.')})}
 function uDel(id){if(!confirm(uName(id)+' wirklich löschen? Die Person wird aus allen Aufträgen entfernt'+(uById(id).user_id?' und kann sich nicht mehr anmelden':'')+'.'))return;
- sb.rpc('admin_delete_employee',{p_id:id}).then(function(r){if(!rpcErr(r)){if(FLT==id)FLT='me';reload()}})}
+ sb.rpc('admin_delete_employee',{p_id:id}).then(function(r){if(!rpcErr(r)){if(FLT==id||Array.isArray(FLT)&&FLT.indexOf(id)>-1)FLT='me';reload()}})}
 function ownPw(){var p=document.getElementById('pw1').value;if(p.length<pwMin()){alert('Passwort: mindestens '+pwMin()+' Zeichen.');return}
  sb.auth.updateUser({password:p}).then(function(r){if(r.error)alert(r.error.message);else{document.getElementById('pw1').value='';alert('Passwort geändert.')}})}
 function logout(){sb.auth.signOut().then(function(){showLogin()})}

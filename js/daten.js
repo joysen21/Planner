@@ -32,8 +32,8 @@ function uById(id){return USERS.filter(function(u){return u.id==id})[0]}
 function uName(id){var u=uById(id);return u?u.display_name:'?'}
 function wer(j){return (j.wer||[]).filter(uById)}
 function pcol(j){var w=wer(j);return w.length>1?'var(--pb)':w.length?uById(w[0]).color:''}
-function wC(j){return pcol(j)?' wp':''}
-function wS(j){var c=pcol(j),s=svcOf(j);return (c?'--pc:'+c+';':'')+(s?'--c:'+(s.plan_color||SVC_DEF)+';':'')}
+function wC(j){return window.CM!='ma'&&pcol(j)?' wp':''}
+function wS(j){if(window.CM=='ma')return maS(j);var c=pcol(j),s=svcOf(j);return (c?'--pc:'+c+';':'')+(s?'--c:'+(s.plan_color||SVC_DEF)+';':'')}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
@@ -85,4 +85,4 @@ async function loadServices(){SVC=[];SVCOK=false;if(!ORG||(ORG.modules||[]).inde
 function svcOf(j){return j&&j.article_id?SVC.filter(function(a){return a.id==j.article_id})[0]||null:null}
 function svcList(keep){return SVC.filter(function(a){return a.active||a.id==keep})}
 function jName(j){var s=svcOf(j);return s?s.name_de||s.name_it:ART[j.art].n}
-function jCol(j){var s=svcOf(j);return s?s.plan_color||SVC_DEF:COL[j.art]}
+function jCol(j){var w=wer(j);if(window.CM=='ma'&&w.length)return uById(w[0]).color;var s=svcOf(j);return s?s.plan_color||SVC_DEF:COL[j.art]}

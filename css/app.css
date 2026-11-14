@@ -436,3 +436,118 @@ nav button.on .i{color:var(--ac)}
 .test-band{position:fixed;inset:0 0 auto 0;top:env(safe-area-inset-top,0px);z-index:10000;height:3px;background:var(--test-band);pointer-events:none}
 .test-band span{position:absolute;top:0;left:50%;transform:translateX(-50%);padding:1px 10px 2px;border-radius:0 0 6px 6px;background:var(--test-band);color:var(--test-band-ink);font:600 11px/1.4 Outfit,system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap}
 @media print{.test-band{display:none}}
+
+/* ===== Kalender-Bedienung (ansicht.js): mehr Platz für den Kalender ===== */
+main{overflow-x:clip}
+.seg.modes{position:static;box-shadow:none;margin:0}
+.seg.sm button{min-height:34px;font-size:13px;padding:0 10px}
+/* Raster ist der eigene Bildlauf-Bereich, die Tageszeile bleibt oben stehen */
+.tg{overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;padding-top:0}
+.tg .tgh{position:sticky;top:0;z-index:6;background:var(--card);padding-top:6px;box-shadow:0 1px 0 var(--ln)}
+.tg .tgb{padding-top:8px}
+body.pfit main{padding-bottom:0}body.pfit .tg{margin-bottom:0}
+/* Kopfzeile Plan */
+#hd.hdp .ib.tgl.on{background:color-mix(in srgb,var(--ac) 16%,var(--card));color:var(--ac)}
+.pll{display:none}
+/* Mini-Monat */
+.mm{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:8px 8px 6px}
+.mmh{display:flex;align-items:center;gap:2px;padding:0 2px 4px}.mmh b{flex:1;font-size:14px}
+.mmn{border:0;background:none;color:var(--mu);width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.mmn .i{width:18px;height:18px}
+.mmn:hover{background:var(--bg);color:var(--tx)}
+.mmg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;text-align:center}
+.mmw{font-size:10px;color:var(--mu);font-weight:600;padding:2px 0}
+.mmd{position:relative;border:0;background:none;color:var(--tx);font:inherit;font-size:13px;font-variant-numeric:tabular-nums;height:32px;border-radius:9px;cursor:pointer;padding:0}
+.mmd.wd{color:var(--mu)}.mmd:hover{background:var(--bg)}
+.mmd.sel{background:color-mix(in srgb,var(--ac) 14%,var(--card));border-radius:0}
+.mmd.td{background:var(--ac);color:#fff;font-weight:700;border-radius:9px}
+.mmd i{position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--ac)}.mmd.td i{background:#fff}
+/* Abschnitte in Seitenleiste und Aufklapp-Menü */
+.sbt{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:12px 2px 6px}
+.lks{margin-left:auto;display:flex;gap:2px;text-transform:none;letter-spacing:0}
+.lk{border:0;background:none;color:var(--ac);font:inherit;font-size:12px;font-weight:600;padding:3px 6px;border-radius:7px;cursor:pointer}.lk.on{background:color-mix(in srgb,var(--ac) 14%,var(--card))}
+.sbu{display:flex;align-items:center;gap:8px;margin:0;padding:5px 6px;border-radius:9px;color:var(--tx);font-size:14px;cursor:pointer;position:relative}
+.sbu:hover{background:var(--bg)}
+.sbu input{position:absolute;opacity:0;width:1px;height:1px}
+.sbu i{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--uc);display:grid;place-items:center}
+.sbu input:checked+i{background:var(--uc)}
+.sbu input:checked+i::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.sbu input:focus-visible+i{outline:2px solid var(--ac);outline-offset:2px}
+.sbu span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sbu small{color:var(--mu)}
+.lgs{background:repeating-linear-gradient(135deg,var(--mo) 0 3px,var(--we) 3px 6px)}
+.kb{display:inline-flex;align-items:center;gap:6px;margin-top:4px;color:var(--mu)}.kb .i{width:18px;height:18px}
+kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radius:6px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);white-space:nowrap}
+.kh{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;margin-top:10px;font-size:14px}.kh kbd{justify-self:start}
+/* Liste (Agenda) */
+.ag{display:flex;flex-direction:column;gap:4px;padding-bottom:12px}
+.agd{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.agh{display:flex;align-items:baseline;gap:8px;border:0;background:none;color:var(--tx);font:inherit;text-align:left;padding:8px 2px 2px;cursor:pointer}
+.agh b{font-size:14px}.agh span{font-size:12px;font-weight:700;color:#fff;background:var(--ac);border-radius:99px;padding:1px 8px}.agh em{font-style:normal;font-size:12px;color:var(--mu)}.agh em .i{width:13px;height:13px;vertical-align:-2px}
+.agd.td .agh b{color:var(--ac)}
+.agr{display:grid;grid-template-columns:52px 5px minmax(0,1fr);gap:10px;align-items:stretch;width:100%;border:0;text-align:left;font:inherit;color:var(--tx);background:var(--card);border-radius:12px;box-shadow:var(--sh);padding:10px 12px 10px 10px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.agr.a-montage{--c:var(--mo)}.agr.a-werkstatt{--c:var(--we)}.agr.a-planung{--c:var(--pl)}.agr.a-termin{--c:var(--tm)}.agr.a-urlaub{--c:var(--ur)}
+.agc{border-radius:3px;background:var(--cb,var(--c))}
+.agr.pv .agc{background:transparent;border:1.5px dashed var(--c)}
+.agr.dn{opacity:.5}.agr.dn b{text-decoration:line-through}.agr.sel{outline:3px solid var(--tx)}
+.agt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.3}.agt small{display:block;color:var(--mu);font-weight:400}
+.agx{min-width:0}.agx b{display:block;font-size:15px;line-height:1.3;overflow-wrap:anywhere}.agx small{display:block;color:var(--mu);font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+.agx .i{width:13px;height:13px;vertical-align:-2px}
+.agm{align-self:center;flex:none;padding:0 18px;margin-top:4px}
+/* Farbe nach Mitarbeiter */
+.cm-ma .ch:not(.pv),.cm-ma .bar:not(.pv){background:var(--cb,var(--c))!important;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.cm-ma .ch.pv{background:var(--cl,var(--card))!important;color:var(--tx)}
+.cm-ma .bar.pv{background:var(--cl,transparent)!important}
+.cm-ma .job{border-left-color:var(--c)!important}
+
+/* Handy und Tablet: eine kompakte Kopfzeile, Plus schwebt unten rechts, schlanke untere Leiste */
+@media (max-width:899px){
+ body{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))}
+ nav button{min-height:52px;padding:6px 2px 4px;font-size:11px}
+ nav span .i{width:24px;height:24px;margin-bottom:1px}
+ #hd.hdp{height:54px;padding:6px 10px 6px 6px;gap:6px}
+ #hd.hdp h1{flex:1;min-width:0;text-align:left;font-size:16px;line-height:1.1}
+ #hd.hdp h1 small{padding-left:8px;font-size:11px}
+ .ttl{display:inline-flex;align-items:center;gap:2px;max-width:100%;border:0;background:none;color:var(--tx);font:inherit;font-weight:700;padding:4px 6px 2px 8px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .ttl .i{flex:none;width:18px;height:18px;color:var(--mu)}
+ .ttl[aria-expanded="true"]{background:var(--card);box-shadow:var(--sh)}
+ #hd .ib.pl{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:18px;z-index:7;box-shadow:0 6px 18px rgba(138,90,43,.45)}
+ #hd .ib.pl .i{width:26px;height:26px}
+ main{padding:6px 8px 16px}
+ .tg{padding-right:6px}
+ .mvb{top:calc(env(safe-area-inset-top,0px) + 58px)}
+ .ddb{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.28)}
+ .dd{position:fixed;z-index:9;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 56px);max-height:calc(100dvh - 56px - 72px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;background:var(--bg);border-radius:18px;padding:8px 10px 10px;box-shadow:0 12px 36px rgba(0,0,0,.28)}
+ .dd .mm{box-shadow:none}
+ .dd .seg.modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--ln);border-radius:12px;padding:3px;gap:2px}
+ .dd .seg.modes button{min-width:0}
+ body.ddo #hd .ib.pl{display:none}
+ .dd .seg.flt{flex-wrap:wrap;overflow:visible}.dd .seg.flt button{flex:0 0 auto}
+ .dd .lgd{margin:12px 0 0}
+ .ddf{margin:12px 0 0}
+ .dv .dvl{margin-top:12px}
+}
+/* PC: eine Werkzeugleiste, Seitenleiste links neben dem Kalender, Vollbild */
+@media (min-width:900px){
+ #hd.hdp{gap:6px}
+ #hd.hdp h1{flex:1 1 auto;min-width:0;text-align:left;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #hd.hdp h1 br{display:none}#hd.hdp h1 small{margin-left:10px;font-size:13px}
+ #hd.hdp .seg.modes{flex:none;background:var(--ln);border-radius:12px;padding:3px;gap:2px;margin-left:6px}
+ #hd.hdp .seg.modes button{flex:none;padding:0 12px;min-height:34px}
+ #hd .ib.pl{min-width:auto;padding:0 14px 0 10px;gap:4px}
+ #hd .ib.pl .pll{display:inline;font-size:15px;font-weight:600}
+ main{padding-top:12px}
+ .plw{display:grid;grid-template-columns:248px minmax(0,1fr);gap:20px;align-items:start}
+ .plw.nosb{grid-template-columns:minmax(0,1fr)}
+ .plc{min-width:0}
+ .sbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);max-height:calc(100vh - 92px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:0 4px 12px 0;scrollbar-width:thin}
+ .sbar .sbs{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:2px 10px 10px}
+ .sbar .seg.sm{flex-wrap:wrap}.sbar .seg.sm button{flex:1 1 auto;padding:0 6px}
+ .sbar .lgd>summary{box-shadow:none;background:none;padding-left:4px}
+ .dvl{top:calc(env(safe-area-inset-top,0px) + 76px);max-height:calc(100vh - 92px)}
+ body.fs{padding-left:0}body.fs nav{display:none}body.fs main{max-width:none}
+}
+@media (min-width:900px) and (max-width:1199px){#hd.hdp .seg.modes button{padding:0 8px}.plw{grid-template-columns:220px minmax(0,1fr)}}
+@media print{
+ .sbar,.dd,.ddb,#hd .ib.pl{display:none!important}
+ .plw{display:block!important}.ttl .i{display:none}
+ .tg{max-height:none!important;overflow:visible!important}.swp{transform:none!important}
+}

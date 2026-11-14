@@ -50,33 +50,41 @@ function imp(){var d;try{d=JSON.parse(document.getElementById('bk').value);if(!d
  Promise.all([sb.from('jobs').upsert(rows),hol.length?sb.from('holidays').upsert(hol):{}]).then(function(r){var e=r.filter(function(x){return x.error})[0];if(e)fail(e.error);else{alert('Übernommen.');document.getElementById('bk').value='';reload()}})}
 
 var ART={montage:{n:'Montage',ic:ic('montage')},werkstatt:{n:'Werkstatt',ic:ic('werkstatt')},planung:{n:'Planung',ic:ic('planung')},termin:{n:'Termin',ic:ic('clock')},urlaub:{n:'Urlaub',ic:ic('urlaub')}},COL={montage:'var(--mo)',werkstatt:'var(--we)',planung:'var(--pl)',termin:'var(--tm)',urlaub:'var(--ur)'};
-var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['tag','Tag'],['team','Team'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
+var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['liste','Liste'],['tag','Tag'],['team','Team'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
+// Plan: Kopfzeile (PC: eine Werkzeugleiste, Handy: Titel zum Aufklappen), darunter der Kalender.
+// Seitenleiste (PC), Aufklapp-Menü (Handy), Liste, Filter usw. stehen in ansicht.js.
 function plan(hd,m){
- var a=parse(an),t,h='';
+ var a=parse(an),t,h='',W=innerWidth>=900;
+ capScr();
  dm={};S.jobs.forEach(function(j){if(j.start&&(mode=='team'||vis(j)))span(j).forEach(function(d){(dm[d]=dm[d]||[]).push(j)})});
  if(mode=='tag'||mode=='team')t=WD[a.getDay()]+' '+a.getDate()+'. '+MN[a.getMonth()];
+ else if(mode=='liste')t='Ab '+WD[a.getDay()]+' '+a.getDate()+'. '+MN[a.getMonth()];
  else if(mode=='woche'){var w0=monday(a),e=new Date(w0);e.setDate(e.getDate()+(WW5?4:6));t='KW '+kw(w0)+' · '+w0.getDate()+'.–'+e.getDate()+'. '+MN[e.getMonth()]}
  else if(mode=='monat')t=MF[a.getMonth()]+' '+a.getFullYear();
  else if(mode=='quartal'){var e2=new Date(a.getFullYear(),a.getMonth()+2,1);t=MN[a.getMonth()]+'–'+MN[e2.getMonth()]+' '+e2.getFullYear()}
  else t=''+a.getFullYear();
- hd.innerHTML='<button class="ib pnav" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><h1>'+t+fltSub()+'</h1><button class="ib pnav" onclick="an=fmt(new Date());setMode(mode)" title="Heute">'+ic('today')+'</button><button class="ib pnav" onclick="step(1)" title="Weiter">'+ic('right')+'</button>';
- h+='<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>';
- h+='<div class="tbar">'+(mode=='woche'?'<div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>':'')+
-  '<span class="sp"></span><button class="b" onclick="showSearch()" title="Suchen">'+ic('search')+'<span class="tlb"> Suchen</span></button><button class="b" onclick="printPlan()" title="Drucken / als PDF speichern">'+ic('print')+'<span class="tlb"> Drucken</span></button></div>';
- h+=(mode=='team'?'':fltBar())+'<details class="lgd"'+(lgOpen()?' open':'')+' ontoggle="lgSet(this.open)"><summary>'+ic('info')+' Legende &amp; Bedienung</summary>'+(mvId?'':'<div class="hint">'+hintTxt()+'</div>')+'<div class="lg">'+svcList().map(function(a){return '<span><b style="background:'+(a.plan_color||SVC_DEF)+'"></b>'+esc(a.name_de||a.name_it)+'</span>'}).join('')+Object.keys(ART).filter(function(k){return !SVC.length||k=='termin'||k=='urlaub'||S.jobs.some(function(j){return j.art==k&&!j.article_id})}).map(function(k){return '<span><b style="background:'+COL[k]+'"></b>'+ART[k].n+'</span>'}).join('')+'<span><b class="lgf"></b>fix</span><span><b class="lgp"></b>provisorisch</span><span>'+ic('starf','starx')+' wichtig</span>'+USERS.map(function(u){return '<span><b class="lgo" style="outline-color:'+esc(u.color)+'"></b>'+esc(u.display_name)+'</span>'}).join('')+'<span><b class="lgo" style="outline-color:var(--pb)"></b>mehrere</span><span>'+ic('users')+'3 = 3 Personen</span></div></details>';
- if(mvId){var mj=byId(mvId);h+='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
- var TGH='';
- if(mode=='tag')h+='<div class="dv"><div class="dvg">'+TGH+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
- else if(mode=='team')h+=TGH+teamGrid(an);
- else if(mode=='woche')h+=TGH+weekGrid(monday(a));
- else if(mode=='monat')h+=monthGrid(a.getFullYear(),a.getMonth(),innerWidth<600?'bars':'full');
- else if(mode=='quartal'){h+='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
- else{h+='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
- m.innerHTML=h}
+ hd.className='hdp';document.body.classList.toggle('cm-ma',CM=='ma');document.body.classList.toggle('fs',FS&&W);document.body.classList.toggle('ddo',DD&&!W);
+ var sb=SBO&&!FS;
+ if(W)hd.innerHTML='<button class="ib pnav" onclick="step(-1)" title="Zurück">'+ic('left')+'</button><button class="ib pnav" onclick="goToday()" title="Heute">'+ic('today')+'</button><button class="ib pnav" onclick="step(1)" title="Weiter">'+ic('right')+'</button><h1>'+t+fltSub()+'</h1>'+
+  '<button class="ib" onclick="showSearch()" title="Suchen">'+ic('search')+'</button><button class="ib" onclick="printPlan()" title="Drucken / als PDF speichern">'+ic('print')+'</button>'+modesSeg()+
+  '<button class="ib tgl'+(sb?' on':'')+'" onclick="sbTog()" title="Seitenleiste ein/aus (S)" aria-pressed="'+sb+'">'+ic('side')+'</button><button class="ib tgl'+(FS?' on':'')+'" onclick="fsTog()" title="Vollbild (F)" aria-pressed="'+FS+'">'+ic(FS?'shrink':'expand')+'</button>';
+ else hd.innerHTML='<h1><button class="ttl" onclick="ddTog()" aria-expanded="'+DD+'">'+t+ic(DD?'up':'down')+'</button>'+fltSub()+'</h1><button class="ib" onclick="showSearch()" title="Suchen">'+ic('search')+'</button><button class="ib" onclick="goToday()" title="Heute">'+ic('today')+'</button>';
+ var mv='';
+ if(mvId){var mj=byId(mvId);mv='<div class="mvb">'+ic('move')+' <b>'+esc(mj.kunde||'Auftrag')+'</b> verschieben: Ziel antippen (Tag oder Uhrzeit). Ansicht darf gewechselt werden.<div class="row"><button class="b" onclick="mvId=null;render()">Abbrechen</button><button class="b" onclick="drop(\'\')">In „Offen“</button><button class="b" onclick="det()">Details</button></div></div>'}
+ if(mode=='tag')h='<div class="dv"><div class="dvg">'+timeGrid(dayCols([an]))+'</div><div class="dvl">'+dayBlock(an)+'</div></div>';
+ else if(mode=='liste')h=agenda();
+ else if(mode=='team')h=teamGrid(an);
+ else if(mode=='woche')h=weekGrid(monday(a));
+ else if(mode=='monat')h=monthGrid(a.getFullYear(),a.getMonth(),innerWidth<600?'bars':'full');
+ else if(mode=='quartal'){h='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
+ else{h='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
+ if(W)m.innerHTML='<div class="plw'+(sb?'':' nosb')+'">'+(sb?'<aside class="sbar" aria-label="Seitenleiste">'+sideBar()+'</aside>':'')+'<div class="plc">'+mv+'<div class="swp">'+h+'</div></div></div>';
+ else m.innerHTML=(DD?ddPanel():'')+mv+'<div class="swp">'+h+'</div>'}
 // Legende/Bedienung: offen/zu merken (Standard: Breitbild offen, Handy zu)
 function lgOpen(){var v=lsGet('planer_lg');return v?v=='1':innerWidth>=900}
 function lgSet(o){lsSet('planer_lg',o?'1':'0')}
-function hintTxt(){if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
+function hintTxt(){if(mode=='liste')return 'Termin antippen = Details · Tag antippen = Tagesansicht · wischen = 30 Tage weiter';
+ if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
  if(mode=='monat')return 'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
  return 'Tag antippen = Tagesansicht · halten und ziehen = verschieben'}
 // Reihenfolge: ganztägige zuerst, dann nach Uhrzeit
@@ -156,8 +164,9 @@ function doSearch(){var q=document.getElementById('q');if(!q)return;SQ=q.value;v
 function printPlan(){var r=document.documentElement,t=r.getAttribute('data-theme');r.setAttribute('data-theme','light');
  var back=function(){if(t)r.setAttribute('data-theme',t);else r.removeAttribute('data-theme');removeEventListener('afterprint',back)};
  addEventListener('afterprint',back);setTimeout(function(){window.print()},50)}
-function setMode(k){mode=k;render()}
-function step(n){if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
+function setMode(k){mode=k;DD=false;MM='';lsSet('planer_mode',k);render()}
+function goToday(){an=fmt(new Date());MM='';render()}
+function step(n){MM='';if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='liste')an=addDays(an,30*n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
 // Spalten des Zeitrasters: Tage (Tag/Woche) oder Mitarbeiter (Team)
 function satSun(ds){var g=parse(ds).getDay();return g==0||g==6}
 function dayCols(days){var td=fmt(new Date());return days.map(function(ds){var d=parse(ds);
@@ -176,9 +185,10 @@ function colJobs(c){return (dm[c.ds]||[]).filter(function(j){if(!c.emp)return tr
 // Ganztägige Termine stehen als Block im Firmen-Zeitraum. Halten und ziehen = verschieben, Rand oben/unten ziehen = Dauer.
 function timeGrid(cols,team){
  var one=cols.length==1,wide=innerWidth>=900,lo=360,hi=1200,td=fmt(new Date()),nw0=new Date(),nm=nw0.getHours()*60+nw0.getMinutes(),det=one||team;
- HH=one?56:team?48:wide?44:30;
  cols.forEach(function(c){colJobs(c).forEach(function(j){var w=jWin(j,c.ds);lo=Math.min(lo,w.s);hi=Math.max(hi,w.e)})});
- var h0=Math.floor(lo/60),h1=Math.min(24,Math.ceil(hi/60)),H=(h1-h0)*HH;H0=h0;H1=h1;
+ var h0=Math.floor(lo/60),h1=Math.min(24,Math.ceil(hi/60));
+ // Stundenhöhe: mindestens so hoch, dass die Stunden den freien Platz füllen; Zoom (ZF) darauf
+ HH=Math.max(14,Math.round(Math.max(one?56:team?48:wide?44:30,gridAvail()/(h1-h0))*ZF));var H=(h1-h0)*HH;H0=h0;H1=h1;
  var row=function(cls,first,cells){return '<div class="wk '+cls+'" style="grid-template-columns:'+(one||wide||team?'52px':'30px')+' repeat('+cols.length+','+(team?'minmax(130px,1fr)':'minmax(0,1fr)')+')'+(team?';min-width:'+(52+cols.length*130)+'px':'')+'">'+first+cells+'</div>'};
  var ea=function(c){return c.emp?' data-emp="'+c.emp+'"':''},ce=function(c){return c.emp?',\''+c.emp+'\'':''};
  var cls=function(j){return j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')},att=function(j,c){return ' data-id="'+j.id+'" data-ds="'+c.ds+'"'+ea(c)+' onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+c.ds+'\''+ce(c)+')"'};
@@ -252,7 +262,9 @@ function dgStart(){if(!DG||DG.on)return;DG.on=true;sup=true;
  g.className='ghost '+j.art;DG.lb=(j.kunde||'Auftrag')+(n>1?' · '+n+' Tage':'');g.textContent=DG.lb;document.body.appendChild(g);DG.g=g;
  document.querySelectorAll('[data-id="'+DG.id+'"]').forEach(function(x){x.classList.add('drg')});
  DG.cx=DG.x;DG.cy=DG.y;dgMove();
- DG.iv=setInterval(function(){if(DG&&DG.on){if(DG.cy<90)scrollBy(0,-14);else if(DG.cy>innerHeight-120)scrollBy(0,14);
+ DG.iv=setInterval(function(){if(DG&&DG.on){var sg=document.querySelector('#main .tg'),sr=sg&&sg.getBoundingClientRect();
+  if(sr&&DG.cy>sr.top&&DG.cy<sr.bottom){if(DG.cy<sr.top+70)sg.scrollTop-=14;else if(DG.cy>sr.bottom-50)sg.scrollTop+=14}
+  else if(DG.cy<90)scrollBy(0,-14);else if(DG.cy>innerHeight-120)scrollBy(0,14);
   var dr=DG.cx>innerWidth-40?1:DG.cx<40?-1:0;document.body.classList.toggle('er',dr>0);document.body.classList.toggle('el',dr<0);
   if(dr!=DG.dir){DG.dir=dr;DG.t0=Date.now()}else if(dr&&Date.now()-DG.t0>600){DG.t0=Date.now();step(dr);document.querySelectorAll('[data-id="'+DG.id+'"]').forEach(function(x){x.classList.add('drg')});DG.hl=null;dgMove()}}},30);
  try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}}
@@ -313,22 +325,10 @@ function hsec(adm){var td=fmt(new Date()),f=function(s){var p=parse(s);return WD
   (cu.length?'<div class="ul">'+cu.map(function(h){return '<div class="ur"><div class="nm">'+esc(h.n)+'<small>'+f(h.d)+'</small></div>'+(adm?'<button class="b d" onclick="delH(\''+h.d+'\')" title="Entfernen">'+ic('trash')+'</button>':'')+'</div>'}).join('')+'</div>':'<div class="sub">Keine eingetragen.</div>')+
   (adm?'<div class="row" style="margin-top:10px"><input id="h_d" type="date" style="flex:1 1 140px"><input id="h_n" placeholder="z. B. Betriebsurlaub" style="flex:2 1 160px"><button class="b" style="flex:none" onclick="addH()">'+ic('plus')+' Hinzufügen</button></div>':'')}
 function impt(id){var j=byId(id);j.imp=!j.imp;save(j);render()}
-var sw=null;
-// Wischen = Tag wechseln, aber nicht in seitlich scrollbaren Bereichen (Mitarbeiter-Filterleiste, Team-Raster):
-// dort scrollt Wischen nur den Bereich
-function hScroll(t){for(var e=t;e&&e.nodeType==1&&e.tagName!='MAIN';e=e.parentNode){var o=getComputedStyle(e).overflowX;
- if((o=='auto'||o=='scroll')&&e.scrollWidth>e.clientWidth+1)return true}return false}
-document.addEventListener('touchstart',function(e){sw=(tab=='plan'&&e.touches.length==1&&!(DG&&DG.on)&&e.target.closest&&e.target.closest('main')&&!hScroll(e.target))?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
-document.addEventListener('touchend',function(e){var s0=sw;sw=null;if(!s0||(DG&&DG.on)||sup)return;var t=e.changedTouches[0],dx=t.clientX-s0.x,dy=t.clientY-s0.y;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6)step(dx<0?1:-1)},{passive:true});
-// Filter: beim Aufruf immer "Meine" (FLT='me'), umschaltbar auf alle oder eine andere Person
-function vis(j){if(FLT=='alle')return true;var id=FLT=='me'?ME.id:FLT;return (j.wer||[]).indexOf(id)>-1}
-function setFlt(v){FLT=v;render()}
+// Wischen (mit Mitlauf) und Zoom: siehe ansicht.js
 function cnt(j){return wer(j).length}
 function icPpl(j){return ic(wer(j).length>1?'users':'user')+' '}
 function pc(j){return cnt(j)>1?ic('users')+cnt(j)+' ':''}
-function fltSub(){return FLT=='alle'||tab=='plan'&&mode=='team'?'':'<br><small>'+(FLT=='me'?'Meine Termine':esc(uName(FLT)))+'</small>'}
-function fltBar(){var b=function(v,l,c,i){return '<button class="'+(c?'fu':'fa')+(FLT==v?' on':'')+'"'+(c?' style="--uc:'+esc(c)+'"':'')+' onclick="setFlt(\''+v+'\')">'+(i?ic(i)+' ':'')+esc(l)+'</button>'};
- return '<div class="seg flt">'+b('me','Meine','','user')+b('alle','Alle','','users')+USERS.filter(function(u){return u.id!=ME.id}).map(function(u){return b(u.id,u.display_name,u.color)}).join('')+'</div>'}
 // Dauer ändern über den oberen/unteren Rand eines Termins.
 // Maus: Rand greifen und ziehen. Touch (wie Outlook): lange auf den Rand drücken, dann ziehen – kurzes Wischen scrollt weiter.
 var RZ=null,RZP=null,H1=20;

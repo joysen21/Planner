@@ -24,6 +24,10 @@ async function login(page, user = 'stefan') {
 }
 // Wert aus der App lesen (globale Variablen/Funktionen)
 const app = (page, fn, arg) => page.evaluate(fn, arg);
+// Handy: Ansicht, Filter und Darstellung stehen im Aufklapp-Menü unter dem Titel, am PC in Kopfzeile/Seitenleiste
+const menu = async (page) => { if (isMobile(test.info()) && !(await page.locator('.dd').count())) await page.click('#hd .ttl'); };
+const ansicht = async (page, name) => { await menu(page); await page.click(`.seg.modes button:has-text("${name}")`); };
+const filter = async (page, name) => { await menu(page); await page.click(`.flt button:has-text("${name}"), .sbar .lk:has-text("${name}")`); };
 const neuerTermin = async (page) => { await page.click('#hd .ib.pl'); await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Termin'); };
 
 test.describe('Anmeldung', () => {
@@ -40,13 +44,14 @@ test.describe('Anmeldung', () => {
 });
 
 test.describe('Kalender', () => {
-  test('Desktop: Zurück, Heute und Weiter stehen gemeinsam links oben, am Handy wie bisher', async ({ page }, info) => {
+  test('Desktop: Zurück, Heute und Weiter stehen gemeinsam links oben, am Handy ohne Pfeile (Wischen)', async ({ page }, info) => {
     await login(page);
     const x = (title) => page.locator(`#hd [title="${title}"]`).boundingBox().then((b) => b.x);
     const titel = (await page.locator('#hd h1').boundingBox()).x;
     if (isMobile(info)) {
-      expect(await x('Zurück')).toBeLessThan(titel);
+      await expect(page.locator('#hd [title="Zurück"], #hd [title="Weiter"]')).toHaveCount(0);
       expect(await x('Heute')).toBeGreaterThan(titel);
+      expect(await x('Suchen')).toBeGreaterThan(titel);
       return;
     }
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -65,30 +70,32 @@ test.describe('Kalender', () => {
     await expect(page.locator('.tgh .wh2')).toHaveCount(7);
     await expect(page.locator('.tgh .wh2.wkd')).toHaveCount(2);
     await expect(page.locator('.dcol.wkd')).toHaveCount(2);
+    await menu(page);
     await page.click('.wwt button:has-text("Mo–Fr")');
     await expect(page.locator('.tgh .wh2')).toHaveCount(5);
     await page.goto('/?demo');                        // neu laden ohne Demo-Reset (bleibt angemeldet)
     await expect(page.locator('.tgh .wh2')).toHaveCount(5);
+    await menu(page);
     await page.click('.wwt button:has-text("Mo–So")');
     await expect(page.locator('.tgh .wh2')).toHaveCount(7);
   });
 
   test('Monat: Wochenenden grau', async ({ page }) => {
     await login(page);
-    await page.click('.seg.modes button:has-text("Monat")');
+    await ansicht(page, 'Monat');
     expect(await page.locator('.mg .c.wd').count()).toBeGreaterThanOrEqual(8);
   });
 
   test('Ganztägige Termine stehen im Stundenraster (keine Ganztags-Zeile)', async ({ page }) => {
     await login(page);
-    await page.click('.flt button:has-text("Alle")');
+    await filter(page, 'Alle');
     await expect(page.locator('.tga')).toHaveCount(0);
     await expect(page.locator('.ev', { hasText: 'ganztags' }).first()).toBeVisible();
   });
 
   test('Team: angemeldeter Benutzer zuerst, dann alphabetisch', async ({ page }) => {
     await login(page, 'uwe');
-    await page.click('.seg.modes button:has-text("Team")');
+    await ansicht(page, 'Team');
     const namen = await page.locator('.tgh .tmh b').allTextContents();
     expect(namen[0]).toBe('Uwe');
     const rest = namen.slice(1).filter((n) => n !== 'Nicht zugeteilt');
@@ -147,7 +154,7 @@ test.describe('Termine', () => {
     test.skip(isMobile(test.info()), 'am Handy steht in der Woche nur ein Termin je Tag nebeneinander');
     await login(page);
     await app(page, () => {
-      const td = fmt(new Date());
+      const td = addDays(fmt(monday(new Date())), 2);   // Mittwoch: Montage läuft nur an Werktagen
       const base = S.jobs.find((j) => j.zeit) || S.jobs[0];
       [['E2E Links', '09:00', '11:00'], ['E2E Rechts', '09:30', '10:30']].forEach(([k, z, e]) => S.jobs.push({ ...base, id: uuid(), kunde: k, start: td, tage: 1, zeit: z, ende: e, series: null, done: false }));
       an = td; setMode('woche');
@@ -195,7 +202,7 @@ test.describe('Termine', () => {
 
   test('Suche findet Aufträge und öffnet die Details', async ({ page }) => {
     await login(page);
-    await page.click('.tbar button[title="Suchen"]');
+    await page.click('#hd [title="Suchen"]');
     await page.fill('#q', 'Pichler');
     await expect(page.locator('.qrr')).toHaveCount(1);
     await page.click('.qrr');
@@ -497,6 +504,153 @@ test.describe('Leistung aus der ERP', () => {
     const ev = page.locator('.ev', { hasText: 'E2E Leistung' }).first();
     await expect(ev).toBeVisible();
     expect(await ev.evaluate((el) => el.style.getPropertyValue('--c'))).toBe('#378add');
+    await menu(page);
     await expect(page.locator('.lg')).toContainText('Montage vor Ort');
+  });
+});
+
+test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
+  test('Raster füllt den Bildschirm: beginnt oben, endet an der unteren Leiste, Seite scrollt nicht', async ({ page }, info) => {
+    await login(page);
+    const r = await app(page, () => { const g = document.querySelector('.tg').getBoundingClientRect(), n = document.querySelector('nav').getBoundingClientRect();
+      return { top: g.top, bottom: g.bottom, nav: innerWidth < 900 ? n.top : innerHeight, sh: document.documentElement.scrollHeight, ih: innerHeight }; });
+    expect(r.top).toBeLessThan(isMobile(info) ? 80 : 100);
+    expect(r.nav - r.bottom).toBeLessThan(30);
+    expect(r.sh).toBeLessThanOrEqual(r.ih + 1);
+    // Tageszeile bleibt beim Scrollen im Raster stehen
+    await app(page, () => { document.querySelector('.tg').scrollTop = 200; });
+    const h = await app(page, () => document.querySelector('.tgh').getBoundingClientRect().top - document.querySelector('.tg').getBoundingClientRect().top);
+    expect(Math.abs(h)).toBeLessThan(2);
+  });
+
+  test('Plus: am Handy schwebend unten rechts, am PC „Neu“ oben links', async ({ page }, info) => {
+    await login(page);
+    const b = await page.locator('#hd .ib.pl').boundingBox(), vw = page.viewportSize().width;
+    if (isMobile(info)) { expect(b.x + b.width).toBeGreaterThan(vw - 30); expect(b.y).toBeGreaterThan(page.viewportSize().height - 170); }
+    else { expect(b.x).toBeLessThan(200); await expect(page.locator('#hd .ib.pl')).toContainText('Neu'); }
+    await neuerTermin(page);
+  });
+
+  test('Mini-Monat: Tag antippen springt dorthin, Ansicht bleibt', async ({ page }) => {
+    await login(page);
+    await menu(page);
+    const ziel = await app(page, () => addDays(fmt(monday(new Date())), 7));
+    await page.locator('.mm .mmn[title="Monat weiter"]').click();
+    await page.locator('.mm .mmn[title="Monat zurück"]').click();
+    await app(page, (d) => mmGo(d), ziel);
+    expect(await app(page, () => [an, mode])).toEqual([ziel, 'woche']);
+    await expect(page.locator('.dd')).toHaveCount(0);
+  });
+
+  test('Liste: Termine nach Tagen, Antippen öffnet Details, zuletzt benutzte Ansicht bleibt gemerkt', async ({ page }) => {
+    await login(page);
+    await filter(page, 'Alle');
+    await app(page, () => { an = fmt(monday(new Date())); });
+    await ansicht(page, 'Liste');
+    await expect(page.locator('.agr', { hasText: 'Huber' }).first()).toBeVisible();
+    await page.locator('.agr', { hasText: 'Huber' }).first().click();
+    await expect(page.locator('#dlg .detv')).toContainText('Fam. Huber');
+    await page.evaluate(() => document.getElementById('dlg').close());
+    await page.goto('/?demo');
+    expect(await app(page, () => mode)).toBe('liste');
+    await expect(page.locator('.ag')).toBeVisible();
+  });
+
+  test('Mitarbeiter-Filter: mehrere Personen per Häkchen', async ({ page }) => {
+    await login(page);
+    const [a, b] = await app(page, () => USERS.filter((u) => u.id != ME.id).slice(0, 2).map((u) => u.id));
+    await app(page, (id) => togU(id), a);
+    expect(await app(page, () => fltIds().length)).toBe(2);
+    await app(page, (id) => togU(id), b);
+    await expect(page.locator('#hd h1 small')).toHaveText('3 Personen');
+    expect(await app(page, () => S.jobs.filter(vis).every((j) => j.wer.some((x) => fltIds().includes(x))))).toBe(true);
+    // Neuer Termin bekommt mich, weil ich ausgewählt bin
+    expect(await app(page, () => fltNew() === ME.id)).toBe(true);
+    await filter(page, 'Alle');
+    expect(await app(page, () => FLT)).toBe('alle');
+  });
+
+  test('Farbe nach Mitarbeiter: eine Person in ihrer Farbe, mehrere gestreift', async ({ page }) => {
+    await login(page);
+    await filter(page, 'Alle');
+    await menu(page);
+    await page.click('.cmt button:has-text("nach Mitarbeiter")');
+    await expect(page.locator('body')).toHaveClass(/cm-ma/);
+    const mehr = page.locator('.ev', { hasText: 'Huber' }).first();
+    expect(await mehr.evaluate((e) => getComputedStyle(e).backgroundImage)).toContain('repeating-linear-gradient');
+    await page.goto('/?demo');
+    await expect(page.locator('body')).toHaveClass(/cm-ma/);
+  });
+
+  test('Zoom: Stundenhöhe kompakt/groß, bleibt gemerkt; Strg + Mausrad am PC', async ({ page }, info) => {
+    await login(page);
+    const h0 = await app(page, () => HH);
+    await menu(page);
+    await page.click('.zmt button:has-text("Groß")');
+    expect(await app(page, () => HH)).toBeGreaterThan(h0);
+    await page.goto('/?demo');
+    expect(await app(page, () => ZF)).toBeCloseTo(1.4, 1);
+    if (!isMobile(info)) {
+      const g = await page.locator('.tg').boundingBox();
+      await page.mouse.move(g.x + g.width / 2, g.y + 300);
+      await page.keyboard.down('Control'); await page.mouse.wheel(0, 200); await page.keyboard.up('Control');
+      await expect.poll(() => app(page, () => ZF)).toBeLessThan(1.4);
+    }
+  });
+
+  test('Wischen mit Mitlauf: weit genug gewischt = nächste Woche, kurz = zurück an den Platz', async ({ page }) => {
+    await login(page);
+    const vorher = await app(page, () => an);
+    await app(page, () => swEnd({ el: document.querySelector('#main .swp'), dx: -30, t: Date.now() - 400 }));
+    await page.waitForTimeout(300);
+    expect(await app(page, () => an)).toBe(vorher);
+    await app(page, () => swEnd({ el: document.querySelector('#main .swp'), dx: -140, t: Date.now() - 200 }));
+    const ziel = await app(page, (d) => addDays(d, 7), vorher);
+    await expect.poll(() => app(page, () => an)).toBe(ziel);
+    await expect.poll(() => app(page, () => document.querySelector('#main .swp').style.transform)).toBe('');
+  });
+
+  test('PC: Tastaturkürzel, Seitenleiste und Vollbild', async ({ page }, info) => {
+    test.skip(isMobile(info), 'nur am PC');
+    await login(page);
+    await expect(page.locator('.sbar .mm')).toBeVisible();
+    await expect(page.locator('.sbar .sbu')).not.toHaveCount(0);
+    const a0 = await app(page, () => an);
+    await page.keyboard.press('ArrowRight');
+    expect(await app(page, () => an)).toBe(await app(page, (d) => addDays(d, 7), a0));
+    await page.keyboard.press('t');
+    await page.keyboard.press('m');
+    expect(await app(page, () => mode)).toBe('monat');
+    await page.keyboard.press('a');
+    expect(await app(page, () => mode)).toBe('liste');
+    await page.keyboard.press('w');
+    await page.keyboard.press('s');
+    await expect(page.locator('.sbar')).toHaveCount(0);
+    await page.keyboard.press('s');
+    await expect(page.locator('.sbar')).toBeVisible();
+    await page.keyboard.press('f');
+    await expect(page.locator('body')).toHaveClass(/\bfs\b/);
+    await expect(page.locator('nav')).toBeHidden();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('body')).not.toHaveClass(/\bfs\b/);
+    await page.keyboard.press('?');
+    await expect(page.locator('#dlg .kh')).toContainText('Neuer Termin');
+    await page.click('#dlg [title="Schließen"]');
+    await page.keyboard.press('n');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Termin');
+  });
+
+  test('Handy: Aufklapp-Menü mit Ansicht, Mitarbeitern und Darstellung; Auswahl schließt es', async ({ page }, info) => {
+    test.skip(!isMobile(info), 'nur im Handy-Format');
+    await login(page);
+    await page.click('#hd .ttl');
+    await expect(page.locator('.dd .mm')).toBeVisible();
+    await expect(page.locator('#hd .ib.pl')).toBeHidden();
+    await page.click('.dd .seg.modes button:has-text("Tag")');
+    await expect(page.locator('.dd')).toHaveCount(0);
+    expect(await app(page, () => mode)).toBe('tag');
+    await page.click('#hd .ttl');
+    await page.click('.ddb', { position: { x: 3, y: 300 } });
+    await expect(page.locator('.dd')).toHaveCount(0);
   });
 });

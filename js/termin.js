@@ -2,7 +2,7 @@
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
 var cur={};
 function edit(id,ds,t,te,emp,pre){
- var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(SVC.length||ds&&isWE(ds)?'termin':'montage'),article_id:(!(ds&&isWE(ds))&&svcList()[0]?svcList()[0].id:null),wer:emp?(emp=='-'?[]:[emp]):[FLT=='me'||FLT=='alle'?ME.id:FLT],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
+ var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(SVC.length||ds&&isWE(ds)?'termin':'montage'),article_id:(!(ds&&isWE(ds))&&svcList()[0]?svcList()[0].id:null),wer:emp?(emp=='-'?[]:[emp]):[fltNew()],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  if(!id&&pre)Object.assign(j,pre);
  var h0=HRS()?rH(j.stunden!=null&&id?j.stunden:hFrom(j)):0;
  j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
