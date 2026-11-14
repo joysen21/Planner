@@ -31,6 +31,21 @@ const filter = async (page, name) => { await menu(page); await page.click(`.flt 
 const neuerTermin = async (page) => { await page.click('#hd .ib.pl'); await expect(page.locator('#dlg .dt2 b')).toHaveText('Neuer Termin'); };
 
 test.describe('Anmeldung', () => {
+  test('Barrierefreiheit: Felder tragen ihre Beschriftung, auch in Dialogen', async ({ page }) => {
+    await page.goto('/?demo=neu');
+    await expect(page.getByLabel('Lizenz-ID')).toBeVisible();
+    await expect(page.getByLabel('Benutzername')).toBeVisible();
+    await expect(page.getByLabel('Passwort')).toBeVisible();
+    await page.getByLabel('Lizenz-ID').fill('1');
+    await page.getByLabel('Benutzername').fill('stefan');
+    await page.getByLabel('Passwort').fill('demo');
+    await page.click('form.login .b.p');
+    await expect(page.locator('body')).not.toHaveClass(/auth/);
+    await neuerTermin(page);
+    await expect(page.getByLabel('Kunde / Titel')).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Status' })).toBeVisible();
+  });
+
   test('Passwort-Manager kann nicht selbst abschicken, Tipp auf „Anmelden“ schon', async ({ page }) => {
     await page.goto('/?demo=neu');
     await expect(page.locator('#l_f')).not.toHaveAttribute('placeholder', /.+/);
@@ -521,6 +536,19 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await app(page, () => { document.querySelector('.tg').scrollTop = 200; });
     const h = await app(page, () => document.querySelector('.tgh').getBoundingClientRect().top - document.querySelector('.tg').getBoundingClientRect().top);
     expect(Math.abs(h)).toBeLessThan(2);
+  });
+
+  test('PC: Kalender nutzt auch auf großen Bildschirmen die ganze Breite und Höhe (Woche und Monat)', async ({ page }, info) => {
+    test.skip(isMobile(info), 'nur am PC');
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await login(page);
+    for (const m of ['woche', 'monat']) {
+      await app(page, (x) => setMode(x), m);
+      const r = await app(page, () => { const e = document.querySelector('.tg, .swp>.mg').getBoundingClientRect(); return { right: e.right, bottom: e.bottom, sh: document.documentElement.scrollHeight }; });
+      expect(r.right, m).toBeGreaterThan(1920 - 40);
+      expect(r.bottom, m).toBeGreaterThan(1080 - 30);
+      expect(r.sh, m).toBeLessThanOrEqual(1081);
+    }
   });
 
   test('Plus: am Handy schwebend unten rechts, am PC „Neu“ oben links', async ({ page }, info) => {
