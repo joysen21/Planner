@@ -168,7 +168,9 @@ function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&innerWidth>=600&&document
  var cs=gr.querySelectorAll('.c');cs.forEach(function(c){c.style.minHeight=''});
  var n=Math.ceil(gr.children.length/(gr.classList.contains('w5')?5:7)),r=gr.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0,
   h=Math.floor((innerHeight-(r.top+scrollY)-pb-(innerWidth<900?40:44))/n)-3;
- h=Math.max(innerWidth<900?60:90,h);cs.forEach(function(c){c.style.minHeight=h+'px'})}
+ var mn=innerWidth<900?60:90,set=function(){h=Math.max(mn,h);cs.forEach(function(c){c.style.minHeight=h+'px'})};set();
+ // nachmessen: Rest bis zum unteren Rand auf die Zeilen verteilen
+ var d=innerHeight-pb-8-gr.closest('.mg').getBoundingClientRect().bottom-scrollY;if(Math.abs(d)>n){h+=Math.floor(d/n);set()}}
 // Wochenende ausgeblendet: Hinweis am Freitag (bzw. am ersten Werktag, wenn der Monat mit Sa/So beginnt)
 function weHint(ds,g,d){var dd=g==5?[addDays(ds,1),addDays(ds,2)]:(d<=3&&g==1?[addDays(ds,-2),addDays(ds,-1)].filter(function(x){return x.slice(0,7)==ds.slice(0,7)}):[]),ids={};
  dd.forEach(function(x){(dm[x]||[]).forEach(function(j){ids[j.id]=1})});var k=Object.keys(ids).length;if(!k)return '';
