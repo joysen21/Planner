@@ -719,4 +719,23 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await page.click('.ddb', { position: { x: 3, y: 300 } });
     await expect(page.locator('.dd')).toHaveCount(0);
   });
+  test('Handy: kurz halten legt 1 Stunde an, leichtes Zittern bricht nicht ab, Ziehen verlängert', async ({ page }) => {
+    await login(page);
+    await app(page, () => { an = addDays(fmt(new Date()), 45); setMode('tag'); });
+    const hold = (dy, jit) => app(page, async ([dy, jit]) => {
+      const c = document.querySelector('#main .dcol'), r = c.getBoundingClientRect(), x = r.left + r.width / 2;
+      const y = r.top + (10 - H0) * HH + 2, ev = (t, yy, xx) => c.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: xx || x, clientY: yy, pointerType: 'touch', isPrimary: true }));
+      ev('pointerdown', y); ev('pointermove', y + jit, x + jit);
+      await new Promise((f) => setTimeout(f, 380));
+      const blk = !!c.querySelector('.slr');
+      if (dy) ev('pointermove', y + dy);
+      ev('pointerup', y + dy);
+      return [blk, document.getElementById('f_z').value, document.getElementById('f_e').value];
+    }, [dy, jit]);
+    const close = () => page.evaluate(() => document.getElementById('dlg').close());
+    expect(await hold(0, 9)).toEqual([true, '10:00', '11:00']);
+    await close();
+    const hh = await app(page, () => HH);
+    expect(await hold(Math.round(hh * 2.1), 0)).toEqual([true, '10:00', '12:15']);
+  });
 });

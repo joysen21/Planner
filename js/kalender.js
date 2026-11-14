@@ -251,7 +251,7 @@ function tOpts(v){v=m2t(Math.round(t2m(v)/STEP)*STEP);var o='';for(var m=0;m<144
 function zchg(){var z=document.getElementById('f_z'),e=document.getElementById('f_e');if(e.value<=z.value)e.value=m2t(Math.min(t2m(z.value)+60,1440-STEP));sug()}
 var mvG='',DG=null,sup=false;
 document.addEventListener('touchmove',function(e){if(DG&&DG.on||SL&&SL.on||RZ)e.preventDefault()},{passive:false});
-document.addEventListener('contextmenu',function(e){if(DG||RZ||RZP)e.preventDefault()});
+document.addEventListener('contextmenu',function(e){if(DG||RZ||RZP||SL)e.preventDefault()});
 document.addEventListener('click',function(e){if(sup){e.stopPropagation();e.preventDefault()}},true);
 document.addEventListener('pointerdown',function(e){
  if(e.button>0||mvId)return;var el=e.target.closest&&e.target.closest('[data-id]');if(!el||e.target.closest('.rz'))return;
@@ -355,21 +355,33 @@ function rzEnd(ok){if(RZP){clearTimeout(RZP.tm);RZP=null}if(!RZ)return;var z=RZ,
  if(ok){if(hrsJ(j)){j.stunden=rH((j.stunden==null?hFrom(j):j.stunden)+((z.e-z.e0)-(z.s-z.s0))/60);if(z.side=='t')j.zeit=m2t(z.s);fit(j)}else{j.zeit=m2t(z.s);j.ende=m2t(z.e)}save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
-// Zeitraum markieren wie in Outlook: in freier Zeit drücken (Handy: kurz halten) und ziehen → neuer Termin mit dieser Zeit
-var SL=null;
+// Zeitraum markieren wie in Outlook: in freier Zeit drücken und ziehen → neuer Termin mit dieser Zeit.
+// Handy wie Google Kalender: kurz halten → sofort ein 1-Stunden-Block (Vibration), ziehen verlängert, loslassen öffnet „Neuer Termin“.
+// Leichtes Zittern beim Halten (bis 12 px) bricht nicht ab; am Rand des Rasters scrollt es beim Ziehen mit.
+var SL=null,SLH=280,SLT=12;
 document.addEventListener('pointerdown',function(e){
  if(mvId||e.button>0)return;var c=e.target.closest&&e.target.closest('.dcol');
  if(!c||(e.target!==c&&!e.target.classList.contains('now')))return;
- SL={c:c,ds:c.dataset.drop,x:e.clientX,y:e.clientY,a:slotMin({currentTarget:c,clientY:e.clientY},true),on:false,t:e.pointerType};
- if(SL.t!='mouse')SL.tm=setTimeout(function(){if(SL&&!SL.on){SL.on=true;sup=true;slDraw(SL.y);try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}}},350)});
-document.addEventListener('pointermove',function(e){if(!SL)return;
- if(!SL.on){if(Math.abs(e.clientX-SL.x)>6||Math.abs(e.clientY-SL.y)>6){if(SL.t=='mouse'){SL.on=true;sup=true}else{clearTimeout(SL.tm);SL=null;return}}else return}
+ SL={c:c,ds:c.dataset.drop,x:e.clientX,y:e.clientY,cy:e.clientY,a:slotMin({currentTarget:c,clientY:e.clientY},true),on:false,t:e.pointerType};
+ if(SL.t!='mouse')SL.tm=setTimeout(slOn,SLH)});
+function slOn(){if(!SL||SL.on)return;SL.on=true;SL.def=SL.t!='mouse';sup=true;slDraw(SL.cy);
+ SL.iv=setInterval(function(){if(!SL||!SL.on)return;var sg=document.querySelector('#main .tg'),sr=sg&&sg.getBoundingClientRect();if(!sr)return;
+  var h=sg.querySelector('.tgh'),top=sr.top+(h?h.offsetHeight:0),d=SL.cy<top+40&&SL.cy<SL.y-8?-12:SL.cy>sr.bottom-40&&SL.cy>SL.y+8?12:0;
+  if(d){var o=sg.scrollTop;sg.scrollTop+=d;if(sg.scrollTop!=o){SL.def=false;slDraw(SL.cy)}}},30);
+ try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}}
+document.addEventListener('pointermove',function(e){if(!SL||e.pointerType!=SL.t)return;SL.cy=e.clientY;
+ if(!SL.on){if(Math.abs(e.clientX-SL.x)>(SL.t=='mouse'?6:SLT)||Math.abs(e.clientY-SL.y)>(SL.t=='mouse'?6:SLT)){if(SL.t=='mouse')slOn();else{clearTimeout(SL.tm);SL=null}}return}
+ if(SL.def&&Math.abs(e.clientY-SL.y)>HH/4)SL.def=false;
  slDraw(e.clientY)});
-function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);SL.s=Math.min(SL.a,b);SL.e=Math.min(1440,Math.max(SL.a,b)+STEP);
+function slDraw(y){var b=slotMin({currentTarget:SL.c,clientY:y},true);
+ if(SL.def){SL.s=SL.a;SL.e=Math.min(1440,SL.a+60)}else{SL.s=Math.min(SL.a,b);SL.e=Math.min(1440,Math.max(SL.a,b)+STEP)}
  var r=SL.c.querySelector('.slr');if(!r){r=document.createElement('div');r.className='slr';SL.c.appendChild(r)}
- r.style.top=((SL.s/60-H0)*HH)+'px';r.style.height=((SL.e-SL.s)/60*HH)+'px';r.textContent=m2t(SL.s)+'–'+m2t(SL.e)}
-function slEnd(ok){if(!SL)return;clearTimeout(SL.tm);var z=SL;SL=null;if(!z.on)return;
+ r.style.top=((SL.s/60-H0)*HH)+'px';r.style.height=((SL.e-SL.s)/60*HH)+'px';r.innerHTML='<b>'+m2t(SL.s)+'–'+m2t(SL.e)+'</b>'+(SL.t!='mouse'?'<span>ziehen = länger · loslassen = neuer Termin</span>':'')}
+function slEnd(ok){if(!SL)return;clearTimeout(SL.tm);clearInterval(SL.iv);var z=SL;SL=null;if(!z.on)return;
  var r=z.c.querySelector('.slr');if(r)r.remove();setTimeout(function(){sup=false},80);
  if(ok)edit(null,z.ds,m2t(z.s),m2t(z.e),z.c.dataset.emp)}
-document.addEventListener('pointerup',function(){slEnd(true)});
-document.addEventListener('pointercancel',function(){slEnd(false)});
+// Handy: solange der Finger beim Halten nur zittert, startet der Browser kein Scrollen (sonst bräche das Halten ab)
+document.addEventListener('touchmove',function(e){if(SL&&!SL.on&&SL.t!='mouse'&&e.touches.length==1){var t=e.touches[0];
+ if(Math.abs(t.clientX-SL.x)<=SLT&&Math.abs(t.clientY-SL.y)<=SLT)e.preventDefault()}},{passive:false});
+document.addEventListener('pointerup',function(e){if(SL&&e.pointerType==SL.t)slEnd(true)});
+document.addEventListener('pointercancel',function(e){if(SL&&e.pointerType==SL.t)slEnd(false)});

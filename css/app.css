@@ -559,3 +559,7 @@ kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radiu
 /* PC: Plan nutzt die ganze Fensterbreite (andere Reiter bleiben begrenzt) */
 @media (min-width:900px){body.pfit main{max-width:none;padding-left:20px;padding-right:20px}}
 body.pfit .swp>.mg{margin-bottom:0}
+
+/* Handy: Halten im Raster ohne Lupe, Textauswahl und Kontextmenü; Markier-Block mit Hinweis */
+.tg,.tg .dcol{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.slr b{display:block}.slr span{display:block;font-weight:600;font-size:10px;opacity:.8}
