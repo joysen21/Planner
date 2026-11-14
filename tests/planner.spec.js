@@ -165,22 +165,29 @@ test.describe('Termine', () => {
     await expect(page.locator('#hb')).toBeHidden();
   });
 
-  test('Mehrere Termine nebeneinander: Kunde senkrecht im Balken, Details im Tooltip', async ({ page }) => {
-    test.skip(isMobile(test.info()), 'am Handy steht in der Woche nur ein Termin je Tag nebeneinander');
+  test('Mehrere Termine gleichzeitig wie Google Kalender: waagrecht, Name höchstens 2 Zeilen, nur so schmal wie nötig', async ({ page }) => {
     await login(page);
     await app(page, () => {
       const td = addDays(fmt(monday(new Date())), 2);   // Mittwoch: Montage läuft nur an Werktagen
       const base = S.jobs.find((j) => j.zeit) || S.jobs[0];
-      [['E2E Links', '09:00', '11:00'], ['E2E Rechts', '09:30', '10:30']].forEach(([k, z, e]) => S.jobs.push({ ...base, id: uuid(), kunde: k, start: td, tage: 1, zeit: z, ende: e, series: null, done: false }));
-      an = td; setMode('woche');
+      S.jobs = S.jobs.filter((j) => !span(j).includes(td));
+      [['E2E Links', '09:00', '11:00'], ['E2E Rechts', '09:30', '10:30'], ['E2E Danach', '10:30', '12:00'], ['E2E Allein', '14:00', '15:00']].forEach(([k, z, e]) => S.jobs.push({ ...base, id: uuid(), art: 'termin', stunden: null, kunde: k, start: td, tage: 1, zeit: z, ende: e, series: null, done: false }));
+      an = td; setMode('tag');
     });
-    const v = page.locator('.ev.vt', { hasText: 'E2E Links' });
-    await expect(v).toBeVisible();
-    await expect(v).toHaveAttribute('title', /E2E Links · 09:00–11:00/);
-    expect(await v.locator('.evv').evaluate((el) => getComputedStyle(el).writingMode)).toBe('vertical-rl');
-    await expect(page.locator('.ev.vt', { hasText: 'E2E Rechts' })).toBeVisible();
-    // allein am Tag bleibt der Termin waagrecht
-    await expect(page.locator('.ev:not(.vt)').first()).toBeVisible();
+    const ev = (k) => page.locator('.ev', { hasText: k });
+    const w = async (k) => (await ev(k).boundingBox()).width;
+    const l = ev('E2E Links');
+    await expect(l).toHaveClass(/nar/);
+    await expect(l).toHaveAttribute('title', /E2E Links · 09:00–11:00/);
+    expect(await l.evaluate((el) => getComputedStyle(el).writingMode)).toBe('horizontal-tb');
+    expect(await l.locator('.evk').evaluate((el) => getComputedStyle(el).webkitLineClamp)).toBe('2');
+    // „Danach“ beginnt, wenn „Rechts“ endet: es nutzt dieselbe rechte Spalte, „Links“ bleibt links
+    const [bl, br, bd] = [await l.boundingBox(), await ev('E2E Rechts').boundingBox(), await ev('E2E Danach').boundingBox()];
+    expect(br.x).toBeGreaterThan(bl.x + bl.width - 2);
+    expect(Math.abs(bd.x - br.x)).toBeLessThan(2);
+    // allein am Nachmittag: volle Breite, nicht schmal
+    await expect(ev('E2E Allein')).not.toHaveClass(/nar/);
+    expect(await w('E2E Allein')).toBeGreaterThan((await w('E2E Links')) * 1.8);
   });
 
   test('Neuer Termin wird angelegt und im Kalender angezeigt', async ({ page }) => {

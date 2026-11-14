@@ -202,7 +202,7 @@ header h1 small{font-size:11px;font-weight:600;color:var(--ac)}
 .rz.rt::after{top:5px}.rz.rb::after{bottom:5px}.sh .rz.rb::after{bottom:2px}
 .ev.pv .rz::after{background:var(--c);box-shadow:none}
 .ev.ad{font-size:13px;font-weight:700;padding-top:16px}
-.ev.vt{writing-mode:vertical-rl;padding:16px 3px}
+
 .dcol.hol{background-color:color-mix(in srgb,var(--ur) 9%,var(--card))}
 .wh2 .hn{font-size:8px;display:block}
 body.auth header,body.auth nav{display:none}body.auth{padding-bottom:0}
@@ -411,13 +411,12 @@ nav button.on .i{color:var(--ac)}
 .ferr{display:block;color:var(--bad,#b42318);font-size:12px;margin-top:3px}
 .kg [aria-invalid="true"]{border-color:var(--bad,#b42318)}
 @media (max-width:520px){.kg{grid-template-columns:minmax(0,1fr)}}
-/* Termine nebeneinander im Stundenraster: Kunde senkrecht, von unten nach oben lesbar */
-.ev.vt{display:flex;align-items:center;justify-content:center;padding:4px 1px}
-.ev.vt .evv{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%;font-weight:700;line-height:1.1}
-.ev.vt .evv .i{transform:rotate(90deg)}
-/* Termine nebeneinander im Stundenraster: Kunde senkrecht, von unten nach oben lesbar */
-.ev.vt{display:flex;align-items:center;justify-content:center;padding:4px 1px}
-.ev.vt .evv{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%;font-weight:700;line-height:1.1}
+/* Termine nebeneinander im Stundenraster (wie Google Kalender): waagrecht, jede Zeile mit „…“ gekürzt, schmale Trennfuge */
+.ev.nar{padding:2px 5px;box-shadow:0 0 0 1px var(--card)}
+.ev.nar .evk,.ev.nar small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.nar .evk{font-weight:700;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow-wrap:anywhere;line-height:1.2}
+.ev.nar>svg.starx{float:left;margin:2px 3px 0 0;width:1em;height:1em}
+.ev.nar.cmp{white-space:nowrap;text-overflow:ellipsis}
 
 /* Dauer in Stunden (Termin-Dialog) */
 .hrow{display:flex;gap:6px;align-items:stretch}.hrow>.b{flex:0 0 44px;font-size:20px;padding:0}

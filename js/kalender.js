@@ -200,26 +200,31 @@ function timeGrid(cols,team){
  h+=row('tgh','<div></div>',cols.map(function(c){return c.head}).join(''));
  var hl='<div>';for(var k=h0;k<h1;k++)hl+='<div class="hl" style="height:'+HH+'px">'+(one||wide||team?String(k).padStart(2,'0')+':00':k)+'</div>';hl+='</div>';
  h+=row('tgb',hl,cols.map(function(c){var ds=c.ds;
-  var js=colJobs(c).sort(function(a,b){return jWin(a,ds).s-jWin(b,ds).s||jWin(b,ds).e-jWin(a,ds).e}),lanes=[];
-  var pl=js.map(function(j){var w=jWin(j,ds),l=0;while(lanes[l]>w.s)l++;lanes[l]=w.e;return {j:j,s:w.s,e:w.e,l:l}}),nl=Math.max(1,lanes.length);
+  var js=colJobs(c).sort(function(a,b){return jWin(a,ds).s-jWin(b,ds).s||jWin(b,ds).e-jWin(a,ds).e});
+  var pl=layLanes(js.map(function(j){var w=jWin(j,ds);return {j:j,s:w.s,e:w.e}}));
   return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+(satSun(ds)?' wkd':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    (function(){
     // Woche: höchstens 2 (Handy: 1) Termine nebeneinander, weitere als „+n“ – Tippen öffnet den Tag
-    var maxL=one||team?99:(wide?2:1),nv=Math.min(nl,maxL),hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
+    var maxL=one||team?99:(wide?2:1),hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
     var mo=function(x){return '<div class="evm" style="top:'+((x.s/60-h0)*HH+2)+'px" onclick="event.stopPropagation();an=\''+ds+'\';setMode(\'tag\')" title="Weitere Termine – Tag öffnen">+'+x.n+'</div>'};
     hid.forEach(function(q){if(k&&q.s<k.e){k.n++;k.e=Math.max(k.e,q.e)}else{if(k)out+=mo(k);k={s:q.s,e:q.e,n:1}}});if(k)out+=mo(k);
-    // Mehrere Termine nebeneinander: die Spalten werden schmal, der Kunde steht dann senkrecht im Balken (Rest im Tooltip)
-    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,vt=nv>1;
-     if(vt)return '<div class="ch ev vt '+cls(j)+'"'+att(j,c)+' title="'+esc([j.kunde||'?',tLbl(j,ds),who(j)].join(' · '))+'" style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
-      '<span class="evv">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'?')+'</span>'+(j.done?'':rzH(j,ds,hp))+'</div>';
-     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+'"'+att(j,c)+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') / '+nv+' - 4px)">'+
+    // Mehrere Termine gleichzeitig wie Google Kalender: nebeneinander nur, wo sie sich überschneiden, jeder so breit wie frei ist,
+    // Schrift bleibt waagrecht und wird mit „…“ gekürzt (alles im Tooltip)
+    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,nv=Math.min(q.n,maxL),sp=Math.min(q.sp,nv-q.l),nar=sp<nv;
+     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+(nar?' nar':'')+'"'+att(j,c)+(nar?' title="'+esc([j.kunde||'?',tLbl(j,ds),who(j)].join(' · '))+'"':'')+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') * '+(sp/nv)+' - 4px)">'+
      (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
      // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
      (cmp?'<b class="evt">'+(hrsJ(j)&&j.zeit?m2t(q.s):(j.zeit||'ganztags'))+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'
-        :esc(j.kunde||'?')+'<small>'+tLbl(j,ds)+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
+        :'<span class="evk">'+esc(j.kunde||'?')+'</span><small>'+tLbl(j,ds)+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
      (j.done?'':rzH(j,ds,hp))+'</div>'}).join('')+out})()+'</div>'}).join(''));
  return h+'</div>'}
+// Spalten für gleichzeitige Termine wie Google Kalender: je Gruppe sich überschneidender Termine eigene Spaltenzahl (n),
+// jeder Termin dehnt sich nach rechts über freie Spalten aus (sp). Eingabe nach Beginn sortiert, {s,e} in Minuten.
+function layLanes(items){var grp=[],end=-1;
+ function fin(){var lanes=[];grp.forEach(function(q){var l=0;while(lanes[l]!=null&&lanes[l]>q.s)l++;lanes[l]=q.e;q.l=l});var n=lanes.length;
+  grp.forEach(function(q){q.n=n;var sp=1;while(q.l+sp<n&&!grp.some(function(o){return o.l==q.l+sp&&o.s<q.e&&o.e>q.s}))sp++;q.sp=sp})}
+ items.forEach(function(q){if(grp.length&&q.s>=end){fin();grp=[]}grp.push(q);end=Math.max(end,q.e)});if(grp.length)fin();return items}
 // Beim Wechsel zwischen Handy- und Breitbild das Raster neu zeichnen
 function bp(){return innerWidth>=900?2:innerWidth>=600?1:0}
 var WIDE=bp();addEventListener('resize',function(){var w=bp();if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
