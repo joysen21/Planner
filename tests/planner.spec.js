@@ -101,6 +101,26 @@ test.describe('Kalender', () => {
     expect(await page.locator('.mg .c.wd').count()).toBeGreaterThanOrEqual(8);
   });
 
+  test('Monat: Termine zeigen so viele Angaben, wie Platz haben; volle Tage „+n“; keine 3-Monats-Ansicht', async ({ page }, info) => {
+    test.skip(isMobile(info), 'PC-Monat');
+    await login(page);
+    await ansicht(page, 'Monat');
+    await expect(page.locator('.seg.modes button', { hasText: '3 Mon' })).toHaveCount(0);
+    await app(page, () => {
+      const b = S.jobs.find((j) => j.start);
+      S.jobs.push(Object.assign({}, b, { id: 'ruhig', start: '2026-11-24', kunde: 'Hotel Seiser Alm', zeit: '07:30', adresse: 'Dorfstraße 3, Kastelruth', notiz: 'Schlüssel beim Nachbarn' }));
+      for (let i = 0; i < 6; i++) S.jobs.push(Object.assign({}, b, { id: 'voll' + i, start: '2026-11-18', kunde: 'Kunde ' + i, zeit: 8 + i + ':00' }));
+      an = '2026-11-01'; render(); fitGrid();
+    });
+    const ruhig = page.locator('.mg.full .ch[data-id="ruhig"]');
+    await expect(ruhig.locator('.cl').first()).toHaveText('07:30 Hotel Seiser Alm');
+    await expect(ruhig.locator('.cl', { hasText: 'Dorfstraße 3' })).toBeVisible();
+    await expect(ruhig.locator('.cl', { hasText: 'Schlüssel beim Nachbarn' })).toBeVisible();
+    const voll = page.locator('.mg.full .c[data-drop="2026-11-18"]');
+    await expect(voll.locator('i.more')).toBeVisible();
+    await expect(voll.locator('i.more')).toHaveText(/^\+\d+$/);
+  });
+
   test('Ganztägige Termine stehen im Stundenraster (keine Ganztags-Zeile)', async ({ page }) => {
     await login(page);
     await filter(page, 'Alle');

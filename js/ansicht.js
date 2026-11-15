@@ -46,7 +46,7 @@ function setCM(v){CM=v=='ma'?'ma':'art';lsSet('planer_cm',CM=='ma'?'ma':'');rend
 function modesSeg(){return '<div class="seg modes">'+MODES.map(function(x){return '<button class="'+(mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')+'</div>'}
 function gridMode(){return mode=='tag'||mode=='team'||mode=='woche'}
 function optsH(){var o='';
- if(mode=='woche'||mode=='monat'||mode=='quartal')o+='<div class="sbt">Tage</div><div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>';
+ if(mode=='woche'||mode=='monat')o+='<div class="sbt">Tage</div><div class="seg sm wwt"><button class="'+(WW5?'on':'')+'" onclick="setWW(true)">Mo–Fr</button><button class="'+(WW5?'':'on')+'" onclick="setWW(false)">Mo–So</button></div>';
  o+='<div class="sbt">Farbe</div><div class="seg sm cmt"><button class="'+(CM=='art'?'on':'')+'" onclick="setCM(\'art\')">nach Art</button><button class="'+(CM=='ma'?'on':'')+'" onclick="setCM(\'ma\')">nach Mitarbeiter</button></div>';
  if(gridMode())o+='<div class="sbt">Stundenhöhe</div><div class="seg sm zmt">'+[[.7,'Kompakt'],[1,'Normal'],[1.4,'Groß']].map(function(z){return '<button class="'+(Math.abs(ZF-z[0])<.02?'on':'')+'" onclick="setZoom('+z[0]+')">'+z[1]+'</button>'}).join('')+'</div>';
  return o}
@@ -145,14 +145,14 @@ function sbTog(){SBO=!SBO;lsSet('planer_sb',SBO?'':'0');if(FS&&SBO)FS=false;rend
 function fsTog(){FS=!FS;try{if(FS&&document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(function(){});
  else if(!FS&&document.fullscreenElement)document.exitFullscreen().catch(function(){})}catch(x){}render()}
 document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&FS){FS=false;if(ME)render()}});
-var KEYS=[['T','Heute'],['← →  oder  K J','Zurück / Weiter'],['A','Liste'],['D','Tag'],['E','Team'],['W','Woche'],['M','Monat'],['Q','3 Monate'],['Y','Jahr'],['N','Neuer Termin'],['/','Suchen'],['+ −','Stundenhöhe (auch Strg + Mausrad)'],['S','Seitenleiste ein/aus'],['F','Vollbild'],['Esc','Schließen / Abbrechen'],['?','Diese Übersicht']];
+var KEYS=[['T','Heute'],['← →  oder  K J','Zurück / Weiter'],['A','Liste'],['D','Tag'],['E','Team'],['W','Woche'],['M','Monat'],['Y','Jahr'],['N','Neuer Termin'],['/','Suchen'],['+ −','Stundenhöhe (auch Strg + Mausrad)'],['S','Seitenleiste ein/aus'],['F','Vollbild'],['Esc','Schließen / Abbrechen'],['?','Diese Übersicht']];
 function keyHelp(){var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>Tastaturkürzel</b><button class="ib" onclick="document.getElementById(\'dlg\').close()" title="Schließen">'+ic('x')+'</button></div><div class="kh">'+KEYS.map(function(k){return '<kbd>'+k[0]+'</kbd><span>'+k[1]+'</span>'}).join('')+'</div>';
  if(!d.open)d.showModal()}
 document.addEventListener('keydown',function(e){
  if(!ME||e.ctrlKey||e.metaKey||e.altKey||document.body.classList.contains('auth'))return;var t=e.target;
  if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))||document.querySelector('dialog[open]'))return;
- var k=e.key.length==1?e.key.toLowerCase():e.key,M={a:'liste',d:'tag',e:'team',w:'woche',m:'monat',q:'quartal',y:'jahr'};
+ var k=e.key.length==1?e.key.toLowerCase():e.key,M={a:'liste',d:'tag',e:'team',w:'woche',m:'monat',y:'jahr'};
  if(k=='Escape'){if(DD)ddTog(false);else if(mvId){mvId=null;mvE='';render()}else if(FS)fsTog();return}
  if(k=='?'){keyHelp()}else if(k=='/'){showSearch()}else if(k=='n'&&tab!='mehr'){nw()}
  else if(tab!='plan')return;
@@ -165,12 +165,18 @@ function gridAvail(){var W=innerWidth>=900,el=document.getElementById('hd'),top=
  return Math.max(0,innerHeight-top-(W?16:68))}
 // Monat: Zellen so hoch, dass der Monat den Bildschirm füllt
 function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&innerWidth>=600&&document.querySelector('#main .swp>.mg>.gr:last-child');if(!gr)return;
- var cs=gr.querySelectorAll('.c');cs.forEach(function(c){c.style.minHeight=''});
+ var cs=gr.querySelectorAll('.c');cs.forEach(function(c){c.style.minHeight=c.style.height=''});
  var n=Math.ceil(gr.children.length/(gr.classList.contains('w5')?5:7)),r=gr.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0,
   h=Math.floor((innerHeight-(r.top+scrollY)-pb-(innerWidth<900?40:44))/n)-3;
- var mn=innerWidth<900?60:90,set=function(){h=Math.max(mn,h);cs.forEach(function(c){c.style.minHeight=h+'px'})};set();
+ var mn=innerWidth<900?60:90,set=function(){h=Math.max(mn,h);cs.forEach(function(c){c.style.minHeight=c.style.height=h+'px'})};set();
  // nachmessen: Rest bis zum unteren Rand auf die Zeilen verteilen
- var d=innerHeight-pb-8-gr.closest('.mg').getBoundingClientRect().bottom-scrollY;if(Math.abs(d)>n){h+=Math.floor(d/n);set()}}
+ var d=innerHeight-pb-8-gr.closest('.mg').getBoundingClientRect().bottom-scrollY;if(Math.abs(d)>n){h+=Math.floor(d/n);set()}
+ fillMonth(cs)}
+// Monat: je Zelle so viele Zeilen je Termin, wie Platz haben (4 = mit Notiz … 1 = nur Zeit und Kunde); reicht auch das nicht, „+n“
+function fillMonth(cs){cs.forEach(function(c){var ch=[].slice.call(c.querySelectorAll('.ch')),mo=c.querySelector('i.more');if(!ch.length)return;
+ var fits=function(){return c.scrollHeight<=c.clientHeight+1};ch.forEach(function(x){x.hidden=false});mo.hidden=true;
+ for(var lv=4;lv>=1;lv--){c.dataset.lv=lv;if(fits())return}
+ mo.hidden=false;for(var k=ch.length-1;k>0;k--){ch[k].hidden=true;mo.textContent='+'+(ch.length-k);if(fits())return}})}
 // Wochenende ausgeblendet: Hinweis am Freitag (bzw. am ersten Werktag, wenn der Monat mit Sa/So beginnt)
 function weHint(ds,g,d){var dd=g==5?[addDays(ds,1),addDays(ds,2)]:(d<=3&&g==1?[addDays(ds,-2),addDays(ds,-1)].filter(function(x){return x.slice(0,7)==ds.slice(0,7)}):[]),ids={};
  dd.forEach(function(x){(dm[x]||[]).forEach(function(j){ids[j.id]=1})});var k=Object.keys(ids).length;if(!k)return '';

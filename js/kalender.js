@@ -50,7 +50,7 @@ function imp(){var d;try{d=JSON.parse(document.getElementById('bk').value);if(!d
  Promise.all([sb.from('jobs').upsert(rows),hol.length?sb.from('holidays').upsert(hol):{}]).then(function(r){var e=r.filter(function(x){return x.error})[0];if(e)fail(e.error);else{alert('Übernommen.');document.getElementById('bk').value='';reload()}})}
 
 var ART={montage:{n:'Montage',ic:ic('montage')},werkstatt:{n:'Werkstatt',ic:ic('werkstatt')},planung:{n:'Planung',ic:ic('planung')},termin:{n:'Termin',ic:ic('clock')},urlaub:{n:'Urlaub',ic:ic('urlaub')}},COL={montage:'var(--mo)',werkstatt:'var(--we)',planung:'var(--pl)',termin:'var(--tm)',urlaub:'var(--ur)'};
-var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['liste','Liste'],['tag','Tag'],['team','Team'],['woche','Woche'],['monat','Monat'],['quartal','3 Mon.'],['jahr','Jahr']];
+var MF=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],MODES=[['liste','Liste'],['tag','Tag'],['team','Team'],['woche','Woche'],['monat','Monat'],['jahr','Jahr']];
 // Plan: Kopfzeile (PC: eine Werkzeugleiste, Handy: Titel zum Aufklappen), darunter der Kalender.
 // Seitenleiste (PC), Aufklapp-Menü (Handy), Liste, Filter usw. stehen in ansicht.js.
 function plan(hd,m){
@@ -61,7 +61,6 @@ function plan(hd,m){
  else if(mode=='liste')t='Ab '+WD[a.getDay()]+' '+a.getDate()+'. '+MN[a.getMonth()];
  else if(mode=='woche'){var w0=monday(a),e=new Date(w0);e.setDate(e.getDate()+(WW5?4:6));t='KW '+kw(w0)+' · '+w0.getDate()+'.–'+e.getDate()+'. '+MN[e.getMonth()]}
  else if(mode=='monat')t=MF[a.getMonth()]+' '+a.getFullYear();
- else if(mode=='quartal'){var e2=new Date(a.getFullYear(),a.getMonth()+2,1);t=MN[a.getMonth()]+'–'+MN[e2.getMonth()]+' '+e2.getFullYear()}
  else t=''+a.getFullYear();
  hd.className='hdp';document.body.classList.toggle('cm-ma',CM=='ma');document.body.classList.toggle('fs',FS&&W);document.body.classList.toggle('ddo',DD&&!W);
  var sb=SBO&&!FS;
@@ -76,7 +75,6 @@ function plan(hd,m){
  else if(mode=='team')h=teamGrid(an);
  else if(mode=='woche')h=weekGrid(monday(a));
  else if(mode=='monat')h=innerWidth<600?monthGrid(a.getFullYear(),a.getMonth(),'bars')+mDay(an):monthGrid(a.getFullYear(),a.getMonth(),'full');
- else if(mode=='quartal'){h='<div class="qv">';for(var q=0;q<3;q++){var x2=new Date(a.getFullYear(),a.getMonth()+q,1);h+=monthGrid(x2.getFullYear(),x2.getMonth(),'bars')}h+='</div>'}
  else{h='<div class="yr">';for(var q2=0;q2<12;q2++)h+=monthGrid(a.getFullYear(),q2,'mini');h+='</div>'}
  if(W)m.innerHTML='<div class="plw'+(sb?'':' nosb')+'">'+(sb?'<aside class="sbar" aria-label="Seitenleiste">'+sideBar()+'</aside>':'')+'<div class="plc">'+mv+'<div class="swp">'+h+'</div></div></div>';
  else m.innerHTML=(DD?ddPanel():'')+mv+'<div class="swp">'+h+'</div>'}
@@ -91,7 +89,7 @@ function hintTxt(){if(mode=='liste')return 'Termin antippen = Details · Tag ant
 function sortJ(js){return js.slice().sort(function(a,b){return (a.zeit?1:0)-(b.zeit?1:0)||t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')})}
 function dayBlock(ds){var d=parse(ds),js=dm[ds]||[];
  return '<div class="day"><div class="dh'+(ds==fmt(new Date())?' today':'')+'"><span onclick="an=\''+ds+'\';setMode(\'tag\')">'+WD[d.getDay()]+' <small>'+d.getDate()+'. '+MN[d.getMonth()]+(HOL[ds]?' · '+ic('flag')+' '+esc(HOL[ds]):'')+'</small></span>'+(mvId?'<button class="b p" style="flex:none;min-height:34px" onclick="drop(\''+ds+'\')">Hierher</button>':'<button class="add" onclick="edit(null,\''+ds+'\')" title="Neuer Termin">'+ic('plus')+'</button>')+'</div>'+(js.length?sortJ(js).map(function(j){return card(j,ds)}).join(''):'<div class="empty">frei</div>')+'</div>'}
-// Monat/3 Monate: mit Mo–Fr (Schalter WW5) ohne Sa/So; liegen dort Termine, steht am Freitag „+n Sa/So“
+// Monat: mit Mo–Fr (Schalter WW5) ohne Sa/So; liegen dort Termine, steht am Freitag „+n Sa/So“
 function monthGrid(y,mo,kind){
  var n=new Date(y,mo+1,0).getDate(),td=fmt(new Date()),first=true,f5=WW5&&kind!='mini',pk=mode=='monat'&&kind=='bars',h='<div class="mg '+kind+'">';
  if(kind!='full'&&mode!='monat')h+='<div class="mt" onclick="an=\''+fmt(new Date(y,mo,1))+'\';setMode(\'monat\')">'+(kind=='mini'?MN[mo]:MF[mo]+' '+y)+'</div>';
@@ -102,9 +100,13 @@ function monthGrid(y,mo,kind){
   var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':'')+(pk&&ds==an?' sel':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
   var we=f5?weHint(ds,g,d):'';
   if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){var k=jCol(j);if(ar.indexOf(k)<0)ar.push(k);if(!PV(j)){fxs[k]=1;anyF=true}});var cl=function(a){return fxs[a]?a:'color-mix(in srgb,'+a+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
-  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,mode=='monat'?4:3).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(mode=='monat'&&js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+we+'</div>';
-  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.slice(0,3).map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+(j.imp?ic('starf','starx')+' ':'')+pc(j)+esc(j.kunde||'?')+'</span>'}).join('')+(js.length>3?'<i>+'+(js.length-3)+'</i>':'')+we+'</div>'}
+  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,4).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+we+'</div>';
+  else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+chLines(j,ds)+'</span>'}).join('')+(js.length?'<i class="more" hidden></i>':'')+we+'</div>'}
  return h+'</div></div>'}
+// PC-Monat: Zeilen eines Termins; was davon sichtbar bleibt, entscheidet fillMonth (ansicht.js) je nach Platz
+function chLines(j,ds){var t=j.zeit?(hrsJ(j)?tLbl(j,ds).split('–')[0]:j.zeit):'',l=[jName(j)+' · '+who(j)];
+ if(j.adresse)l.push(ic('place')+' '+esc(j.adresse));if(j.notiz)l.push(esc(j.notiz));
+ return '<span class="cl">'+(j.imp?ic('starf','starx')+' ':'')+(t?'<b>'+t+'</b> ':'')+esc(j.kunde||'?')+'</span>'+l.map(function(x){return '<span class="cl">'+x+'</span>'}).join('')}
 // Handy-Monat: erstes Antippen zeigt die Termine des Tages darunter, zweites öffnet die Tagesansicht
 function cell(ds){if(mvId)drop(ds);else if(mode=='monat'&&innerWidth<600&&an!=ds){an=ds;render()}else{an=ds;setMode('tag')}}
 // mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
@@ -170,7 +172,7 @@ function printPlan(){var r=document.documentElement,t=r.getAttribute('data-theme
  addEventListener('afterprint',back);setTimeout(function(){window.print()},50)}
 function setMode(k){mode=k;DD=false;MM='';lsSet('planer_mode',k);render()}
 function goToday(){an=fmt(new Date());MM='';render()}
-function step(n){MM='';if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='liste')an=addDays(an,30*n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,quartal:3,jahr:12}[mode])*n);an=fmt(d)}render()}
+function step(n){MM='';if(mode=='tag'||mode=='team')an=addDays(an,n);else if(mode=='liste')an=addDays(an,30*n);else if(mode=='woche')an=addDays(an,7*n);else{var d=parse(an);d.setDate(1);d.setMonth(d.getMonth()+({monat:1,jahr:12}[mode])*n);an=fmt(d)}render()}
 // Spalten des Zeitrasters: Tage (Tag/Woche) oder Mitarbeiter (Team)
 function satSun(ds){var g=parse(ds).getDay();return g==0||g==6}
 function dayCols(days){var td=fmt(new Date());return days.map(function(ds){var d=parse(ds);

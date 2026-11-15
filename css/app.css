@@ -352,7 +352,6 @@ nav button.on .i{color:var(--ac)}
  .modes{max-width:520px;top:calc(env(safe-area-inset-top,0px) + 64px)}
  .mvb{top:calc(env(safe-area-inset-top,0px) + 120px)}
  .c{min-height:124px}.c .ch{font-size:13px}
- .qv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
  .yr{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
  .ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:0 16px;align-items:start}
  .dv{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,420px);gap:20px;align-items:start}
@@ -562,3 +561,13 @@ body.pfit .swp>.mg{margin-bottom:0}
 /* Handy: Halten im Raster ohne Lupe, Textauswahl und Kontextmenü; Markier-Block mit Hinweis */
 .tg,.tg .dcol{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .slr b{display:block}.slr span{display:block;font-weight:600;font-size:10px;opacity:.8}
+
+/* PC-Monat: Termine mit so vielen Zeilen, wie Platz haben (fillMonth setzt data-lv je Zelle) */
+.mg.full .c{display:flex;flex-direction:column}.mg.full .c>i:first-child{flex:none}
+.mg.full .c .ch{display:block;flex:none;-webkit-line-clamp:unset;white-space:normal;line-height:1.25;padding:3px 5px}
+.mg.full .ch .cl{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mg.full .ch .cl+.cl{font-weight:500;font-size:.88em;opacity:.9}
+.mg.full .ch .cl b{font-weight:600;font-variant-numeric:tabular-nums}
+.mg.full .ch[hidden],.mg.full .c i.more[hidden]{display:none}
+.mg.full .c i.more{flex:none;font-size:12px;font-weight:700;color:var(--mu);padding:2px 4px}
+.mg.full .c[data-lv="3"] .cl:nth-child(n+4),.mg.full .c[data-lv="2"] .cl:nth-child(n+3),.mg.full .c[data-lv="1"] .cl:nth-child(n+2){display:none}
