@@ -225,6 +225,10 @@ input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
 input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
 input[type=color]:hover,input[type=color]:focus-visible{border-color:var(--ac)}
 .me{font-size:14px;color:var(--mu);margin-bottom:8px}.me b{color:var(--tx)}
+.own .note.ro{margin:0 0 12px}
+.invf{background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin:12px 0 4px;font-size:14px}.invf>b{display:block;font-size:16px}
+.invf .lic{font-variant-numeric:tabular-nums;letter-spacing:.02em}.invf div{display:flex;justify-content:space-between;gap:1rem;padding:2px 0;font-size:15px}.invf div span{color:var(--mu)}
+.invok{text-align:center}.invok .invf{text-align:left}.invok h2{font-size:18px;margin:4px 0 0}.invok .big{width:56px;height:56px;border-radius:50%;margin:10px auto 8px;display:grid;place-items:center;color:var(--mo);background:color-mix(in srgb,var(--mo) 16%,transparent)}.invok .big svg{width:28px;height:28px}
 .own{max-width:640px;margin:0 auto;padding:16px 0 24px}.own .login{max-width:none;margin:0 0 12px}.own .job{border-left-color:var(--ac)}
 /* iPhone/Safari: Dialoge immer vollständig sichtbar (Höhe ohne die ein-/ausblendenden Safari-Leisten),
    Kopfzeile mit „X“ bleibt beim Scrollen oben, nichts lässt sich seitlich verschieben */

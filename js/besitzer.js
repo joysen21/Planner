@@ -6,34 +6,16 @@ function ownerLoad(){sb.rpc('owner_companies').then(function(r){if(r.error){show
 function coById(id){return OWN.filter(function(c){return c.id==id})[0]}
 function ownerPage(){var td=fmt(new Date());
  authPage('<div class="own"><div class="login">'+authHead('Besitzer · Firmen & Lizenzen')+'<div class="sub">'+OWN.length+' Firmen · '+OWN.filter(function(c){return c.active}).length+' aktiv'+(function(){var n=OWN.filter(function(c){var d=daysLeft(c.valid_until);return c.active&&d!=null&&d>=0&&d<=30}).length;return n?' · <b class="soonx">'+n+' läuft bald ab</b>':''})()+'</div>'+
- '<div class="row" style="margin-top:10px"><button class="b p" onclick="coEdit()">'+ic('plus')+' Neue Firma</button><button class="b" style="flex:none" onclick="logout()">Abmelden</button></div></div>'+
+ '<div class="row" style="margin-top:10px"><button class="b" style="flex:none" onclick="logout()">Abmelden</button></div></div>'+
+ '<div class="note ro"><b>Lizenzen werden jetzt in Clear verwaltet.</b> Hier nur zur Ansicht. Neue Firmen, Plätze, Laufzeit und Sperren bitte in Clear ändern. Benutzer ansehen und Passwörter zurücksetzen geht weiterhin hier.</div>'+
  (OWN.length?'<div class="ol">'+OWN.map(function(c){var q='\''+c.id+'\'',dl=daysLeft(c.valid_until),st=!c.active?['gesperrt',' bad']:c.valid_until&&c.valid_until<td?['abgelaufen',' bad']:dl!=null&&dl<=30?['läuft in '+dl+' Tag'+(dl==1?'':'en')+' ab',' soon']:['aktiv',''];
   return '<div class="job"><div class="top"><div class="k">'+esc(c.license_id)+'</div><span class="tag'+st[1]+'">'+st[0]+'</span></div>'+
   '<div class="sub"><b>'+esc(c.name)+'</b>'+(c.note?' · '+esc(c.note):'')+'</div>'+
   '<div class="sub">Anmeldungen <b>'+c.logins+' / '+c.max_users+'</b> · Mitarbeiter gesamt '+c.employees+' · gültig '+(c.valid_until?'bis '+dDE(c.valid_until):'unbegrenzt')+'</div>'+
   '<div class="sub">Admin: '+esc(c.admin_username||'–')+'</div>'+
-  '<div class="row" style="margin-top:10px"><button class="b" onclick="coEdit('+q+')">'+ic('edit')+' Bearbeiten</button><button class="b" onclick="coUsers('+q+')">'+ic('users')+' Benutzer</button><button class="b d" style="flex:none" onclick="coDel('+q+')" title="Löschen">'+ic('trash')+'</button></div></div>'}).join('')+'</div>'
- :'<div class="empty big">Noch keine Firmen.<br><small>Mit „Neue Firma“ die erste Lizenz vergeben.</small></div>')+'</div>')}
+  '<div class="row" style="margin-top:10px"><button class="b" onclick="coUsers('+q+')">'+ic('users')+' Benutzer</button></div></div>'}).join('')+'</div>'
+ :'<div class="empty big">Noch keine Firmen.<br><small>Neue Lizenzen legst du in Clear an.</small></div>')+'</div>')}
 function genPw(){var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789',r=new Uint32Array(12),s='';crypto.getRandomValues(r);for(var i=0;i<12;i++)s+=a[r[i]%a.length];return s}
-function coEdit(id){var c=id?coById(id):null,d=document.getElementById('dlg'),y=new Date();y.setFullYear(y.getFullYear()+1);
- var f=function(i,l,v,ex){return '<label>'+l+'</label><input id="'+i+'" value="'+esc(v==null?'':v)+'"'+(ex||'')+'>'};
- d.innerHTML='<div class="dt2"><b>'+(c?esc(c.license_id)+' bearbeiten':'Neue Firma')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
- (c?'':'<div class="sub">Die Lizenz-ID wird automatisch fortlaufend vergeben.</div>')+
- '<div class="sec">Firma & Lizenz</div>'+f('c_n','Firmenname',c&&c.name)+
- '<div class="g2"><div>'+f('c_m','Anmeldungen (inkl. Admin)',c?c.max_users:5,' type="number" min="1"')+'</div><div>'+f('c_v','Gültig bis (leer = unbegrenzt)',c?c.valid_until:fmt(y),' type="date"')+'</div></div>'+
- f('c_o','Notiz (nur für dich sichtbar)',c&&c.note)+
- (c?'<label class="chk"><input id="c_a" type="checkbox"'+(c.active?' checked':'')+'> Lizenz aktiv</label><div class="sub">Ausgeschaltet kann sich niemand der Firma mehr anmelden. Die Daten bleiben erhalten.</div>'
-  :'<div class="sec">Admin der Firma</div>'+f('c_an','Name (Anzeige)','',' placeholder="z. B. Uwe Meier"')+
-   '<div class="g2"><div>'+f('c_au','Benutzername','',NC+' placeholder="z. B. uwe"')+'</div><div>'+f('c_ap','Passwort (mind. 10 Zeichen)',genPw(),NC+' autocomplete="off"')+'</div></div>')+
- '<div class="row ft"><button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="coSave(\''+(id||'')+'\',this)">'+(c?'Speichern':'Firma anlegen')+'</button></div>';
- d.showModal()}
-function coSave(id,b){var g=function(i){var x=document.getElementById(i);return x?x.value.trim():''},n=g('c_n'),m=parseInt(g('c_m'),10)||0,v=g('c_v')||null;
- if(!n){alert('Bitte den Firmennamen angeben.');return}
- if(m<1){alert('Mindestens 1 Anmeldung (für den Admin).');return}
- if(id){b.disabled=true;sb.rpc('owner_update_company',{p_id:id,p_name:n,p_max_users:m,p_valid_until:v,p_active:document.getElementById('c_a').checked,p_note:g('c_o')}).then(function(r){b.disabled=false;if(!rpcErr(r))ownerLoad()});return}
- var u=g('c_au').toLowerCase(),p=document.getElementById('c_ap').value;if(!chkLogin(u,p,10))return;
- b.disabled=true;sb.rpc('owner_create_company',{p_name:n,p_max_users:m,p_valid_until:v,p_admin_name:g('c_an'),p_admin_username:u,p_admin_password:p,p_note:g('c_o')}).then(function(r){b.disabled=false;if(rpcErr(r))return;
-  sb.rpc('owner_companies').then(function(x){if(!x.error)OWN=x.data;ownerPage();showCreds('Firma angelegt',n,r.data,u,p)})})}
 // Zugangsdaten zum Weitergeben anzeigen (das Passwort wird danach nirgends mehr angezeigt)
 function showCreds(t,name,lic,u,p){var d=document.getElementById('dlg'),txt='Planner – Zugang für '+name+'\nAdresse: '+location.origin+location.pathname+'\nLizenz-ID: '+lic+'\nBenutzername: '+u+'\nPasswort: '+p;
  d.innerHTML='<div class="dt2"><b>'+esc(t)+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="sub">Zugangsdaten für den Admin – jetzt kopieren und weitergeben. Das Passwort wird später nicht mehr angezeigt.</div>'+
@@ -60,5 +42,44 @@ function coUname(emp,org){var v=document.getElementById('cu_'+emp).value.trim().
 function coUpw(emp,org){var c=coById(org),u=CU.filter(function(x){return x.id==emp})[0],min=u.role=='admin'?10:8;
  var p=prompt('Neues Passwort für '+u.display_name+' (mind. '+min+' Zeichen):',genPw());if(p==null)return;if(p.length<min){alert('Passwort: mindestens '+min+' Zeichen.');return}
  sb.rpc('owner_set_password',{p_emp:emp,p_password:p}).then(function(r){if(!rpcErr(r))showCreds('Passwort geändert',c.name,c.license_id,u.username,p)})}
-function coDel(id){var c=coById(id),x=prompt('Firma „'+c.name+'“ mit ALLEN Mitarbeitern, Anmeldungen und Aufträgen endgültig löschen?\n\nZur Bestätigung die Lizenz-ID eingeben: '+c.license_id);if(x==null)return;
- sb.rpc('owner_delete_company',{p_id:id,p_confirm:x}).then(function(r){if(!rpcErr(r))ownerLoad()})}
+// ---------------------------------------------------------------- Einladung als Firmen-Admin (Link aus Clear)
+// Link: …/#einladung=<token>. Der Token steht nur im Hash (geht nie an einen Server) und gilt 7 Tage, einmal.
+var INV=null;
+function inviteToken(){var m=location.hash.match(/^#einladung=([A-Za-z0-9_-]{20,})$/);return m?m[1]:''}
+function inviteHead(){return authHead('Einladung als Firmen-Admin')}
+function invitePage(){var t=inviteToken();
+ authPage('<div class="login">'+inviteHead()+'<div class="sub" style="margin-top:10px">Einladung wird geprüft …</div></div>');
+ sb.rpc('invite_info',{p_token:t}).then(function(r){
+  if(r.error){inviteDead('Die Einladung konnte nicht geprüft werden: '+r.error.message);return}
+  var i=r.data||{};INV=i;
+  if(i.state=='used'){inviteDead('Dieser Einladungslink wurde schon benutzt. Wenn du dein Konto angelegt hast, melde dich einfach an.');return}
+  if(i.state=='blocked'){inviteDead('Die Lizenz dieser Firma ist gesperrt. Bitte an JoKe Smart Solutions wenden.');return}
+  if(i.state!='open'){inviteDead('Dieser Einladungslink ist nicht mehr gültig. Er war 7 Tage gültig und kann nur einmal benutzt werden.');return}
+  authPage('<form class="login" id="inv" onsubmit="return inviteSave(event)" novalidate>'+inviteHead()+
+  '<div class="invf"><b>'+esc(i.company)+'</b>Lizenz-ID <span class="lic">'+esc(i.licenseId)+'</span></div>'+
+  '<label for="i_n">Dein Name</label><input id="i_n" value="'+esc(i.adminName||'')+'" autocomplete="name">'+
+  '<label for="i_u">Benutzername</label><input id="i_u" autocomplete="username"'+NC+' placeholder="z. B. stefan" aria-describedby="i_uh">'+
+  '<div class="sub" id="i_uh">Kleinbuchstaben, Ziffern, Punkt, Minus oder Unterstrich. Damit meldest du dich später an.</div>'+
+  '<label for="i_p">Passwort</label><input id="i_p" type="password" autocomplete="new-password" aria-describedby="i_ph">'+
+  '<div class="sub" id="i_ph">Mindestens 10 Zeichen.</div>'+
+  '<label for="i_p2">Passwort wiederholen</label><input id="i_p2" type="password" autocomplete="new-password">'+
+  '<div id="i_e" class="err" role="alert"></div><button class="b p" style="width:100%;margin-top:8px">Konto anlegen</button>'+
+  '<div class="sub" style="margin-top:12px;text-align:center">Der Link gilt bis '+dDE(String(i.expiresAt).slice(0,10))+' und nur einmal.</div></form>')})}
+function inviteDead(msg){authPage('<div class="login">'+inviteHead()+'<div class="note" style="margin-top:12px">'+esc(msg)+'</div>'+
+ '<div class="sub">Einen neuen Link bekommst du bei JoKe Smart Solutions.</div><button class="b" style="width:100%;margin-top:12px" onclick="inviteDone()">Zur Anmeldung</button></div>')}
+function inviteSave(e){e.preventDefault();var g=function(i){return document.getElementById(i).value},er=document.getElementById('i_e'),b=e.target.querySelector('.b.p'),
+ u=g('i_u').trim().toLowerCase(),p=g('i_p');
+ var bad=function(m,f){er.textContent=m;document.getElementById(f).focus();return false};
+ if(!/^[a-z0-9][a-z0-9._-]{1,29}$/.test(u))return bad('Benutzername: 2–30 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich (keine Umlaute, keine Leerzeichen).','i_u');
+ if(p.length<10)return bad('Das Passwort braucht mindestens 10 Zeichen.','i_p');
+ if(p!==g('i_p2'))return bad('Die Passwörter stimmen nicht überein.','i_p2');
+ b.disabled=true;er.textContent='';
+ sb.rpc('invite_accept',{p_token:inviteToken(),p_name:g('i_n').trim(),p_username:u,p_password:p}).then(function(r){b.disabled=false;
+  if(r.error){er.textContent=r.error.message;return}
+  lsSet('planer_lizenz',r.data.licenseId);
+  authPage('<div class="login invok">'+inviteHead()+'<div class="big" aria-hidden="true">'+ic('check')+'</div><h2>Fertig! Dein Konto ist angelegt.</h2>'+
+  '<div class="invf"><div><span>Lizenz-ID</span><b class="lic">'+esc(r.data.licenseId)+'</b></div><div><span>Benutzername</span><b>'+esc(r.data.username)+'</b></div></div>'+
+  '<div class="sub">Diese Angaben brauchst du bei jeder Anmeldung. Weitere Mitarbeiter legst du danach unter Einstellungen an.</div>'+
+  '<button class="b p" style="width:100%;margin-top:12px" onclick="inviteDone()">Zur Anmeldung</button></div>')});return false}
+// Link aus der Adresse nehmen (nicht im Verlauf lassen), dann normale Anmeldung
+function inviteDone(){history.replaceState(null,'',location.pathname+location.search);showLogin()}

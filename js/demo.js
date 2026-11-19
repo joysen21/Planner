@@ -107,6 +107,11 @@
     persist(); return ok(null);
   };
 
+  var inDays = function (n) { var x = new Date(); x.setDate(x.getDate() + n); return x.toISOString(); };
+  var DEMO_INVITES = {
+    'demo-einladung-offen-0001': { state: 'open', adminName: 'Stefan Brenner', expiresAt: inDays(7) },
+    'demo-einladung-alt-0001': { state: 'expired', adminName: 'Anna', expiresAt: inDays(-1) }
+  };
   var empByUser = function (id) { return DB.employees.filter(function (e) { return e.user_id === id; })[0]; };
   var client = {
     auth: {
@@ -114,6 +119,7 @@
       getSession: function () { return ok({ session: session }); },
       getUser: function () { return ok({ user: session && session.user }); },
       signInWithPassword: function (a) {
+        if (a.email === 'besitzer@demo.local' && a.password) { setSession({ user: { id: 'demo-owner', email: a.email } }, 'SIGNED_IN'); return ok({ session: session }); }
         var u = String(a.email || '').split('@')[0], e = DB.employees.filter(function (x) { return x.username === u && x.user_id; })[0];
         if (!e || !a.password) return err('Invalid login credentials');
         setSession({ user: { id: e.user_id, email: a.email } }, 'SIGNED_IN'); return ok({ session: session });
@@ -124,7 +130,27 @@
     from: function (t) { return new Q(t); },
     rpc: function (name, a) {
       var me = session && empByUser(session.user.id);
-      if (name === 'is_owner') return ok(false);
+      if (name === 'is_owner') return ok(!!(session && session.user.id === 'demo-owner'));
+      if (name === 'owner_companies') return ok(DB.organizations.map(function (o) {
+        var es = DB.employees.filter(function (e) { return e.org_id === o.id; }), adm = es.filter(function (e) { return e.role === 'admin' && e.user_id; })[0];
+        return Object.assign({ note: '', created_at: '' }, o, { logins: es.filter(function (e) { return e.user_id; }).length, employees: es.length, admin_username: adm ? adm.username : null });
+      }));
+      // Einladungslink (Lizenzzentrale): Demo-Links #einladung=demo-einladung-offen-0001 (gültig) und …-alt-0001 (abgelaufen)
+      if (name === 'invite_info') {
+        var iv = DEMO_INVITES[a.p_token], o0 = DB.organizations[0];
+        if (!iv) return ok({ state: 'invalid' });
+        return ok({ state: (DB.usedInvites || []).indexOf(a.p_token) > -1 ? 'used' : iv.state, company: o0.name, licenseId: o0.license_id, adminName: iv.adminName, expiresAt: iv.expiresAt });
+      }
+      if (name === 'invite_accept') {
+        var inv = DEMO_INVITES[a.p_token], org = DB.organizations[0], un = String(a.p_username || '').trim().toLowerCase();
+        if (!inv || inv.state !== 'open') return err('Dieser Einladungslink ist nicht mehr gültig.');
+        if ((DB.usedInvites || []).indexOf(a.p_token) > -1) return err('Dieser Einladungslink wurde schon benutzt.');
+        if (String(a.p_password || '').length < 10) return err('Passwort: mindestens 10 Zeichen.');
+        if (DB.employees.some(function (e) { return e.username === un; })) return err('Benutzername ist schon vergeben.');
+        DB.employees.push({ id: uid(), org_id: org.id, user_id: uid(), username: un, display_name: a.p_name || inv.adminName || un, role: 'admin', color: '#8a5a2b', theme: 'auto' });
+        DB.usedInvites = (DB.usedInvites || []).concat([a.p_token]); persist();
+        return ok({ licenseId: org.license_id, username: un });
+      }
       if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write' }, isSystem: false } } : null);
       if (name === 'erp_plan_services') return ok(DB.erp_articles.filter(function (x) { return x.kind === 'leistung'; }).map(function (x) { return { id: x.id, number: x.number, name_de: x.name_de, name_it: x.name_it || '', plan_color: x.plan_color || '', active: x.active !== false }; }));
       if (name === 'erp_regie_articles') { var q = String(a.p_search || '').toLowerCase(); return ok(DB.erp_articles.filter(function (x) { return (!a.p_kind || x.kind === a.p_kind) && (x.name_de + ' ' + x.number).toLowerCase().indexOf(q) > -1; })); }

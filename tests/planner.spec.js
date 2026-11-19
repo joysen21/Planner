@@ -766,3 +766,55 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     expect(await hold(Math.round(hh * 2.1), 0)).toEqual([true, '10:00', '12:15']);
   });
 });
+
+test.describe('Lizenzzentrale (Clear)', () => {
+  test('Einladungslink: Firmen-Admin wählt Benutzername und Passwort und kann sich danach anmelden', async ({ page }) => {
+    await page.goto('/?demo=neu#einladung=demo-einladung-offen-0001');
+    await expect(page.locator('.invf')).toContainText('JK.PLANNER.001');
+    await expect(page.locator('#i_n')).toHaveValue('Stefan Brenner');
+    await page.fill('#i_u', 'brenner');
+    await page.fill('#i_p', 'kurz');
+    await page.fill('#i_p2', 'kurz');
+    await page.click('#inv .b.p');
+    await expect(page.locator('#i_e')).toContainText('mindestens 10');
+    await page.fill('#i_p', 'sicheres-pw-123');
+    await page.fill('#i_p2', 'sicheres-pw-124');
+    await page.click('#inv .b.p');
+    await expect(page.locator('#i_e')).toContainText('stimmen nicht');
+    await page.fill('#i_p2', 'sicheres-pw-123');
+    await page.click('#inv .b.p');
+    await expect(page.locator('.invok h2')).toContainText('Konto ist angelegt');
+    await expect(page.locator('.invok .invf')).toContainText('brenner');
+    await page.click('.invok .b.p');
+    await expect(page).not.toHaveURL(/einladung/);
+    await expect(page.locator('#l_f')).toHaveValue('JK.PLANNER.001');
+    await page.fill('#l_u', 'brenner');
+    await page.fill('#l_p', 'sicheres-pw-123');
+    await page.click('form.login .b.p');
+    await expect(page.locator('body')).not.toHaveClass(/auth/);
+    // derselbe Link geht nur einmal
+    await page.goto('/?demo#einladung=demo-einladung-offen-0001');
+    await expect(page.locator('.login .note')).toContainText('schon benutzt');
+  });
+
+  test('Abgelaufener oder falscher Link zeigt einen Hinweis statt des Formulars', async ({ page }) => {
+    await page.goto('/?demo=neu#einladung=demo-einladung-alt-0001');
+    await expect(page.locator('.login .note')).toContainText('nicht mehr gültig');
+    await expect(page.locator('#inv')).toHaveCount(0);
+    await page.goto('/?demo#einladung=gibt-es-nicht-000000000');
+    await expect(page.locator('.login .note')).toContainText('nicht mehr gültig');
+  });
+
+  test('Besitzer-Ansicht nur zur Ansicht: Hinweis auf Clear, kein Anlegen, Bearbeiten oder Löschen', async ({ page }) => {
+    await page.goto('/?demo=neu');
+    await page.fill('#l_f', '');
+    await page.fill('#l_u', 'besitzer@demo.local');
+    await page.fill('#l_p', 'demo');
+    await page.click('form.login .b.p');
+    await expect(page.locator('.own .note.ro')).toContainText('in Clear verwaltet');
+    await expect(page.locator('.own .job')).toHaveCount(1);
+    await expect(page.locator('.own button', { hasText: 'Neue Firma' })).toHaveCount(0);
+    await expect(page.locator('.own button', { hasText: 'Bearbeiten' })).toHaveCount(0);
+    await expect(page.locator('.own .job button')).toHaveText([/Benutzer/]);
+  });
+});

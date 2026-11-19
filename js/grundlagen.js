@@ -59,6 +59,7 @@ function boot(){
  if(!C.url||!C.anonKey||!window.supabase){document.body.classList.add('auth');document.getElementById('main').innerHTML='<div class="login"><h1>Einrichtung fehlt</h1><p class="sub">In <b>config.js</b> die Supabase-URL und den anon-Key eintragen (siehe README).</p></div>';return}
  sb=window.supabase.createClient(C.url,C.anonKey,{auth:{persistSession:true,autoRefreshToken:true}});
  sb.auth.onAuthStateChange(function(ev){if(ev=='SIGNED_OUT'&&ME)showLogin()});
+ if(inviteToken()){invitePage();return}  // Einladungslink aus Clear (besitzer.js)
  sb.auth.getSession().then(function(r){if(r.data.session)enter();else showLogin()});
  document.addEventListener('visibilitychange',function(){if(!document.hidden&&ME)rt()})}
 function lsGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
