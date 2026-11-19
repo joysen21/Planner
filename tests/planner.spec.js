@@ -831,7 +831,8 @@ test.describe('Tablet', () => {
     await expect(page.locator('.sbar')).toBeVisible();
     await page.click('nav button[data-t="kunden"]');
     await expect(page.locator('#hd .ib.pl')).toHaveAttribute('title', 'Neuer Kunde');
-    await expect(page.getByRole('button', { name: /Neuer Kunde/ })).toHaveCount(1);
+    await expect(page.locator('#main button', { hasText: 'Neuer Kunde' })).toHaveCount(0);
+    await expect(page.locator('#hd .ib.pl')).toHaveCount(1);
   });
   test('Hochkant: Kalender nutzt die volle Breite', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
