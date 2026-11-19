@@ -13,7 +13,7 @@ function kNew(){return !kErp()||KWR}
 function kundenView(hd,m){hd.innerHTML='<h1>Kunden</h1>';
  if(!CUSTOK){m.innerHTML='<div class="empty big">'+ic('kunde')+'<br><b>Kundenstamm noch nicht verfügbar</b><br><small>Bitte das Datenbank-Update ausführen.</small></div>';return}
  m.innerHTML='<div class="tbar"><input id="kf" type="search" placeholder="Kunden suchen (Name, Adresse, Telefon, Notiz) …" value="'+esc(KF)+'" oninput="KF=this.value;kListe()"'+NC+' style="flex:1 1 220px;width:auto">'+
-  (kNew()?'<button class="b p kneu" onclick="kEdit()">'+ic('plus')+' Neuer Kunde</button>':'')+'</div><div id="kl">'+kListHtml()+'</div>'}
+  '</div><div id="kl">'+kListHtml()+'</div>'}
 function kListHtml(){var f=KF.trim().toLowerCase(),td=fmt(new Date());
  var ls=S.cust.filter(function(c){return !f||[c.name,c.adresse,c.tel,c.notiz].join(' ').toLowerCase().indexOf(f)>-1}).sort(function(a,b){return a.name.localeCompare(b.name,'de')});
  if(!ls.length)return '<div class="empty big">'+ic('kunde')+'<br><b>'+(S.cust.length?'Kein Kunde gefunden':'Noch keine Kunden')+'</b><br><small>'+(S.cust.length?'Suchbegriff ändern':'Mit „Neuer Kunde“ den ersten Kunden anlegen')+'</small></div>';

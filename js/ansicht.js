@@ -14,7 +14,7 @@ ICONS.keys='<rect x="2.5" y="6" width="19" height="12" rx="2.5" fill="currentCol
 
 // Einstellungen pro Gerät: zuletzt benutzte Ansicht, Farbe, Stundenhöhe, Seitenleiste
 (function(){var m=lsGet('planer_mode');if(MODES.some(function(x){return x[0]==m}))mode=m})();
-var CM=lsGet('planer_cm')=='ma'?'ma':'art',ZF=Math.min(2.5,Math.max(.5,parseFloat(lsGet('planer_zoom'))||1)),SBO=lsGet('planer_sb')!='0',
+var CM=lsGet('planer_cm')=='ma'?'ma':'art',ZF=Math.min(2.5,Math.max(.5,parseFloat(lsGet('planer_zoom'))||1)),SBO=sbDefault(),
  FS=false,DD=false,MM='',LD=30,SCR=null,SCRL=false;
 
 /* ---------- Mitarbeiter-Filter: Meine, Alle oder beliebige Auswahl (FLT = 'me' | 'alle' | [ids]) ---------- */
@@ -141,7 +141,9 @@ function swEnd(s){var dx=s.dx||0,v=Math.abs(dx)/Math.max(1,Date.now()-s.t),el=s.
   void n.offsetWidth;n.style.transition='transform .2s ease-out';n.style.transform='';setTimeout(function(){n.style.transition=''},230)},150)}
 
 /* ---------- PC: Seitenleiste, Vollbild, Tastaturkürzel ---------- */
-function sbTog(){SBO=!SBO;lsSet('planer_sb',SBO?'':'0');if(FS&&SBO)FS=false;render()}
+// Seitenleiste: eigene Wahl gilt; ohne Wahl am Touch-Tablet (bis 1199 px) zu, damit der Kalender Platz hat
+function sbDefault(){var v=lsGet('planer_sb');return v?v!='0':!(innerWidth<1200&&matchMedia('(pointer:coarse)').matches)}
+function sbTog(){SBO=!SBO;lsSet('planer_sb',SBO?'1':'0');if(FS&&SBO)FS=false;render()}
 function fsTog(){FS=!FS;try{if(FS&&document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(function(){});
  else if(!FS&&document.fullscreenElement)document.exitFullscreen().catch(function(){})}catch(x){}render()}
 document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&FS){FS=false;if(ME)render()}});

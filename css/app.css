@@ -277,7 +277,7 @@ html:has(dialog[open]){overflow:hidden}
 .ksug button{display:block;width:100%;text-align:left;font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:6px 10px;margin-top:4px;cursor:pointer}.ksug small{display:block;color:var(--mu)}
 .job.kc{border-left-color:var(--ac);cursor:pointer}.job.kc:hover{box-shadow:0 4px 16px rgba(0,0,0,.14)}
 .qrr.dn{opacity:.6}
-@media (max-width:599px){.kneu{display:none}}
+
 /* Fokusrahmen beim Öffnen eines Dialogs nur bei Tastaturbedienung */
 dialog .dt2 .ib:focus:not(:focus-visible){outline:none}
 #kf{min-height:40px}
@@ -543,6 +543,12 @@ kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radiu
  body.fs{padding-left:0}body.fs nav{display:none}body.fs main{max-width:none}
 }
 @media (min-width:900px) and (max-width:1199px){#hd.hdp .seg.modes button{padding:0 8px}.plw{grid-template-columns:220px minmax(0,1fr)}}
+/* Tablet hochkant (600–899 px): Kalender in voller Breite statt 640 px in der Mitte */
+@media (min-width:600px) and (max-width:899px){body.pfit main{max-width:none;padding:8px 16px 16px}}
+/* Touch-Tablet quer: Vollbild-Knopf weg (Titel bleibt lesbar), größere Flächen in der Seitenleiste */
+@media (min-width:900px) and (max-width:1199px){#hd.hdp h1{font-size:17px;margin-left:4px;line-height:1.15}#hd.hdp h1 small{display:block;padding-left:0;font-size:11px}}
+@media (min-width:900px) and (max-width:1199px) and (pointer:coarse){#hd .ib.tgl[onclick="fsTog()"]{display:none}}
+@media (pointer:coarse){.mmn{width:40px;height:40px}.sbar .lk{min-height:36px;padding:0 12px}input[type=checkbox]{min-width:22px;min-height:22px}}
 @media print{
  .sbar,.dd,.ddb,#hd .ib.pl{display:none!important}
  .plw{display:block!important}.ttl .i{display:none}

@@ -818,3 +818,25 @@ test.describe('Lizenzzentrale (Clear)', () => {
     await expect(page.locator('.own .job button')).toHaveText([/Benutzer/]);
   });
 });
+
+test.describe('Tablet', () => {
+  test.use({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: false });
+  test('Quer: Seitenleiste ohne eigene Wahl zu, Titel ungekürzt; Kunden nur mit einem „Neu“', async ({ page }) => {
+    test.skip(test.info().project.name !== 'chrome-desktop', 'pointer:coarse nur in Chrome mit Touch');
+    await login(page);
+    await expect(page.locator('.sbar')).toHaveCount(0);
+    const t = await app(page, () => { const h = document.querySelector('#hd h1'); return h.scrollWidth <= h.clientWidth + 1; });
+    expect(t).toBe(true);
+    await page.click('#hd .ib.tgl[onclick="sbTog()"]');
+    await expect(page.locator('.sbar')).toBeVisible();
+    await page.click('nav button[data-t="kunden"]');
+    await expect(page.locator('#hd .ib.pl')).toHaveAttribute('title', 'Neuer Kunde');
+    await expect(page.getByRole('button', { name: /Neuer Kunde/ })).toHaveCount(1);
+  });
+  test('Hochkant: Kalender nutzt die volle Breite', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await login(page);
+    const w = await app(page, () => document.querySelector('main').getBoundingClientRect().width);
+    expect(w).toBeGreaterThan(740);
+  });
+});
