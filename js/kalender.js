@@ -195,8 +195,8 @@ function timeGrid(cols,team){
   return '<div class="dcol'+(HOL[ds]?' hol':'')+(ds==td&&!team?' tdc':'')+(satSun(ds)?' wkd':'')+'" data-drop="'+ds+'"'+ea(c)+' style="height:'+H+'px" onclick="dropT(\''+ds+'\',event)">'+
    (ds==td&&nm>=h0*60&&nm<=h1*60?'<div class="now" style="top:'+((nm/60-h0)*HH)+'px"></div>':'')+
    (function(){
-    // Woche: höchstens 2 (Handy: 1) Termine nebeneinander, weitere als „+n“ – Tippen öffnet den Tag
-    var maxL=one||team?99:(wide?2:1),hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
+    // Woche: höchstens 2 Termine nebeneinander (auch am Handy), ab dem dritten „+n“ – Tippen öffnet den Tag
+    var maxL=one||team?99:2,hid=pl.filter(function(q){return q.l>=maxL}),rs=hid.length?'24px':'0px',out='',k=null;
     var mo=function(x){return '<div class="evm" style="top:'+((x.s/60-h0)*HH+2)+'px" onclick="event.stopPropagation();an=\''+ds+'\';setMode(\'tag\')" title="Weitere Termine – Tag öffnen">+'+x.n+'</div>'};
     hid.forEach(function(q){if(k&&q.s<k.e){k.n++;k.e=Math.max(k.e,q.e)}else{if(k)out+=mo(k);k={s:q.s,e:q.e,n:1}}});if(k)out+=mo(k);
     // Mehrere Termine gleichzeitig wie Google Kalender: nebeneinander nur, wo sie sich überschneiden, jeder so breit wie frei ist,

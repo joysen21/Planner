@@ -219,6 +219,24 @@ test.describe('Termine', () => {
     expect(await w('E2E Allein')).toBeGreaterThan((await w('E2E Links')) * 1.8);
   });
 
+  test('Woche (auch am Handy): zwei gleichzeitige Termine nebeneinander, erst ab dem dritten „+n“', async ({ page }) => {
+    await login(page);
+    const setze = (n) => app(page, (n) => {
+      const td = addDays(fmt(monday(new Date())), 2);
+      const base = S.jobs.find((j) => j.zeit) || S.jobs[0];
+      S.jobs = S.jobs.filter((j) => !span(j).includes(td));
+      ['E2E Eins', 'E2E Zwei', 'E2E Drei'].slice(0, n).forEach((k) => S.jobs.push({ ...base, id: uuid(), art: 'termin', stunden: null, kunde: k, start: td, tage: 1, zeit: '09:00', ende: '11:00', series: null, done: false }));
+      an = td; FLT = 'alle'; setMode('woche');
+    }, n);
+    await setze(2);
+    await expect(page.locator('.ev', { hasText: 'E2E Eins' })).toBeVisible();
+    await expect(page.locator('.ev', { hasText: 'E2E Zwei' })).toBeVisible();
+    await expect(page.locator('.evm')).toHaveCount(0);
+    await setze(3);
+    await expect(page.locator('.evm')).toHaveText('+1');
+    await expect(page.locator('.ev', { hasText: 'E2E Drei' })).toHaveCount(0);
+  });
+
   test('Neuer Termin wird angelegt und im Kalender angezeigt', async ({ page }) => {
     await login(page);
     const mo = await app(page, () => fmt(monday(new Date())));
