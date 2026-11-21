@@ -645,3 +645,5 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 .c .ch.wp,.adc .ch.wp{outline-offset:0}.mg .c{padding-left:2px;padding-right:2px}
 .zdi{margin-bottom:12px}
 .zrg{width:100%;margin:2px 0 10px;justify-content:center}
+/* Fenster am PC: Scrollleiste folgt den runden Ecken */
+@media (min-width:600px){dialog{clip-path:inset(0 round 22px)}}
