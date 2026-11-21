@@ -647,3 +647,5 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 .zrg{width:100%;margin:2px 0 10px;justify-content:center}
 /* Fenster am PC: Scrollleiste folgt den runden Ecken */
 @media (min-width:600px){dialog{clip-path:inset(0 round 22px)}}
+@media (min-width:600px){dialog::-webkit-scrollbar{width:12px}dialog::-webkit-scrollbar-track{background:transparent;margin:20px 0}dialog::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--tx) 24%,transparent);border-radius:8px;border:3px solid transparent;background-clip:padding-box}dialog::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--tx) 40%,transparent)}}
+@supports not selector(::-webkit-scrollbar){@media (min-width:600px){dialog{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--tx) 24%,transparent) transparent}}}
