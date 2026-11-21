@@ -142,6 +142,7 @@
     rpc: function (name, a) {
       var me = session && empByUser(session.user.id);
       if (name === 'is_owner') return ok(!!(session && session.user.id === 'demo-owner'));
+      if (name === 'usage_log') { (DB.usage_events = DB.usage_events || []).push({ app: a.p_app, flow: a.p_flow, outcome: a.p_outcome, clicks: a.p_clicks, seconds: a.p_seconds, device: a.p_device, entry: a.p_entry }); persist(); return ok(null); }
       if (name === 'erp_time_planner') {
         var cname = function (id) { var c = DB.customers.filter(function (x) { return x.erp_customer_id === id; })[0]; return c ? c.name : ''; };
         return ok(DB.erp_time_entries.filter(function (x) {

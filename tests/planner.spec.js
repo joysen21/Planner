@@ -1026,3 +1026,37 @@ test('Offen wie in der ERP-Plantafel: nur nicht eingeplante Termine, kein „Neu
   await page.keyboard.press('n');
   await expect(page.locator('#dlg')).not.toBeVisible();
 });
+test.describe('Nutzungszählung', () => {
+  const ev = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')).usage_events || []);
+
+  test('Termin anlegen zählt Klicks bis Speichern; Schließen ohne Speichern ist ein Abbruch', async ({ page }) => {
+    await login(page);
+    await neuerTermin(page);
+    await page.fill('#f_k', 'E2E Zählung');
+    await page.click('#dlg .ft .b.p');
+    await expect.poll(() => ev(page)).toHaveLength(1);
+    const [e] = await ev(page);
+    expect(e).toMatchObject({ app: 'planner', flow: 'termin_anlegen', outcome: 'ok', entry: 'plus' });
+    expect(e.clicks).toBeGreaterThanOrEqual(2); // Öffnen + Speichern (Eintippen zählt nicht)
+    expect(Object.keys(e).sort()).toEqual(['app', 'clicks', 'device', 'entry', 'flow', 'outcome', 'seconds']);
+
+    await page.click('nav button[data-t="plan"]'); // ohne Datum gespeichert: Ansicht springt nach „Offen“
+    await neuerTermin(page);
+    await page.locator('#dlg .dt2 .ib').click();
+    await expect.poll(() => ev(page)).toHaveLength(2);
+    expect((await ev(page))[1]).toMatchObject({ flow: 'termin_anlegen', outcome: 'abbruch' });
+  });
+
+  test('Zeit buchen am Termin und Regiebericht senden', async ({ page }) => {
+    await login(page, 'uwe');
+    await app(page, () => edit(S.jobs.find((j) => j.kunde.startsWith('Fam. Huber')).id));
+    await page.click('#dlg .zbb');
+    await page.click('#dlg .zgo');
+    await expect.poll(async () => (await ev(page)).map((x) => x.flow + ':' + x.outcome + ':' + x.entry)).toEqual(['zeit_buchen:ok:termin']);
+    await page.click('#dlg .rgb');
+    await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    await page.locator('#dlg .rgok .b', { hasText: 'Fertig' }).click();
+    await expect.poll(async () => (await ev(page)).map((x) => x.flow + ':' + x.outcome)).toEqual(['zeit_buchen:ok', 'regie_senden:ok']);
+  });
+});
