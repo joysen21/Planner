@@ -1,14 +1,14 @@
 // Planner – Seitenaufbau (render), Einstellungen, Mitarbeiter, Kunden, App installieren
 // Klassisches Skript (kein Modul): alle Funktionen sind global; Ladereihenfolge siehe index.html.
-function render(){render0();if(tab!='mehr'&&(tab!='kunden'||kNew()))document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="'+(tab=='kunden'?'Neuer Kunde':'Neuer Termin')+'" aria-keyshortcuts="N">'+ic('plus')+'<span class="pll">Neu</span></button>');
+function render(){if(tab=='zeiten'&&!RGOK)tab='plan';render0();if(tab!='mehr'&&(tab!='kunden'||kNew()))document.getElementById('hd').insertAdjacentHTML('afterbegin','<button class="ib pl" onclick="nw()" title="'+(tab=='kunden'?'Neuer Kunde':tab=='zeiten'?'Zeit buchen':'Neuer Termin')+'" aria-keyshortcuts="N">'+ic('plus')+'<span class="pll">Neu</span></button>');
  if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>');
  else if(ME.role=='admin'&&daysLeft()!=null&&daysLeft()<=30)document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="note">'+ic('clock')+' Die Lizenz läuft '+(daysLeft()==0?'<b>heute</b>':'in <b>'+daysLeft()+' Tag'+(daysLeft()==1?'':'en')+'</b>')+' ab (am '+dDE(ORG.valid_until)+'). Zur Verlängerung bitte an JoKe Smart Solutions wenden.</div>');
- detRefresh();fitGrid()}
+ detRefresh();fitGrid();zFill()}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');hd.className='';document.body.classList.remove('ddo');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(function(j){return !j.start&&vis(j)}).length+')';
- document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});
- if(tab=='plan'){plan(hd,m)}else if(tab=='kunden'){kundenView(hd,m)}else if(tab=='offen'){
+ document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});document.getElementById('nzt').hidden=!RGOK;document.body.classList.toggle('n5',RGOK);
+ if(tab=='plan'){plan(hd,m)}else if(tab=='zeiten'){zView(hd,m)}else if(tab=='kunden'){kundenView(hd,m)}else if(tab=='offen'){
   hd.innerHTML='<h1>Noch ohne Termin'+fltSub()+'</h1>';
   var o=S.jobs.filter(function(j){return !j.start&&vis(j)});
   m.innerHTML='<div class="tbar"><span class="sp"></span><button class="b" onclick="showSearch()" title="Suchen">'+ic('search')+'<span class="tlb"> Suchen</span></button></div>'+fltBar()+(o.length?'<div class="ol">'+o.map(function(j){return card(j,'')}).join('')+'</div>':'<div class="empty big">'+ic('auftraege')+'<br><b>Nichts offen</b><br><small>Mit '+ic('plus')+' einen Auftrag ohne Termin anlegen</small></div>')

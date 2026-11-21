@@ -841,3 +841,91 @@ test.describe('Tablet', () => {
     expect(w).toBeGreaterThan(740);
   });
 });
+
+test.describe('Zeiten buchen (ERP)', () => {
+  const oeffne = (page, kunde) => app(page, (k) => showDet(S.jobs.find((j) => j.kunde.startsWith(k)).id), kunde);
+  const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
+
+  test('Am Termin: von–bis mit Pause, für den Kollegen mit, Kasten zeigt die Zeiten', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await expect(page.locator('#dlg .zbox')).toContainText('Noch nichts gebucht');
+    await page.click('#dlg .zbb');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Zeit buchen');
+    // aus dem Termin vorbelegt: 08:00–12:00, ich bin gewählt, der Kollege nicht
+    await expect(page.locator('#z_from')).toHaveValue('08:00');
+    await expect(page.locator('#z_to')).toHaveValue('12:00');
+    await page.getByRole('button', { name: 'Bis 15 Minuten später' }).click();
+    await page.getByRole('button', { name: '30', exact: true }).click();
+    await expect(page.locator('#dlg .zres2 b')).toHaveText('3,75 h');
+    await expect(page.locator('#dlg .zwho')).toContainText('Uwe (ich)');
+    await page.locator('#dlg .zwho button', { hasText: 'Stefan' }).click();
+    await page.fill('#z_a', 'Oberschränke montiert');
+    await expect(page.locator('#dlg .zgo')).toHaveText('2 × 3,75 h buchen');
+    await page.click('#dlg .zgo');
+    await expect(page.locator('#dlg .zbox')).toContainText('7,5 h');
+    const d = await db(page);
+    expect(d.erp_time_entries.map((x) => [x.employee_id, x.hours, x.order_id, x.customer_id, x.article_id, x.time_from, x.time_to, x.break_min, x.activity]))
+      .toEqual([['e-uwe', 3.75, 'au-huber', 'k-huber', 'a-std', '08:00', '12:15', 30, 'Oberschränke montiert'], ['e-stefan', 3.75, 'au-huber', 'k-huber', 'a-std', '08:00', '12:15', 30, 'Oberschränke montiert']]);
+    expect(d.erp_time_entries[0].job_id).toBeTruthy();
+  });
+
+  test('Regiebericht übernimmt die gebuchten Zeiten; danach gesperrt im Reiter „Zeiten“', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .zbb');
+    await page.getByRole('button', { name: 'Nur Stunden' }).click();
+    await page.getByRole('button', { name: '2', exact: true }).click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('#dlg .zbox')).toContainText('2,0 h');
+    await page.click('#dlg .rgb');
+    await expect(page.locator('#dlg .rgvb')).toContainText('Aus den gebuchten Zeiten übernommen');
+    await expect(page.locator('#dlg .rgr')).toHaveCount(1);
+    await expect(page.locator('#dlg .rgt')).toHaveText('2,0 h');
+    await page.locator('#dlg .ft .b', { hasText: 'Speichern' }).click();
+    await expect(page.locator('#rg_e')).toHaveText('Gespeichert');
+    const d = await db(page);
+    expect(d.erp_time_entries[0].regie_id).toBe(d.erp_regie[0].id);
+
+    await page.evaluate(() => { RG.dirty = false; rgClose(); });
+    await page.click('nav button[data-t="zeiten"]');
+    await expect(page.locator('#hd h1')).toHaveText('Zeiten');
+    await expect(page.locator('.zrow.zlk')).toContainText('Im Regiebericht');
+    await expect(page.locator('.zrow.zlk')).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  test('Reiter „Zeiten“: ohne Termin auf einen Kunden buchen, ändern und löschen', async ({ page }) => {
+    await login(page, 'uwe');
+    await page.click('nav button[data-t="zeiten"]');
+    await expect(page.locator('.zwk')).toContainText('Meine Zeiten · 0,0 von');
+    await page.click('#hd .ib.pl');
+    await page.fill('#z_q', 'Hub');
+    await page.locator('#z_res button', { hasText: 'Auftrag ordnet das Büro später zu' }).click();
+    await expect(page.locator('#dlg .ztg')).toContainText('Fam. Huber');
+    await page.getByRole('button', { name: 'Eine Viertelstunde mehr' }).click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('.zrow')).toContainText('Ohne Auftrag');
+    await expect(page.locator('.zrow > b')).toHaveText('1,25 h');
+    let d = await db(page);
+    expect(d.erp_time_entries.map((x) => [x.order_id, x.customer_id, x.hours, x.job_id])).toEqual([[null, 'k-huber', 1.25, null]]);
+
+    await page.click('.zrow');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Zeit ändern');
+    await page.getByRole('button', { name: '4', exact: true }).click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('.zrow > b')).toHaveText('4,0 h');
+    await page.click('.zrow');
+    await page.getByRole('button', { name: 'Zeit löschen' }).click();
+    await expect(page.locator('.zrow')).toHaveCount(0);
+    d = await db(page);
+    expect(d.erp_time_entries).toEqual([]);
+  });
+
+  test('Ohne Recht „Regie“ gibt es weder Reiter noch Knopf', async ({ page }) => {
+    await login(page, 'uwe');
+    await app(page, () => { RGOK = false; render(); });
+    await expect(page.locator('nav button[data-t="zeiten"]')).toBeHidden();
+    await oeffne(page, 'Fam. Huber');
+    await expect(page.locator('#dlg .zbb')).toHaveCount(0);
+  });
+});

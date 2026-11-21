@@ -14,7 +14,7 @@ async function regieRights(){RGOK=false;KWR=false;KRD=false;if(!ORG||(ORG.module
 function erpCust(j){if(j.erp_customer_id)return j.erp_customer_id;var c=j.customer_id&&(S.cust||[]).filter(function(x){return x.id==j.customer_id})[0];return c&&c.erp_customer_id||null}
 function regieBtn(j){if(!RGOK||!j.start||j.art=='urlaub')return '';
  if(!erpCust(j))return '<div class="sub rgh">'+ic('info')+' Regiebericht: Kunde ist noch nicht mit der ERP verknüpft.</div>';
- return '<div class="ft2"><button class="b rgb" onclick="regie(\''+j.id+'\')">'+ic('regie')+' Regiebericht</button></div>'}
+ return zBox(j)+'<div class="ft2"><button class="b rgb" onclick="regie(\''+j.id+'\')">'+ic('regie')+' Regiebericht</button><button class="b zbb" onclick="zBook(\''+j.id+'\')">'+ic('clock')+' Zeit buchen</button></div>'}
 
 function rgHours(h){return Math.round(h*100)/100}
 function rgFmt(h){return h.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:2})+' h'}
@@ -26,21 +26,26 @@ async function regie(id,ds){var j=byId(id),d=document.getElementById('dlg');if(!
  d.innerHTML='<div class="dt2"><b>Regiebericht</b><button class="ib" onclick="rgClose()">'+ic('x')+'</button></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
  var r=await sb.from('erp_regie').select('*').eq('job_id',id).order('work_date');
  if(r.error){d.querySelector('.sub').textContent='Laden fehlgeschlagen: '+r.error.message;return}
- var all=r.data||[],day=rgDay(j,ds),ex=all.filter(function(x){return x.work_date==day})[0];
- if(ex)await rgOpen(j,ex,all);else rgNew(j,day,all)}
+ var all=r.data||[],day=rgDay(j,ds),ex=all.filter(function(x){return x.work_date==day})[0],zt=await zLoadJob(id).catch(function(){return []});
+ if(ex)await rgOpen(j,ex,all,zt);else rgNew(j,day,all,zt)}
 
-function rgNew(j,day,all){var h=rgDefHours(j);
+// Gebuchte Zeiten des Tages (noch frei) werden übernommen; abgerechnet wird dann nur der Bericht
+function rgNew(j,day,all,zt){var h=rgDefHours(j),take=(zt||[]).filter(function(x){return x.work_date==day&&!x.regie_id&&!x.invoice_id});
  var title=(j.notiz||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return l&&l.charAt(0)!='-'})[0]||j.kunde||'';
  RG={job:j,r:{id:null,status:'entwurf',work_date:day,job_id:j.id,customer_id:erpCust(j),order_id:j.erp_order_id||null,title:title.slice(0,200),remark:'',signature_path:null,signer_name:'',signed_at:null},
-  hours:wer(j).map(function(id){var u=uById(id);return {employee_id:id,hours:h,article_id:j.article_id||u&&u.erp_labor_article_id||null}}),
-  mat:[],photos:[],urls:{},others:all,ro:false,dirty:false,signed:false};
+  hours:take.length?take.map(function(x){return {employee_id:x.employee_id,hours:+x.hours,article_id:x.article_id,work_date:x.work_date,time_from:x.time_from,time_to:x.time_to,break_min:x.break_min,activity:x.activity,tid:x.id}})
+   :wer(j).map(function(id){var u=uById(id);return {employee_id:id,hours:h,article_id:j.article_id||u&&u.erp_labor_article_id||null}}),
+  mat:[],photos:[],urls:{},others:all,ro:false,dirty:false,signed:false,fromTimes:take.length>0,linked:false};
  rgRender()}
 
-async function rgOpen(j,r,all){
+async function rgOpen(j,r,all,zt){
  var q=await Promise.all([sb.from('erp_regie_hours').select('*').eq('regie_id',r.id).order('pos'),sb.from('erp_regie_material').select('*').eq('regie_id',r.id).order('pos'),sb.from('erp_regie_photos').select('*').eq('regie_id',r.id)]);
  var e=q.filter(function(x){return x.error})[0];if(e){alert('Laden fehlgeschlagen: '+e.error.message);return}
  RG={job:j,r:r,hours:q[0].data.map(function(x){return {employee_id:x.employee_id,hours:+x.hours,article_id:x.article_id,work_date:x.work_date,time_from:x.time_from,time_to:x.time_to,break_min:x.break_min,activity:x.activity}}),
   mat:q[1].data.map(function(x){return {article_id:x.article_id,text:x.text,qty:+x.qty,unit:x.unit}}),photos:q[2].data,urls:{},others:all,ro:r.status!='entwurf',dirty:false,signed:false};
+ // übernommene Zeiten wieder ihren Zeilen zuordnen (je Mitarbeiter der Reihe nach)
+ var lk=(zt||[]).filter(function(x){return x.regie_id==r.id});RG.linked=lk.length>0;
+ lk.forEach(function(x){var h=RG.hours.filter(function(y){return !y.tid&&y.employee_id==x.employee_id})[0];if(h)h.tid=x.id});
  rgRender();rgUrls()}
 // Vorschaubilder (Fotos, Unterschrift) über zeitlich begrenzte Adressen
 function rgUrls(){var p=RG.photos.map(function(x){return x.path});if(RG.r.signature_path)p.push(RG.r.signature_path);
@@ -58,7 +63,7 @@ function rgRender(){var d=document.getElementById('dlg'),j=RG.job,r=RG.r,ro=RG.r
  if(r.status=='eingereicht')h+='<div class="note">'+ic('info')+' Der Bericht liegt im Büro und wird dort geprüft. Änderungen macht jetzt das Büro.</div>';
  if(r.status=='freigegeben'||r.status=='abgerechnet')h+='<div class="note">'+ic('check')+' Vom Büro freigegeben'+(r.number?' als '+esc(r.number):'')+'.</div>';
 
- h+='<div class="sec">Arbeitszeit <span class="rgt">'+rgFmt(tot)+'</span></div>'+(!r.id&&!ro&&RG.hours.length?'<div class="sub rgvb">Aus dem Termin vorbelegt'+(j.zeit?' ('+esc(j.zeit)+(j.ende?'–'+esc(j.ende):'')+')':'')+'. Bitte prüfen.</div>':'')+'<div class="rgl">'+RG.hours.map(function(x,i){return '<div class="rgr"><div class="nm">'+esc(uName(x.employee_id))+(x.article_id?'':'<small class="bad">ohne Leistungsartikel – das Büro ergänzt ihn</small>')+'</div>'+
+ h+='<div class="sec">Arbeitszeit <span class="rgt">'+rgFmt(tot)+'</span></div>'+(!r.id&&!ro&&RG.hours.length?'<div class="sub rgvb">'+(RG.fromTimes?'Aus den gebuchten Zeiten übernommen. Abgerechnet wird dann nur der Bericht.':'Aus dem Termin vorbelegt'+(j.zeit?' ('+esc(j.zeit)+(j.ende?'–'+esc(j.ende):'')+')':'')+'. Bitte prüfen.')+'</div>':'')+'<div class="rgl">'+RG.hours.map(function(x,i){return '<div class="rgr"><div class="nm">'+esc(uName(x.employee_id))+(x.article_id?'':'<small class="bad">ohne Leistungsartikel – das Büro ergänzt ihn</small>')+'</div>'+
   (ro?'<b class="rgv">'+rgFmt(x.hours)+'</b>':'<div class="stp"><button aria-label="Eine halbe Stunde weniger für '+esc(uName(x.employee_id))+'" onclick="rgH('+i+',-0.5)">−</button><b class="rgv">'+rgFmt(x.hours)+'</b><button aria-label="Eine halbe Stunde mehr für '+esc(uName(x.employee_id))+'" onclick="rgH('+i+',0.5)">+</button></div><button class="ib rgx" aria-label="'+esc(uName(x.employee_id))+' entfernen" onclick="rgDelH('+i+')">'+ic('x')+'</button>')+'</div>'}).join('')+
   (RG.hours.length?'':'<div class="empty">Noch keine Stunden.</div>')+'</div>';
  var free=USERS.filter(function(u){return !RG.hours.some(function(x){return x.employee_id==u.id})});
@@ -146,6 +151,8 @@ async function rgSave(send,quiet){var r=RG.r,el=document.getElementById('rg_e');
   var ms=RG.mat.map(function(x,i){return {regie_id:r.id,pos:(i+1)*10,article_id:x.article_id,text:x.text,qty:x.qty,unit:x.unit}});
   if(hs.length){q=await sb.from('erp_regie_hours').insert(hs);if(q.error)throw q.error}
   if(ms.length){q=await sb.from('erp_regie_material').insert(ms);if(q.error)throw q.error}
+  var tids=RG.hours.filter(function(x){return x.tid}).map(function(x){return x.tid});
+  if(tids.length||RG.linked){q=await sb.rpc('erp_regie_take_times',{p_regie:r.id,p_entries:tids});if(q.error)throw q.error;RG.linked=tids.length>0;zForget(RG.job.id,r.work_date)}
   if(send){q=await sb.from('erp_regie').update({status:'eingereicht'}).eq('id',r.id);if(q.error)throw q.error;r.status='eingereicht';RG.ro=true}
   RG.dirty=false;
   if(send){rgDone();return true}

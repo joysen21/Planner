@@ -143,7 +143,7 @@ function evClick(id,ds,emp){if(mvId){drop(ds);return}
  openId=id;render();var c=document.querySelector('.dvl .job.open');if(c)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
 // Details wie in Outlook: Auftrag in einem Fenster mit allen Aktionen (bleibt nach Aktionen aktuell)
 function showDet(id,ds){var d=document.getElementById('dlg'),j=byId(id);if(!j)return;if(!(ds&&j.start&&span(j).indexOf(ds)>-1))ds=j.start||'';
- d.innerHTML='<div class="dt2"><b>Auftrag</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="detv" data-id="'+id+'" data-ds="'+ds+'">'+card(j,ds,true)+'</div>';
+ d.innerHTML='<div class="dt2"><b>Auftrag</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="detv" data-id="'+id+'" data-ds="'+ds+'">'+card(j,ds,true)+'</div>';if(typeof zFill=='function')setTimeout(zFill);
  if(!d.open)d.showModal()}
 function detRefresh(){var d=document.getElementById('dlg'),v=d.open&&d.querySelector('.detv');if(!v)return;if(byId(v.dataset.id))showDet(v.dataset.id,v.dataset.ds);else d.close()}
 function hdr(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
@@ -231,7 +231,7 @@ function layLanes(items){var grp=[],end=-1;
 function bp(){return innerWidth>=900?2:innerWidth>=600?1:0}
 var WIDE=bp();addEventListener('resize',function(){var w=bp();if(w!=WIDE){WIDE=w;if(ME&&!DG&&!RZ)render()}});
 function PV(j){return j.fix===false}
-function nw(){if(tab=='kunden'){kEdit();return}edit(null,tab=='plan'&&(mode=='tag'||mode=='team'||mode=='monat'&&innerWidth<600)?an:'')}
+function nw(){if(tab=='kunden'){kEdit();return}if(tab=='zeiten'){zNew();return}edit(null,tab=='plan'&&(mode=='tag'||mode=='team'||mode=='monat'&&innerWidth<600)?an:'')}
 function fixt(id){var j=byId(id);j.fix=PV(j);save(j);render()}
 function conflict(ds,c){return S.jobs.some(function(o){
  if(o.id==c.id||o.done||!o.start)return false;

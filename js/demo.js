@@ -32,7 +32,7 @@
       ],
       jobs: [
         job({ kunde: 'Fam. Huber – Küche', art: 'montage', wer: ['e-stefan', 'e-uwe'], start: d(0), zeit: '08:00', ende: '12:00', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', imp: true,
-          erp_customer_id: 'k-huber', notiz: 'AU-2026-0001 · Küche montieren\n- 1 Stk Küchenzeile Eiche' }),
+          erp_customer_id: 'k-huber', erp_order_id: 'au-huber', notiz: 'AU-2026-0001 · Küche montieren\n- 1 Stk Küchenzeile Eiche' }),
         job({ kunde: 'Aufmaß Gruber', art: 'termin', wer: ['e-stefan'], start: d(0), zeit: '13:00', ende: '14:00', fix: false, adresse: 'Meran, Lauben 5' }),
         job({ kunde: 'Werkstatt Schrank', art: 'werkstatt', wer: ['e-asterix'], start: d(1), tage: 2, material: false }),
         job({ kunde: 'Bad Pichler', art: 'montage', wer: ['e-uwe', 'e-obelix'], start: d(2), zeit: '07:30', ende: '16:00', adresse: 'Brixen, Domplatz 3' }),
@@ -50,6 +50,9 @@
         { id: 'a-schr', number: 'A-00011', kind: 'material', name_de: 'Montageschrauben 5×60', unit: 'Pkg' }
       ],
       erp_regie: [], erp_regie_hours: [], erp_regie_material: [], erp_regie_photos: [], files: {},
+      // Zeiten (ERP): bestätigte Aufträge zur Auswahl, gebuchte Zeiten
+      erp_orders: [{ id: 'au-huber', number: 'AU-2026-0001', customer_id: 'k-huber', customer_name: 'Fam. Huber', title: 'Küche montieren' }],
+      erp_time_entries: [],
       customers: [
         { id: uid(), org_id: 'demo-org', name: 'Fam. Huber', adresse: 'Bozen, Hauptstraße 12', tel: '0471 123456', notiz: 'Hund im Garten – vorher anrufen.', created_by: 'u-stefan', erp_customer_id: 'k-huber', archived: false },
         { id: uid(), org_id: 'demo-org', name: 'Gruber', adresse: 'Meran, Lauben 5', tel: '0473 222333', notiz: '', created_by: 'u-stefan', erp_customer_id: null, archived: false }
@@ -59,6 +62,7 @@
   var DB;
   try { DB = JSON.parse(sessionStorage.getItem(KEY)); } catch (e) {}
   if (!DB) DB = seed();
+  DB.erp_time_entries = DB.erp_time_entries || []; DB.erp_orders = DB.erp_orders || [];
   var persist = function () { try { sessionStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} };
   persist();
 
@@ -99,9 +103,16 @@
         var i = t.findIndex(function (r) { return r[key] === row[key]; });
         var base = { org_id: 'demo-org', created_by: session && session.user.id };
         if (me.t === 'erp_regie') Object.assign(base, { status: 'entwurf', number: '' });   // Vorgaben der Tabelle
+        if (me.t === 'erp_time_entries') {
+          var o = row.order_id && DB.erp_orders.filter(function (x) { return x.id === row.order_id; })[0];
+          Object.assign(base, { regie_id: null, invoice_id: null, created_at: new Date().toISOString(), customer_id: o ? o.customer_id : row.customer_id });
+          if (o) row = Object.assign({}, row, { customer_id: o.customer_id });
+        }
         if (i > -1) t[i] = Object.assign(t[i], row); else t.push(Object.assign(base, row));
       });
     }
+    if (this.t === 'erp_time_entries' && (this.act === 'update' || this.act === 'delete') && t.some(function (r) { return match(r) && (r.regie_id || r.invoice_id); }))
+      return err('Diese Zeit steht in einem Regiebericht und wird dort abgerechnet.');
     if (this.act === 'update') t.forEach(function (r) { if (match(r)) Object.assign(r, me.p); });
     if (this.act === 'delete') DB[this.t] = t.filter(function (r) { return !match(r); });
     persist(); return ok(null);
@@ -131,6 +142,22 @@
     rpc: function (name, a) {
       var me = session && empByUser(session.user.id);
       if (name === 'is_owner') return ok(!!(session && session.user.id === 'demo-owner'));
+      if (name === 'erp_time_planner') {
+        var cname = function (id) { var c = DB.customers.filter(function (x) { return x.erp_customer_id === id; })[0]; return c ? c.name : ''; };
+        return ok(DB.erp_time_entries.filter(function (x) {
+          return (!a.p_from || x.work_date >= a.p_from) && (!a.p_to || x.work_date <= a.p_to) && (a.p_job ? x.job_id === a.p_job : me && x.employee_id === me.id);
+        }).map(function (x) {
+          var o = DB.erp_orders.filter(function (y) { return y.id === x.order_id; })[0], r = DB.erp_regie.filter(function (y) { return y.id === x.regie_id; })[0];
+          return Object.assign({}, x, { order_number: o ? o.number : null, customer_name: cname(x.customer_id), invoice_number: null, regie_number: r ? r.number : null });
+        }).sort(function (p, q) { return p.work_date < q.work_date ? 1 : p.work_date > q.work_date ? -1 : 0; }));
+      }
+      if (name === 'erp_time_orders') { var s = String(a.p_search || '').toLowerCase(); return ok(DB.erp_orders.filter(function (x) { return (x.number + ' ' + x.customer_name + ' ' + x.title).toLowerCase().indexOf(s) > -1; })); }
+      if (name === 'erp_time_customers') { var s2 = String(a.p_search || '').toLowerCase(); return ok(DB.customers.filter(function (x) { return x.erp_customer_id && x.name.toLowerCase().indexOf(s2) > -1; }).map(function (x, i) { return { id: x.erp_customer_id, number: 'K-0000' + (i + 1), name: x.name }; })); }
+      if (name === 'erp_regie_take_times') {
+        var ids = a.p_entries || [];
+        DB.erp_time_entries.forEach(function (x) { if (x.regie_id === a.p_regie && ids.indexOf(x.id) < 0) x.regie_id = null; if (ids.indexOf(x.id) > -1 && !x.regie_id) x.regie_id = a.p_regie; });
+        persist(); return ok(ids.length);
+      }
       if (name === 'owner_companies') return ok(DB.organizations.map(function (o) {
         var es = DB.employees.filter(function (e) { return e.org_id === o.id; }), adm = es.filter(function (e) { return e.role === 'admin' && e.user_id; })[0];
         return Object.assign({ note: '', created_at: '' }, o, { logins: es.filter(function (e) { return e.user_id; }).length, employees: es.length, admin_username: adm ? adm.username : null });
