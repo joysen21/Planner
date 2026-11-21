@@ -137,10 +137,19 @@ test.describe('Kalender', () => {
     expect(rest).toEqual([...rest].sort((a, b) => a.localeCompare(b, 'de')));
   });
 
-  test('Termin antippen öffnet die Details', async ({ page }) => {
+  test('Termin antippen öffnet direkt die Bearbeitung mit Aktionen oben; ohne Material, Erledigt und +1 Woche', async ({ page }) => {
     await login(page);
     await page.locator('.ev', { hasText: 'Huber' }).first().click();
-    await expect(page.locator('#dlg .detv')).toContainText('Fam. Huber');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    await expect(page.locator('#f_k')).toHaveValue(/Fam. Huber/);
+    await expect(page.locator('#dlg .jbar')).toContainText('Regiebericht');
+    await expect(page.locator('#dlg .jbar')).toContainText('Zeit buchen');
+    await expect(page.locator('#dlg .jbar')).toContainText('Anrufen');
+    await expect(page.locator('#dlg .jbar')).toContainText('Route');
+    await expect(page.locator('#dlg')).not.toContainText('Material ist da');
+    await expect(page.locator('#dlg')).not.toContainText('Erledigt');
+    await expect(page.locator('#dlg')).not.toContainText('+1 Wo');
+    await expect(page.locator('#main')).not.toContainText('Material fehlt');
   });
 });
 
@@ -248,7 +257,8 @@ test.describe('Termine', () => {
     await page.fill('#q', 'Pichler');
     await expect(page.locator('.qrr')).toHaveCount(1);
     await page.click('.qrr');
-    await expect(page.locator('#dlg .detv')).toContainText('Bad Pichler');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    await expect(page.locator('#f_k')).toHaveValue(/Bad Pichler/);
   });
 });
 
@@ -604,7 +614,8 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await ansicht(page, 'Liste');
     await expect(page.locator('.agr', { hasText: 'Huber' }).first()).toBeVisible();
     await page.locator('.agr', { hasText: 'Huber' }).first().click();
-    await expect(page.locator('#dlg .detv')).toContainText('Fam. Huber');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    await expect(page.locator('#f_k')).toHaveValue(/Fam. Huber/);
     await page.evaluate(() => document.getElementById('dlg').close());
     await page.goto('/?demo');
     expect(await app(page, () => mode)).toBe('liste');
@@ -727,7 +738,8 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await expect(page.locator(`.mg .c.sel[data-drop="${mo}"]`)).toHaveCount(1);
     await expect(page.locator('.mdl .agr', { hasText: 'Huber' })).toBeVisible();
     await page.locator('.mdl .agr', { hasText: 'Huber' }).click();
-    await expect(page.locator('#dlg .detv')).toContainText('Fam. Huber');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    await expect(page.locator('#f_k')).toHaveValue(/Fam. Huber/);
     await page.evaluate(() => document.getElementById('dlg').close());
     await page.click(`.mg .c[data-drop="${mo}"]`);
     expect(await app(page, () => mode)).toBe('tag');

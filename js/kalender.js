@@ -4,19 +4,11 @@ function card(j,ds,force){
  var o=force||openId==j.id,days=j.start?span(j):[],A={n:jName(j),ic:ART[j.art].ic},id=j.id,mt=(j.art=='montage'||j.art=='werkstatt');
  var pos=ds&&days.length>1?' · Tag '+(days.indexOf(ds)+1)+'/'+days.length:(j.tage>1&&!j.start&&!hrsJ(j)?' · '+j.tage+' Tage':'');
  var tg='<span class="tag fx">'+(PV(j)?ic('pv')+'provisorisch':ic('pin')+'fix')+'</span>';
- if(!j.material&&!j.done&&mt)tg+='<span class="tag bad">'+ic('alert')+'Material fehlt</span>';
  if(j.series)tg+='<span class="tag">'+ic('repeat')+'Serie</span>';
  if(j.adresse)tg+='<span class="tag">'+ic('place')+esc(j.adresse)+'</span>';
  var q=function(f,l,c){return '<button class="b '+(c||'')+'" onclick="'+f+'">'+l+'</button>'};
- var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt"'+(force?'':' onclick="tog(\''+id+'\')"')+'><div class="top"><div class="k">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?ic('starf'):ic('star'))+'</button>'+A.ic+'</div></div>'+
- '<div class="sub">'+A.n+' · '+(wer(j).length>1?ic('users')+' ':'')+esc(who(j))+pos+(hrsJ(j)?' · '+ic('clock')+' '+[ds&&j.start?tLbl(j,ds):j.zeit?'ab '+j.zeit:'',hTxt(j.stunden)].filter(Boolean).join(' · '):j.zeit?' · '+ic('clock')+' '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div><div class="acts">';
- if(j.start)h+='<div class="lbl">Verschieben</div><div class="g4">'+q("mv('"+id+"',-1)",ic('left')+'Tag')+q("mv('"+id+"',1)",'Tag'+ic('right'))+q("mv('"+id+"',7)",'+1 Wo.')+q("mv('"+id+"',0)",'Offen')+'</div>';
- h+='<div class="g2">'+q("pick('"+id+"')",ic('move')+' Im Kalender')+q("fixt('"+id+"')",PV(j)?ic('pin')+' Fix setzen':ic('pv')+' Provisorisch')+'</div>';
- // Aktionen: Erledigt | Bearbeiten | Löschen, darunter (nur wenn eingetragen) Anrufen | Route
- h+='<div class="ft2">'+q("done('"+id+"')",j.done?ic('undo')+' Wieder öffnen':ic('check')+' Erledigt','p')+q("edit('"+id+"')",ic('edit')+' Bearbeiten')+(canDel(j)?q("del('"+id+"')",ic('trash'),'d'):'')+'</div>';
- h+=regieBtn(j);
- if(j.tel||j.adresse)h+='<div class="ft2">'+(j.tel?'<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>':'')+(j.adresse?'<a class="b" target="_blank" href="https://maps.google.com/?q='+encodeURIComponent(j.adresse)+'">'+ic('route')+' Route</a>':'')+'</div>';
- h+='</div></div>';
+ var h='<div class="job a-'+j.art+wC(j)+' '+(PV(j)?'pv ':'fx ')+(j.done?'done ':'')+(o?'open':'')+'" style="'+wS(j)+'"><div class="jt"'+(force?'':' onclick="edit(\''+id+'\')"')+'><div class="top"><div class="k">'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</div><div class="ic"><button class="st" onclick="event.stopPropagation();impt(\''+id+'\')">'+(j.imp?ic('starf'):ic('star'))+'</button>'+A.ic+'</div></div>'+
+ '<div class="sub">'+A.n+' · '+(wer(j).length>1?ic('users')+' ':'')+esc(who(j))+pos+(hrsJ(j)?' · '+ic('clock')+' '+[ds&&j.start?tLbl(j,ds):j.zeit?'ab '+j.zeit:'',hTxt(j.stunden)].filter(Boolean).join(' · '):j.zeit?' · '+ic('clock')+' '+j.zeit+(j.ende?'–'+j.ende:''):'')+'</div><div class="tags">'+tg+'</div>'+(j.notiz?'<div class="sub nt">'+esc(j.notiz)+'</div>':'')+'</div></div>';
  return h}
 function tog(id){openId=openId==id?null:id;render()}
 function mv(id,n){var j=byId(id);if(n==0)j.start='';else if(n==7)j.start=addDays(j.start,7);else j.start=R(j)?nextWork(norm(j.start),n):addDays(j.start,n);if(mode=='tag'&&j.start)an=j.start;save(j);render()}
@@ -82,8 +74,8 @@ function plan(hd,m){
 function lgOpen(){var v=lsGet('planer_lg');return v?v=='1':innerWidth>=900}
 function lgSet(o){lsSet('planer_lg',o?'1':'0')}
 function hintTxt(){if(mode=='liste')return 'Termin antippen = Details · Tag antippen = Tagesansicht · wischen = 30 Tage weiter';
- if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = Details · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
- if(mode=='monat')return innerWidth<600?'Tag antippen = Termine darunter · noch einmal antippen = Tagesansicht · halten und ziehen = verschieben':'Auftrag antippen = Details · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
+ if(mode=='tag'||mode=='team'||mode=='woche')return 'Termin antippen = bearbeiten · halten und ziehen = verschieben · Rand oben/unten ziehen (Handy: lange drücken) = Dauer · freie Zeit antippen oder markieren = neuer Termin'+(mode=='team'?' · in andere Spalte ziehen = anderem Mitarbeiter zuteilen':'');
+ if(mode=='monat')return innerWidth<600?'Tag antippen = Termine darunter · noch einmal antippen = Tagesansicht · halten und ziehen = verschieben':'Auftrag antippen = bearbeiten · halten und ziehen = verschieben · Tag antippen = Tagesansicht';
  return 'Tag antippen = Tagesansicht · halten und ziehen = verschieben'}
 // Reihenfolge: ganztägige zuerst, dann nach Uhrzeit
 function sortJ(js){return js.slice().sort(function(a,b){return (a.zeit?1:0)-(b.zeit?1:0)||t2m(a.zeit||'00:00')-t2m(b.zeit||'00:00')})}
@@ -138,13 +130,9 @@ function dropT(ds,e){var emp=e.currentTarget.dataset.emp;
  if(j.zeit){if(hrsJ(j)){j.zeit=m2t(m0);fit(j)}else{var du=(t2m(j.ende||j.zeit)-t2m(j.zeit))||60;j.zeit=m2t(m0);j.ende=m2t(m0+du)}}
  reassign(j,mvE,emp);drop(ds)}
 // Termin antippen: Tagesansicht = Details öffnen, sonst zum Verschieben auswählen
-function evClick(id,ds,emp){if(mvId){drop(ds);return}
- if(mode!='tag'){showDet(id,ds);return}
- openId=id;render();var c=document.querySelector('.dvl .job.open');if(c)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
-// Details wie in Outlook: Auftrag in einem Fenster mit allen Aktionen (bleibt nach Aktionen aktuell)
-function showDet(id,ds){var d=document.getElementById('dlg'),j=byId(id);if(!j)return;if(!(ds&&j.start&&span(j).indexOf(ds)>-1))ds=j.start||'';
- d.innerHTML='<div class="dt2"><b>Auftrag</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div><div class="detv" data-id="'+id+'" data-ds="'+ds+'">'+card(j,ds,true)+'</div>';if(typeof zFill=='function')setTimeout(zFill);
- if(!d.open)d.showModal()}
+function evClick(id,ds,emp){if(mvId){drop(ds);return}edit(id)}
+// Früher Detailfenster: Antippen führt jetzt direkt ins Bearbeiten (Aufrufer bleiben gültig)
+function showDet(id){edit(id)}
 function detRefresh(){var d=document.getElementById('dlg'),v=d.open&&d.querySelector('.detv');if(!v)return;if(byId(v.dataset.id))showDet(v.dataset.id,v.dataset.ds);else d.close()}
 function hdr(ds){if(mvId)drop(ds);else{an=ds;setMode('tag')}}
 function pick(id){var j=byId(id),dd=document.getElementById('dlg');if(dd.open)dd.close();mvId=id;mvG='';mvE='';tab='plan';openId=null;if(mode=='tag'||mode=='team')mode='monat';if(j.start)an=j.start;window.scrollTo(0,0);render()}
@@ -156,7 +144,7 @@ function showSearch(){var d=document.getElementById('dlg');
   '<input id="q" type="search" placeholder="Kunde, Adresse, Telefon, Notiz, Mitarbeiter …" oninput="doSearch()" autocomplete="off"'+NC+'><div id="qr" class="qr"></div>';
  if(!d.open)d.showModal();var q=document.getElementById('q');q.value=SQ;q.focus();doSearch()}
 // Trefferzeile (Suche, Kunden-Detail): Datum, Titel, Art · Mitarbeiter · Adresse – Tippen öffnet die Details
-function qRow(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+(j.done?' dn':'')+'" style="'+wS(j)+'" onclick="showDet(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+(j.done?' · erledigt':'')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'}
+function qRow(j){var p=j.start?parse(j.start):null;return '<button class="qrr a-'+j.art+(j.done?' dn':'')+'" style="'+wS(j)+'" onclick="edit(\''+j.id+'\')"><span class="qd">'+(p?WD[p.getDay()]+' '+dDE(j.start)+(j.zeit?' · '+j.zeit:''):'ohne Termin')+(j.done?' · erledigt':'')+'</span><b>'+esc(j.kunde||'(ohne Name)')+'</b><small>'+ART[j.art].n+' · '+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></button>'}
 function doSearch(){var q=document.getElementById('q');if(!q)return;SQ=q.value;var t=SQ.trim().toLowerCase(),out=document.getElementById('qr'),td=fmt(new Date());
  if(t.length<2){out.innerHTML='<div class="sub">Mindestens 2 Zeichen eingeben.</div>';return}
  var hit=S.jobs.filter(function(j){return [j.kunde,j.adresse,j.tel,j.notiz,who(j),jName(j)].join(' ').toLowerCase().indexOf(t)>-1});

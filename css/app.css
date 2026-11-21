@@ -79,7 +79,7 @@ h2{font-size:16px;margin:16px 0 6px}
 .montage{--c:var(--mo)}.werkstatt{--c:var(--we)}.planung{--c:var(--pl)}.termin{--c:var(--tm)}.urlaub{--c:var(--ur)}
 .job.a-montage{--c:var(--mo)}.job.a-werkstatt{--c:var(--we)}.job.a-planung{--c:var(--pl)}.job.a-termin{--c:var(--tm)}.job.a-urlaub{--c:var(--ur)}
 .ch{box-sizing:border-box}.ch:not(.pv){font-weight:700;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-.ch.pv{background:var(--card);background:color-mix(in srgb,var(--c) 22%,var(--card));color:var(--tx);border:1.5px dashed var(--c);font-weight:400;box-shadow:none}
+.ch.pv{background:var(--card);background:color-mix(in srgb,var(--c) 22%,var(--card));color:var(--tx);border:1px dashed var(--c);font-weight:400;box-shadow:none}
 .bar.pv{background:transparent;border:1px dashed var(--c);box-sizing:border-box;height:6px}
 .job.fx{border-left-width:9px}
 .job.pv{border-style:dashed;background:var(--card);background:color-mix(in srgb,var(--c) 9%,var(--card));border-left-color:var(--c)}
@@ -157,10 +157,10 @@ dialog::backdrop{backdrop-filter:blur(2px)}
 .dt2+.sec{border-top:0;margin-top:8px;padding-top:0}
 .ft{position:sticky;bottom:-16px;background:var(--card);padding:12px 0 4px;margin-top:16px}
 input,select,textarea{border-radius:12px}label{font-weight:500}.seg button{border-radius:12px}
-.ch.wp,.job.wp{outline:2px solid var(--pc);outline-offset:1px}
+.ch.wp,.job.wp{outline:1px solid var(--pc);outline-offset:1px}
 .c .ch,.adc .ch{margin:5px 3px 3px}
 .ch.sel{outline:3px solid var(--tx)!important}
-.bar.wp{box-shadow:0 0 0 1.5px var(--pc);margin:5px 2px 3px}
+.bar.wp{box-shadow:0 0 0 1px var(--pc);margin:5px 2px 3px}
 .mini .c{position:relative}
 .mini .c.wp{box-shadow:inset 0 0 0 2px var(--pc)}
 .bar.imp{position:relative}
@@ -331,7 +331,7 @@ nav button.on .i{color:var(--ac)}
 .now::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--ur)}
 .ev{border-radius:7px;padding:3px 6px;cursor:grab;border:0}
 /* Personen-Rahmen im Zeitraster nach innen, damit sich benachbarte Einträge nicht überdecken */
-.tg .ch.wp{outline:2px solid var(--pc);outline-offset:-2px}.tg .ch.sel{outline-offset:-3px}
+.tg .ch.wp{outline:1px solid var(--pc);outline-offset:-1px}.tg .ch.sel{outline-offset:-3px}
 .ev small.evw{font-weight:600;opacity:1}.ev small{display:block;font-weight:500;opacity:.9;font-size:.9em;margin-top:1px}
 .tg.one .ev{font-size:14px;padding:6px 10px;border-radius:9px}.tg.one .wh2{font-size:13px}
 .tg.one .tgc .ch{font-size:13px;padding:6px 10px}
@@ -633,3 +633,7 @@ body.pfit .swp>.mg{margin-bottom:0}
 .zrow .sub{overflow-wrap:anywhere}.zrow.zlk{background:var(--bg)}.zrow.zlk .i{width:13px;height:13px;vertical-align:-.15em}
 body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:380px){body.n5 nav button{font-size:11px;letter-spacing:-.01em}}
+
+/* Termin bearbeiten: Aktionsleiste oben */
+.jbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 8px}.jbar .b{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:600px){.jbar{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}}

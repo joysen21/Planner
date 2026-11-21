@@ -61,7 +61,7 @@ function zBook(id,ds){var j=byId(id);if(!zJobOk(j))return;var td=zToday(),days=s
  var day=ds&&days.indexOf(ds)>-1?ds:days.indexOf(td)>-1?td:(days.filter(function(x){return x<=td}).pop()||j.start);
  var dv=zDefault(j),meOn=wer(j).indexOf(ME.id)>-1;
  Z={job:j,id:null,order_id:j.erp_order_id||null,customer_id:erpCust(j),title:j.kunde||'(ohne Name)',sub:(j.erp_order_id?'Auftrag':'Ohne Auftrag – das Büro ordnet ihn zu')+' · aus dem Termin',
-  date:day,mode:'vb',from:dv.from,to:dv.to,brk:dv.brk,hours:rgDefHours(j)||1,who:meOn?[ME.id]:[],art:null,act:'',back:!!document.querySelector('#dlg .detv')};
+  date:day,mode:'vb',from:dv.from,to:dv.to,brk:dv.brk,hours:rgDefHours(j)||1,who:meOn?[ME.id]:[],art:null,act:'',back:!!document.querySelector('#dlg #f_k')};
  zOpen()}
 function zNew(){var dv=zDefault(null);
  Z={job:null,id:null,order_id:null,customer_id:null,title:'',sub:'',date:zToday(),mode:'h',from:dv.from,to:dv.to,brk:dv.brk,hours:1,who:[ME.id],art:null,act:'',back:false};
@@ -74,7 +74,7 @@ function zEdit(id){var all=[].concat(ZW[ZWK]||[]);Object.keys(ZJ).forEach(functi
 function zOpen(){var d=document.getElementById('dlg');d.innerHTML='<div class="dt2"><b>Zeit buchen</b></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
  var w=[zArts()];if(Z.job&&!ZJ[Z.job.id])w.push(zLoadJob(Z.job.id));
  Promise.all(w).then(function(){if(Z)zRender()})}
-function zClose(){var b=Z&&Z.back&&Z.job;Z=null;if(b)showDet(b.id);else document.getElementById('dlg').close()}
+function zClose(){var b=Z&&Z.back&&Z.job;Z=null;if(b)edit(b.id);else document.getElementById('dlg').close()}
 
 function zHours(){if(Z.mode=='h')return Math.round(Z.hours*100)/100;var m=t2m(Z.to)-t2m(Z.from)-Z.brk;return m>0?Math.round(m/60*100)/100:0}
 function zProblem(){if(!Z.order_id&&!Z.customer_id)return 'Bitte einen Auftrag oder Kunden wählen.';
