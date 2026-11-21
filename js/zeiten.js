@@ -92,15 +92,15 @@ function zArtName(id){var a=(ZART||[]).filter(function(x){return x.id==id})[0];r
 // Wer auf dem Termin steht (ich zuerst); im Bearbeiten nur die eine Person
 function zPeople(){if(Z.id||!Z.job)return Z.who.slice();var w=wer(Z.job),me=w.indexOf(ME.id)>-1;return (me?[ME.id]:[]).concat(w.filter(function(x){return x!=ME.id}))}
 
-function zRender(){var d=document.getElementById('dlg'),st=d.scrollTop,td=zToday(),yd=zAdd(td,-1),h=zHours();
+function zRender(){var d=document.getElementById('dlg'),st=d.scrollTop,td=zToday(),h=zHours();
  var x='<div class="dt2"><b>'+(Z.id?'Zeit ändern':'Zeit buchen')+'</b><button class="ib" onclick="zClose()" aria-label="Schließen">'+ic('x')+'</button></div>';
  // Wofür
- if(Z.order_id||Z.customer_id)x+='<div class="ztg"><div><b>'+esc(Z.title)+'</b><span class="sub">'+esc(Z.sub)+'</span></div>'+(Z.job||Z.id?'':'<button class="lk" onclick="zTarget(null)">Ändern</button>')+'</div>';
+ if(Z.order_id||Z.customer_id)x+='<div class="ztg"><div><b>'+esc(Z.title)+'</b><span class="sub">'+esc(Z.sub)+(Z.job&&Z.date?' · '+zDay(Z.date):'')+'</span></div>'+(Z.job||Z.id?'':'<button class="lk" onclick="zTarget(null)">Ändern</button>')+'</div>';
  else x+='<label for="z_q">Kunde oder Auftrag</label><input id="z_q" type="search" placeholder="Name, Nummer oder Titel" autocomplete="off" oninput="zSearch(this.value)"><div id="z_res" class="zres"></div>';
- // Wann
- var other=Z.date!=td&&Z.date!=yd;
- x+='<div class="zdt" role="group" aria-label="Tag"><button class="'+(Z.date==td?'on':'')+'" onclick="zSet(\'date\',\''+td+'\')">Heute</button><button class="'+(Z.date==yd?'on':'')+'" onclick="zSet(\'date\',\''+yd+'\')">Gestern</button>'+
-  '<label class="'+(other?'on':'')+'"><span>'+(other&&Z.date?zDay(Z.date):'Anderer Tag')+' ▾</span><input type="date" aria-label="Anderer Tag" max="'+td+'" value="'+Z.date+'" onchange="zSet(\'date\',this.value)"></label></div>';
+ // Wann: am Termin der Tag des Termins (mehrtägig: Tag wählen), sonst ein Datumsfeld
+ if(Z.job){var jd=span(Z.job).filter(function(x){return x<=td});
+  if(jd.length>1)x+='<div class="zdt" role="group" aria-label="Tag des Termins">'+jd.slice(-5).map(function(x){return '<button class="'+(Z.date==x?'on':'')+'" onclick="zSet(\'date\',\''+x+'\')">'+zDay(x)+'</button>'}).join('')+'</div>'}
+ else x+='<label for="z_d">Tag</label><input id="z_d" class="zdi" type="date" max="'+td+'" value="'+Z.date+'" onchange="zSet(\'date\',this.value||Z.date)">';
  x+='<div class="seg zmd"><button class="'+(Z.mode=='vb'?'on':'')+'" onclick="zSet(\'mode\',\'vb\')">Von – bis</button><button class="'+(Z.mode=='h'?'on':'')+'" onclick="zSet(\'mode\',\'h\')">Nur Stunden</button></div>';
  if(Z.mode=='vb'){
   var tp=function(k,l){return '<div><label for="z_'+k+'">'+l+'</label><div class="zst"><button aria-label="'+l+' 15 Minuten früher" onclick="zT(\''+k+'\',-15)">−</button><input id="z_'+k+'" type="time" step="900" value="'+Z[k]+'" onchange="zSet(\''+k+'\',this.value||Z.'+k+')"><button aria-label="'+l+' 15 Minuten später" onclick="zT(\''+k+'\',15)">+</button></div></div>'};
