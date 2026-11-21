@@ -1007,12 +1007,14 @@ test('Offen wie in der ERP-Plantafel: nur nicht eingeplante Termine, kein „Neu
   await app(page, () => {
     var b = { adresse: '', tel: '', wer: [ME.id], tage: 1, notiz: '', status: 'fix', prio: false, zeit: '', ende: '' };
     S.jobs.push(Object.assign({}, b, { id: 'o-offen', kunde: 'Offen Bleibt', art: 'montage', start: '', done: false }));
+    S.jobs.push(Object.assign({}, b, { id: 'o-frei', kunde: 'Noch Niemand', art: 'montage', start: '', done: false, wer: [] }));
     S.jobs.push(Object.assign({}, b, { id: 'o-erledigt', kunde: 'Schon Erledigt', art: 'montage', start: '', done: true }));
     S.jobs.push(Object.assign({}, b, { id: 'o-urlaub', kunde: 'Urlaub Ohne Datum', art: 'urlaub', start: '', done: false }));
     render();
   });
   await page.click('nav button[data-t="offen"]');
   await expect(page.locator('#main')).toContainText('Offen Bleibt');
+  await expect(page.locator('#main')).toContainText('Noch Niemand');
   await expect(page.locator('#main')).not.toContainText('Schon Erledigt');
   await expect(page.locator('#main')).not.toContainText('Urlaub Ohne Datum');
   const n = await app(page, () => S.jobs.filter(offenJob).length);

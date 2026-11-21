@@ -4,8 +4,8 @@ function render(){if(tab=='zeiten'&&!RGOK)tab='plan';render0();if(tab!='mehr'&&t
  if(expired())document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="warn">'+ic('alert')+' Die Lizenz ist am <b>'+dDE(ORG.valid_until)+'</b> abgelaufen – der Plan kann nur noch angesehen werden. '+(ME.role=='admin'?'Zur Verlängerung bitte an JoKe Smart Solutions wenden.':'Bitte den Admin informieren.')+'</div>');
  else if(ME.role=='admin'&&daysLeft()!=null&&daysLeft()<=30)document.getElementById('main').insertAdjacentHTML('afterbegin','<div class="note">'+ic('clock')+' Die Lizenz läuft '+(daysLeft()==0?'<b>heute</b>':'in <b>'+daysLeft()+' Tag'+(daysLeft()==1?'':'en')+'</b>')+' ab (am '+dDE(ORG.valid_until)+'). Zur Verlängerung bitte an JoKe Smart Solutions wenden.</div>');
  detRefresh();fitGrid();zFill()}
-// „Offen“ wie die Liste in der ERP-Plantafel: ohne Datum, nicht erledigt, kein Urlaub
-function offenJob(j){return !j.start&&!j.done&&j.art!='urlaub'&&vis(j)}
+// „Offen“ wie die Liste in der ERP-Plantafel: ohne Datum, nicht erledigt, kein Urlaub; noch niemandem zugeteilt = für alle sichtbar
+function offenJob(j){return !j.start&&!j.done&&j.art!='urlaub'&&(!wer(j).length||vis(j))}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');hd.className='';document.body.classList.remove('ddo');
  document.getElementById('oc').textContent='Offen ('+S.jobs.filter(offenJob).length+')';
