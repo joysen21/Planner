@@ -1002,3 +1002,22 @@ test.describe('Zeiten buchen (ERP)', () => {
     await expect(page.locator('#dlg .zbb')).toHaveCount(0);
   });
 });
+test('Offen wie in der ERP-Plantafel: nur nicht eingeplante Termine, kein „Neu“', async ({ page }) => {
+  await login(page);
+  await app(page, () => {
+    var b = { adresse: '', tel: '', wer: [ME.id], tage: 1, notiz: '', status: 'fix', prio: false, zeit: '', ende: '' };
+    S.jobs.push(Object.assign({}, b, { id: 'o-offen', kunde: 'Offen Bleibt', art: 'montage', start: '', done: false }));
+    S.jobs.push(Object.assign({}, b, { id: 'o-erledigt', kunde: 'Schon Erledigt', art: 'montage', start: '', done: true }));
+    S.jobs.push(Object.assign({}, b, { id: 'o-urlaub', kunde: 'Urlaub Ohne Datum', art: 'urlaub', start: '', done: false }));
+    render();
+  });
+  await page.click('nav button[data-t="offen"]');
+  await expect(page.locator('#main')).toContainText('Offen Bleibt');
+  await expect(page.locator('#main')).not.toContainText('Schon Erledigt');
+  await expect(page.locator('#main')).not.toContainText('Urlaub Ohne Datum');
+  const n = await app(page, () => S.jobs.filter(offenJob).length);
+  await expect(page.locator('#oc')).toHaveText('Offen (' + n + ')');
+  await expect(page.locator('#hd .ib.pl')).toHaveCount(0);
+  await page.keyboard.press('n');
+  await expect(page.locator('#dlg')).not.toBeVisible();
+});
