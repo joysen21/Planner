@@ -202,7 +202,7 @@ function timeGrid(cols,team){
     // Mehrere Termine gleichzeitig wie Google Kalender: nebeneinander nur, wo sie sich überschneiden, jeder so breit wie frei ist,
     // Schrift bleibt waagrecht und wird mit „…“ gekürzt (alles im Tooltip)
     return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,nv=Math.min(q.n,maxL),sp=Math.min(q.sp,nv-q.l),nar=sp<nv;
-     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+(nar?' nar':'')+'"'+att(j,c)+(nar?' title="'+esc([j.kunde||'?',tLbl(j,ds),who(j)].join(' · '))+'"':'')+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 2px);width:calc((100% - '+rs+') * '+(sp/nv)+' - 4px)">'+
+     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+(nar?' nar':'')+'"'+att(j,c)+(nar?' title="'+esc([j.kunde||'?',tLbl(j,ds),who(j)].join(' · '))+'"':'')+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 1px);width:calc((100% - '+rs+') * '+(sp/nv)+' - 2px)">'+
      (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
      // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
      (cmp?'<b class="evt">'+(hrsJ(j)&&j.zeit?m2t(q.s):(j.zeit||'ganztags'))+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'

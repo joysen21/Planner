@@ -637,3 +637,9 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 /* Termin bearbeiten: Aktionsleiste oben */
 .jbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 8px}.jbar .b{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:600px){.jbar{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}}
+
+/* Mehr Platz für Termine: knappe Abstände (Ränder sind jetzt 1 px), etwas größere Schrift */
+.ev{padding:3px 4px}.ev.nar{padding:2px 3px}
+.c .ch,.adc .ch{margin:3px 1px 2px}.mg.full .c .ch{padding:3px 4px}
+@media (min-width:600px){.ev{font-size:12.5px}.c .ch{font-size:13px}.adc .ch{font-size:13.5px}}
+.c .ch.wp,.adc .ch.wp{outline-offset:0}.mg .c{padding-left:2px;padding-right:2px}
