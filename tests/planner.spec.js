@@ -951,6 +951,49 @@ test.describe('Zeiten buchen (ERP)', () => {
     expect(d.erp_time_entries).toEqual([]);
   });
 
+  test('Reiter „Zeiten“: Regiebericht direkt aus den Zeiten schreiben und ans Büro senden', async ({ page }) => {
+    await login(page, 'uwe');
+    // am Termin gebucht
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .zbb');
+    await page.getByRole('button', { name: 'Nur Stunden' }).click();
+    await page.getByRole('button', { name: '2', exact: true }).click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('#dlg .zbox')).toContainText('2,0 h');
+    await page.evaluate(() => document.getElementById('dlg').close());
+    // ohne Termin auf den Kunden gebucht
+    await page.click('nav button[data-t="zeiten"]');
+    await page.click('#hd .ib.pl');
+    await page.fill('#z_q', 'Hub');
+    await page.locator('#z_res button', { hasText: 'Auftrag ordnet das Büro später zu' }).click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('.zrg')).toHaveCount(2);
+    await expect(page.locator('.zrg').first()).toHaveText(/Regiebericht schreiben/);
+
+    // Termin-Zeiten: Bericht übernimmt sie, senden
+    const am = await page.evaluate(() => { var e = ZW[ZWK].filter((x) => x.job_id)[0]; return e && e.hours; });
+    expect(am).toBe(2);
+    await page.locator('.zrg', { hasNotText: 'öffnen' }).first().click();
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Regiebericht');
+    await expect(page.locator('#dlg .rgvb')).toContainText('Aus den gebuchten Zeiten übernommen');
+    await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    await page.locator('#dlg .rgok .b', { hasText: 'Fertig' }).click();
+    await expect(page.locator('.zrow.zlk')).toHaveCount(1);
+    await expect(page.locator('.zrg', { hasText: 'öffnen' })).toHaveCount(1);
+
+    // ohne Termin: Bericht am Kunden, nur dessen Zeit übernommen
+    await page.locator('.zrg', { hasText: 'schreiben' }).click();
+    await expect(page.locator('#dlg .rgk .k')).toContainText('Fam. Huber');
+    await expect(page.locator('#dlg .rgr')).toHaveCount(1);
+    await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    const d = await db(page);
+    expect(d.erp_regie.map((r) => [r.status, !!r.job_id, r.customer_id]).sort()).toEqual([['eingereicht', false, 'k-huber'], ['eingereicht', true, 'k-huber']]);
+    expect(d.erp_time_entries.every((x) => x.regie_id)).toBe(true);
+    expect(d.erp_time_entries.find((x) => !x.job_id).regie_id).toBe(d.erp_regie.find((r) => !r.job_id).id);
+  });
+
   test('Ohne Recht „Regie“ gibt es weder Reiter noch Knopf', async ({ page }) => {
     await login(page, 'uwe');
     await app(page, () => { RGOK = false; render(); });

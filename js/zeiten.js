@@ -183,8 +183,14 @@ function zView(hd,m){var td=zToday(),cw=zMon(td);if(!ZWK)ZWK=cw;var mon=ZWK,sun=
   if(!r.length&&!sug.length)return;
   list+='<div class="zdh" id="zd-'+x+'"><span>'+zDayLong(x)+'</span><b>'+zH(zSum(r))+'</b></div>'+
    sug.map(function(j){return '<div class="zsug"><div><small>Termin ohne Zeit</small><b>'+esc(j.kunde||'(ohne Name)')+'</b><span class="sub">'+(j.zeit?esc(j.zeit)+(j.ende?'–'+esc(j.ende):''):'Ganztags')+'</span></div><button class="b" onclick="zBook(\''+j.id+'\',\''+x+'\')">Buchen</button></div>'}).join('')+
-   r.map(function(e){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
-    return '<button class="zrow'+(lk?' zlk':'')+'"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'}).join('')});
+   zGroups(r).map(function(g){return g.rows.map(function(e){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
+    return '<button class="zrow'+(lk?' zlk':'')+'"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'}).join('')+zRgBtn(g,x)}).join('')});
  m.innerHTML=h+(list?'<div class="zlist">'+list+'</div>':'<div class="empty big">'+ic('zeiten')+'<br><b>Diese Woche noch keine Zeiten</b><br><small>Mit '+ic('plus')+' eine Zeit buchen</small></div>')}
 function zWeek(n){var cw=zMon(zToday()),w=zAdd(ZWK,n);if(w>cw)w=cw;ZWK=w;render()}
 function zGo(ds){var el=document.getElementById('zd-'+ds);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+// Zeiten eines Tages je Termin bzw. je Kunde/Auftrag ohne Termin bündeln (für den Regiebericht)
+function zGroups(r){var o=[],m={};r.forEach(function(e){var k=e.job_id?'j'+e.job_id:'c'+e.customer_id+'|'+(e.order_id||'');if(!m[k]){m[k]={rows:[],job:e.job_id||null,cust:e.customer_id,order:e.order_id||null,name:e.customer_name||''};o.push(m[k])}m[k].rows.push(e)});return o}
+function zRgBtn(g,ds){if(!RGOK||!g.cust)return '';var rg=g.rows.filter(function(e){return e.regie_id})[0];
+ if(!rg&&g.rows.every(function(e){return e.invoice_id}))return '';
+ var a=g.job&&byId(g.job)?'regie(\''+g.job+'\',\''+ds+'\')':'rgCust(\''+g.cust+'\',\''+(g.order||'')+'\',\''+ds+'\',this.dataset.n)';
+ return '<button class="b zrg" data-n="'+esc(g.name)+'" onclick="'+a+'">'+ic('regie')+' '+(rg?'Regiebericht'+(rg.regie_number?' '+esc(rg.regie_number):'')+' öffnen':'Regiebericht schreiben')+'</button>'}

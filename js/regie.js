@@ -29,6 +29,15 @@ async function regie(id,ds){var j=byId(id),d=document.getElementById('dlg');if(!
  var all=r.data||[],day=rgDay(j,ds),ex=all.filter(function(x){return x.work_date==day})[0],zt=await zLoadJob(id).catch(function(){return []});
  if(ex)await rgOpen(j,ex,all,zt);else rgNew(j,day,all,zt)}
 
+// Regiebericht aus den Zeiten ohne Termin: hängt am Kunden (und Auftrag) des Tages
+async function rgCust(cid,oid,day,name){var d=document.getElementById('dlg');
+ var j={id:null,kunde:name||'',start:day,tage:1,notiz:'',wer:[ME.id],erp_customer_id:cid,erp_order_id:oid||null,art:''};
+ d.innerHTML='<div class="dt2"><b>Regiebericht</b><button class="ib" onclick="rgClose()">'+ic('x')+'</button></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
+ var q=await Promise.all([sb.from('erp_regie').select('*').eq('customer_id',cid).eq('work_date',day),sb.rpc('erp_time_planner',{p_from:day,p_to:day})]);
+ var e=q.filter(function(x){return x.error})[0];if(e){d.querySelector('.sub').textContent='Laden fehlgeschlagen: '+e.error.message;return}
+ var all=(q[0].data||[]).filter(function(x){return !x.job_id&&(x.order_id||null)==(oid||null)}),zt=(q[1].data||[]).filter(function(x){return x.customer_id==cid&&!x.job_id&&(x.order_id||null)==(oid||null)});
+ if(all[0])await rgOpen(j,all[0],all,zt);else rgNew(j,day,all,zt)}
+function rgAgain(){if(RG.job.id)regie(RG.job.id,RG.r.work_date);else rgCust(RG.r.customer_id,RG.r.order_id,RG.r.work_date,RG.job.kunde)}
 // Gebuchte Zeiten des Tages (noch frei) werden übernommen; abgerechnet wird dann nur der Bericht
 function rgNew(j,day,all,zt){var h=rgDefHours(j),take=(zt||[]).filter(function(x){return x.work_date==day&&!x.regie_id&&!x.invoice_id});
  var title=(j.notiz||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return l&&l.charAt(0)!='-'})[0]||j.kunde||'';
@@ -111,7 +120,7 @@ function rgRecentHtml(){var l=rgRecent();if(!l.length)return '';return '<div cla
 function rgAddRecent(i){var a=rgRecent()[i];if(a)rgAddArt(a)}
 function rgFree(){var s=document.getElementById('rg_q').value.trim();if(!s)return;RG.mat.push({article_id:null,text:s.slice(0,300),qty:1,unit:'Stk'});RG.dirty=true;rgRender()}
 function rgSwitch(ds){if(RG.dirty&&!confirm('Ungespeicherte Änderungen verwerfen?'))return;regie(RG.job.id,ds)}
-function rgClose(){if(RG&&RG.dirty&&!RG.ro&&!confirm('Ungespeicherte Änderungen verwerfen?'))return;RG=null;document.getElementById('dlg').close()}
+function rgClose(){if(RG&&RG.dirty&&!RG.ro&&!confirm('Ungespeicherte Änderungen verwerfen?'))return;RG=null;document.getElementById('dlg').close();if(tab=='zeiten')render()}
 
 // Unterschriftsfeld: Finger, Stift oder Maus; Fläche immer hell, Linie dunkel (wie auf dem PDF)
 function rgPad(){var c=document.getElementById('rg_c');if(!c)return;var r=window.devicePixelRatio||1;c.width=c.offsetWidth*r;c.height=c.offsetHeight*r;
@@ -162,5 +171,5 @@ async function rgSave(send,quiet){var r=RG.r,el=document.getElementById('rg_e');
 function rgDone(){var tot=rgHours(RG.hours.reduce(function(s,x){return s+x.hours},0)),n=RG.mat.length,d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>Regiebericht</b><button class="ib" onclick="rgClose()" aria-label="Schließen">'+ic('x')+'</button></div>'+
  '<div class="rgok">'+ic('check')+'<h2>Bericht übermittelt</h2><p class="sub">'+rgFmt(tot)+' und '+n+' Materialposition'+(n==1?'':'en')+' liegen jetzt im Büro als Grundlage für die Rechnung.</p>'+(RG.r.signature_path?rgPdfBtn():'')+
- '<div class="row"><button class="b" onclick="regie(\''+RG.job.id+'\',\''+RG.r.work_date+'\')">Bericht ansehen</button><button class="b p" onclick="rgClose()">Fertig</button></div></div>'}
+ '<div class="row"><button class="b" onclick="rgAgain()">Bericht ansehen</button><button class="b p" onclick="rgClose()">Fertig</button></div></div>'}
 function rgToast(t){var el=document.getElementById('rg_e');if(!el)return;el.className='ok';el.textContent=t;setTimeout(function(){if(el.isConnected){el.textContent='';el.className='err'}},2000)}
