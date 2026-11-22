@@ -746,6 +746,33 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await expect(page.locator('.tgh .wh2')).toHaveCount(5);
   });
 
+  test('Handy: Monat zeigt Kunde, sonst Beschreibung, ohne „…“; Woche: überschneidende Termine mit senkrechtem Namen', async ({ page }, info) => {
+    test.skip(!isMobile(info), 'nur im Handy-Format');
+    await login(page);
+    await app(page, () => {
+      const mo = fmt(monday(new Date()));
+      const base = S.jobs.find((j) => j.zeit) || S.jobs[0];
+      S.jobs = [['Fam. Unterholzner', 'egal', '08:00', '12:00'], ['Kevin', '', '08:00', '12:00'], ['', 'Angebot schreiben', '13:00', '17:00'], ['Gemeinde Kastelruth', '', '14:00', '15:00']].map(([k, n, z, e]) => ({ ...base, id: uuid(), art: 'termin', stunden: null, kunde: k, notiz: n, start: mo, tage: 1, zeit: z, ende: e, series: null, done: false }));
+      an = mo; FLT = 'alle'; setMode('monat');
+    });
+    const mn = page.locator('.mg .ch.mn');
+    await expect(mn).toHaveText(['Fam. Unterholzner', 'Kevin', 'Angebot schreiben', 'Gemeinde Kastelruth']);
+    // ganz sichtbar: nichts abgeschnitten, keine Auslassungspunkte
+    expect(await mn.evaluateAll((l) => l.every((e) => { const b = e.querySelector('b'); return b.scrollWidth <= b.clientWidth + 1 && e.scrollHeight <= e.clientHeight + 1 && e.getBoundingClientRect().bottom <= e.parentNode.getBoundingClientRect().bottom; }))).toBe(true);
+    await app(page, () => setMode('woche'));
+    const kevin = page.locator('.ev', { hasText: 'Kevin' });
+    await expect(kevin).toHaveClass(/vt/);
+    await expect(kevin.locator('.vtx i')).toHaveText(['K', 'E', 'V', 'I', 'N']);
+    const y = await kevin.locator('.vtx i').evaluateAll((l) => l.map((e) => e.getBoundingClientRect().top));
+    expect(y.every((v, i) => !i || v > y[i - 1] + 4)).toBe(true);
+    expect(await page.locator('.ev.vt .vtx').evaluateAll((l) => l.every((e) => e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight))).toBe(true);
+    // eine Stunde ist zu kurz für „Gemeinde Kastelruth“ senkrecht: waagrecht umgebrochen
+    await expect(page.locator('.ev', { hasText: 'Kastelruth' }).locator('.evk')).toBeVisible();
+    // Tagesansicht bleibt waagrecht
+    await app(page, () => setMode('tag'));
+    await expect(page.locator('.vtx')).toHaveCount(0);
+  });
+
   test('Handy-Monat: Tag antippen zeigt die Termine darunter, noch einmal antippen öffnet den Tag', async ({ page }, info) => {
     test.skip(!isMobile(info), 'nur im Handy-Format');
     await login(page);

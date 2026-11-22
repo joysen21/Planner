@@ -89,7 +89,7 @@ function agRow(j,ds){var tl=tLbl(j,ds).split('–');
 function capScr(){if(SCRL)return;var g=document.querySelector('#main .tg'),b=g&&g.querySelector('.tgb');if(!b)return;
  var off=b.getBoundingClientRect().top-g.getBoundingClientRect().top+g.scrollTop;
  SCR={k:mode,min:g.scrollTop/HH*60+H0*60,yr:off,x:g.scrollLeft}}
-function fitGrid(){var g=tab=='plan'&&document.querySelector('#main .tg');document.body.classList.toggle('pfit',tab=='plan');fitMonth();if(!g){SCRL=false;return}
+function fitGrid(){var g=tab=='plan'&&document.querySelector('#main .tg');document.body.classList.toggle('pfit',tab=='plan');fitMonth();fitNames();if(!g){SCRL=false;return}
  g.style.maxHeight='';var r=g.getBoundingClientRect(),pb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
  g.style.maxHeight=Math.max(300,Math.floor(innerHeight-(r.top+scrollY)-pb-8))+'px';
  var b=g.querySelector('.tgb');if(!b)return;
@@ -165,6 +165,19 @@ document.addEventListener('keydown',function(e){
 // Freie Höhe für die Stunden (ohne Kopfzeile, Tageszeile, untere Leiste) – damit „Normal“ den Bildschirm füllt
 function gridAvail(){var W=innerWidth>=900,el=document.getElementById('hd'),top=(el?el.getBoundingClientRect().height:56)+(W?12:6)+56+(mvId?110:0);
  return Math.max(0,innerHeight-top-(W?16:68))}
+// Handy: Namen ohne „…“. Schrift so groß, dass kein Wort zerrissen wird; reicht das nicht, wird umgebrochen (Klasse brk)
+function fitW(el,txt,max,min){el.classList.remove('brk');for(var f=max;f>=min;f-=.5){txt.style.fontSize=f+'px';if(txt.scrollWidth<=txt.clientWidth)return}
+ txt.style.fontSize=Math.min(max,min+1)+'px';el.classList.add('brk')}
+// Name senkrecht, Buchstabe unter Buchstabe (eigene Zeichen statt writing-mode: in allen Browsern gleich)
+function vtName(s){return '<span class="vtx" aria-hidden="true">'+s.split(' ').map(function(w){return '<span>'+(w.toLocaleUpperCase('de').match(/[^.,][.,]*|[.,]+/gu)||[]).map(function(c){return '<i>'+esc(c)+'</i>'}).join('')+'</span>'}).join('')+'</span>'}
+// Handy-Woche, zwei Termine nebeneinander: senkrecht; ist der Termin dafür zu kurz, klein und waagrecht umgebrochen
+function fitV(e){var v=e.querySelector('.vtx'),k=e.querySelector('.evk');e.classList.add('vt');e.classList.remove('brk');
+ for(var f=12.5;f>=8;f-=.5){v.style.fontSize=f+'px';if(v.scrollWidth<=v.clientWidth&&v.scrollHeight<=v.clientHeight)return}
+ e.classList.remove('vt');e.classList.add('brk');for(f=10;f>=7;f-=.5){k.style.fontSize=f+'px';if(e.scrollHeight<=e.clientHeight)return}}
+function fitNames(){if(tab!='plan'||innerWidth>=600)return;
+ document.querySelectorAll('#main .mg.bars .ch.mn').forEach(function(c){fitW(c,c.querySelector('b'),11,8.5)});
+ if(mode=='woche')document.querySelectorAll('#main .ev').forEach(function(e){if(e.dataset.vt)fitV(e);else{fitW(e,e.querySelector('.evk')||e,11,8);var w=e.querySelector('.evw');if(w)fitW(w,w,10,8)}})}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){if(window.ME)fitNames()});
 // Monat: Zellen so hoch, dass der Monat den Bildschirm füllt
 function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&innerWidth>=600&&document.querySelector('#main .swp>.mg>.gr:last-child');if(!gr)return;
  var cs=gr.querySelectorAll('.c');cs.forEach(function(c){c.style.minHeight=c.style.height=''});

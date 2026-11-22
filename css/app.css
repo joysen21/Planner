@@ -655,3 +655,19 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 @media (min-width:600px){dialog{clip-path:inset(0 round 22px)}}
 @media (min-width:600px){dialog::-webkit-scrollbar{width:12px}dialog::-webkit-scrollbar-track{background:transparent;margin:20px 0}dialog::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--tx) 24%,transparent);border-radius:8px;border:3px solid transparent;background-clip:padding-box}dialog::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--tx) 40%,transparent)}}
 @supports not selector(::-webkit-scrollbar){@media (min-width:600px){dialog{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--tx) 24%,transparent) transparent}}}
+
+/* Handy-Monat: Kundenname (sonst Beschreibung) ganz ausgeschrieben, umgebrochen statt „…“ (Schriftgröße: fitNames) */
+@media (max-width:599px){.swp>.mg.bars{padding-left:6px;padding-right:6px}}
+.mg.bars .gr{gap:2px}.mg.bars .c{padding:2px 1px 1px;border-radius:6px}.mg.bars .c>i:first-child{padding-left:3px}
+.mg.bars .c .ch.mn{position:relative;display:block;margin:2px 0 0;padding:2px;line-height:1.15;white-space:normal;word-break:normal;border-radius:4px;overflow:visible}
+.mg.bars .ch.mn b{display:block;font-size:11px;font-weight:600;letter-spacing:-.015em}.mg.bars .ch.mn.pv b{font-weight:500}
+.mg.bars .c .ch.mn.wp{outline:0;box-shadow:inset 0 0 0 1px var(--pc)}
+.mg.bars .ch.mn .starx{position:absolute;top:-4px;right:-1px;width:11px;height:11px;stroke:var(--card);stroke-width:1.5}
+.ch.brk,.ev small.brk{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+/* Handy-Woche: überschneidende Termine mit senkrechtem Namen, Buchstabe unter Buchstabe; nirgends „…“ */
+@media (max-width:599px){.ev{text-overflow:clip;padding:3px 2px}.ev .evk{display:block}
+.ev[data-vt]{padding:2px 1px}.ev[data-vt] .evk{display:block;white-space:normal;overflow:visible;-webkit-line-clamp:none;line-clamp:none;line-height:1.1}
+.ev[data-vt]>svg.starx{position:absolute;top:1px;right:1px;width:9px;height:9px;margin:0;float:none}
+.ev[data-vt]:not(.vt) .vtx,.ev.vt .evk{display:none}
+.vtx{display:flex;flex-direction:column;flex-wrap:wrap;align-content:center;height:100%;gap:.45em .1em;overflow:hidden;font-weight:700;line-height:1.06}
+.vtx>span{display:block;text-align:center;min-width:.9em}.vtx i{display:block;font-style:normal}.ev.vt>svg.starx~.vtx{padding-top:9px;box-sizing:border-box}}

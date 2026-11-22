@@ -84,5 +84,7 @@ async function loadServices(){SVC=[];SVCOK=false;if(!ORG||(ORG.modules||[]).inde
  try{var r=await sb.rpc('erp_plan_services');if(!r.error){SVC=r.data||[];SVCOK=true}}catch(e){}}
 function svcOf(j){return j&&j.article_id?SVC.filter(function(a){return a.id==j.article_id})[0]||null:null}
 function svcList(keep){return SVC.filter(function(a){return a.active||a.id==keep})}
+// Titel im Kalender: Kunde, sonst die Beschreibung (Notiz), sonst die Art
+function jTit(j){return String(j.kunde||'').trim()||String(j.notiz||'').trim().replace(/\s+/g,' ')||jName(j)}
 function jName(j){var s=svcOf(j);return s?s.name_de||s.name_it:ART[j.art].n}
 function jCol(j){var w=wer(j);if(window.CM=='ma'&&w.length)return uById(w[0]).color;var s=svcOf(j);return s?s.plan_color||SVC_DEF:COL[j.art]}

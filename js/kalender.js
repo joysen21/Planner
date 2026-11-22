@@ -92,13 +92,13 @@ function monthGrid(y,mo,kind){
   var ds=fmt(dt),js=sortJ(dm[ds]||[]),c='c'+(ds==td?' td':'')+(g==0||g==6?' wd':'')+(HOL[ds]?' hol':'')+(pk&&ds==an?' sel':''),oc=' data-drop="'+ds+'" onclick="cell(\''+ds+'\')"';
   var we=f5?weHint(ds,g,d):'';
   if(kind=='mini'){var ar=[],fxs={},anyF=false;js.forEach(function(j){var k=jCol(j);if(ar.indexOf(k)<0)ar.push(k);if(!PV(j)){fxs[k]=1;anyF=true}});var cl=function(a){return fxs[a]?a:'color-mix(in srgb,'+a+' 40%,var(--card))'};var bg=ar.length?(ar.length>1?'linear-gradient(135deg,'+cl(ar[0])+' 50%,'+cl(ar[1])+' 50%)':cl(ar[0])):'';h+='<div class="'+c+(anyF?' f':(ar.length?' pvc':''))+(js.length?wC(js[0]):'')+(js.some(function(j){return j.imp})?' imp':'')+'"'+oc+(js.length?' data-id="'+js[0].id+'" data-ds="'+ds+'"':'')+' style="'+(js.length?wS(js[0]):'')+(bg?'background:'+bg:'')+'"><i>'+d+'</i></div>'}
-  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.slice(0,4).map(function(j){return '<u class="bar '+j.art+wC(j)+(PV(j)?' pv':'')+(j.imp?' imp':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'"'+(cnt(j)>1?' data-n="'+cnt(j)+'"':'')+'></u>'}).join('')+(js.length>4?'<i class="more">+'+(js.length-4)+'</i>':'')+we+'</div>';
+  else if(kind=='bars')h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+js.map(function(j){return '<span class="ch mn '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'">'+(j.imp?ic('starf','starx'):'')+'<b>'+esc(jTit(j))+'</b></span>'}).join('')+we+'</div>';
   else h+='<div class="'+c+'"'+oc+'><i>'+d+'</i>'+(HOL[ds]?'<em class="hn">'+esc(HOL[ds])+'</em>':'')+js.map(function(j){return '<span class="ch '+j.art+wC(j)+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" data-id="'+j.id+'" data-ds="'+ds+'" onclick="event.stopPropagation();evClick(\''+j.id+'\',\''+ds+'\')">'+chLines(j,ds)+'</span>'}).join('')+(js.length?'<i class="more" hidden></i>':'')+we+'</div>'}
  return h+'</div></div>'}
 // PC-Monat: Zeilen eines Termins; was davon sichtbar bleibt, entscheidet fillMonth (ansicht.js) je nach Platz
 function chLines(j,ds){var t=j.zeit?(hrsJ(j)?tLbl(j,ds).split('–')[0]:j.zeit):'',l=[jName(j)+' · '+who(j)];
  if(j.adresse)l.push(ic('place')+' '+esc(j.adresse));if(j.notiz)l.push(esc(j.notiz));
- return '<span class="cl">'+(j.imp?ic('starf','starx')+' ':'')+(t?'<b>'+t+'</b> ':'')+esc(j.kunde||'?')+'</span>'+l.map(function(x){return '<span class="cl">'+x+'</span>'}).join('')}
+ return '<span class="cl">'+(j.imp?ic('starf','starx')+' ':'')+(t?'<b>'+t+'</b> ':'')+esc(jTit(j))+'</span>'+l.map(function(x){return '<span class="cl">'+x+'</span>'}).join('')}
 // Handy-Monat: erstes Antippen zeigt die Termine des Tages darunter, zweites öffnet die Tagesansicht
 function cell(ds){if(mvId)drop(ds);else if(mode=='monat'&&innerWidth<600&&an!=ds){an=ds;render()}else{an=ds;setMode('tag')}}
 // mvE: Mitarbeiter-Spalte, aus der in der Team-Ansicht verschoben wird ('-' = nicht zugeteilt)
@@ -201,12 +201,14 @@ function timeGrid(cols,team){
     hid.forEach(function(q){if(k&&q.s<k.e){k.n++;k.e=Math.max(k.e,q.e)}else{if(k)out+=mo(k);k={s:q.s,e:q.e,n:1}}});if(k)out+=mo(k);
     // Mehrere Termine gleichzeitig wie Google Kalender: nebeneinander nur, wo sie sich überschneiden, jeder so breit wie frei ist,
     // Schrift bleibt waagrecht und wird mit „…“ gekürzt (alles im Tooltip)
-    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,nv=Math.min(q.n,maxL),sp=Math.min(q.sp,nv-q.l),nar=sp<nv;
-     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+(nar?' nar':'')+'"'+att(j,c)+(nar?' title="'+esc([j.kunde||'?',tLbl(j,ds),who(j)].join(' · '))+'"':'')+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 1px);width:calc((100% - '+rs+') * '+(sp/nv)+' - 2px)">'+
+    return pl.filter(function(q){return q.l<maxL}).map(function(q){var j=q.j,hp=(q.e-q.s)/60*HH,cmp=hp<64,nv=Math.min(q.n,maxL),sp=Math.min(q.sp,nv-q.l),nar=sp<nv,vt=nar&&!det&&innerWidth<600;
+     return '<div class="ch ev '+cls(j)+(hp<36?' sh':'')+(cmp?' cmp':'')+(nar?' nar':'')+(vt?' vt':'')+'"'+(vt?' data-vt="1"':'')+att(j,c)+(nar?' title="'+esc([jTit(j),tLbl(j,ds),who(j)].join(' · '))+'"':'')+' style="'+wS(j)+'top:'+((q.s/60-h0)*HH+1)+'px;height:'+(hp-2)+'px;left:calc((100% - '+rs+') * '+(q.l/nv)+' + 1px);width:calc((100% - '+rs+') * '+(sp/nv)+' - 2px)">'+
+     // Handy-Woche, zwei Termine nebeneinander: Kundenname senkrecht, Buchstabe unter Buchstabe (Größe: fitNames)
+     (vt?(j.imp?ic('starf','starx'):'')+'<span class="evk">'+esc(jTit(j))+'</span>'+vtName(jTit(j)):
      (j.imp?ic('starf','starx')+' ':'')+(det?'':pc(j))+
      // kurze Termine (bis ca. 1 Stunde) einzeilig: „12:00 Titel · Mitarbeiter“
-     (cmp?'<b class="evt">'+(hrsJ(j)&&j.zeit?m2t(q.s):(j.zeit||'ganztags'))+'</b> '+esc(j.kunde||'?')+'<small> · '+esc(who(j))+'</small>'
-        :'<span class="evk">'+esc(j.kunde||'?')+'</span><small>'+tLbl(j,ds)+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':''))+
+     (cmp?'<b class="evt">'+(hrsJ(j)&&j.zeit?m2t(q.s):(j.zeit||'ganztags'))+'</b> '+esc(jTit(j))+'<small> · '+esc(who(j))+'</small>'
+        :'<span class="evk">'+esc(jTit(j))+'</span><small>'+tLbl(j,ds)+'</small><small class="evw">'+icPpl(j)+esc(who(j))+'</small>'+(det&&j.adresse?'<small>'+ic('place')+' '+esc(j.adresse)+'</small>':'')))+
      (j.done?'':rzH(j,ds,hp))+'</div>'}).join('')+out})()+'</div>'}).join(''));
  return h+'</div>'}
 // Spalten für gleichzeitige Termine wie Google Kalender: je Gruppe sich überschneidender Termine eigene Spaltenzahl (n),
