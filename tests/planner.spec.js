@@ -602,6 +602,8 @@ test.describe('Leistung aus der ERP', () => {
     await expect(z.filter({ hasText: 'Arbeitsstunde Monteur' })).toHaveAttribute('aria-pressed', 'true');
     expect(await app(page, () => document.getElementById('dlg').scrollTop)).toBe(0);
     expect((await page.locator('#dlg .svl').boundingBox()).y).toBeLessThan((await page.locator('#dlg .zmd').boundingBox()).y);
+    // iPhone: schnelles Tippen auf + zoomt nicht
+    expect(await page.locator('#dlg .zst button').first().evaluate((el) => getComputedStyle(el).touchAction)).toBe('manipulation');
     await z.filter({ hasText: 'Montage vor Ort' }).click();
     await expect(page.locator('#dlg .svl button.on')).toHaveText(/Montage vor Ort/);
     await page.click('#dlg .zgo');

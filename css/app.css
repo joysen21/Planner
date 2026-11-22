@@ -681,3 +681,5 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 .svm{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;min-height:44px;margin:-4px 0 6px}
 .sec.zls{border-top:0;padding-top:0;margin-top:4px}.svl+.seg.zmd,.svm+.seg.zmd{margin-top:14px}
 .eg>div:first-child>.sec:first-child{border-top:0;padding-top:0;margin-top:8px}
+/* iPhone: schnelles mehrfaches Tippen (z. B. + bei den Zeiten) zoomt nicht; Zoomen mit zwei Fingern bleibt möglich */
+button,a,label,input,select,textarea,summary,dialog,nav{touch-action:manipulation}
