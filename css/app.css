@@ -623,13 +623,14 @@ body.pfit .swp>.mg{margin-bottom:0}
 .zdays button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:12px;padding:6px 2px 8px;font:inherit;display:flex;flex-direction:column;align-items:center;gap:1px;min-height:64px}
 .zdays button span{font-size:11px;color:var(--mu)}.zdays button b{font-size:16px}.zdays button span:nth-of-type(2){font-size:12px;color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
 .zdays button>i{display:block;width:70%;height:4px;border-radius:2px;background:var(--ln);margin-top:3px;overflow:hidden}.zdays button>i>i{display:block;height:100%;background:var(--ac)}
-.zdays button.td{border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}.zdays button.we{background:var(--bg)}.zdays button[disabled]{opacity:.45}
+.zdays button{position:relative;cursor:pointer}.zdays button.td{border-color:var(--ac)}.zdays button.td b{color:var(--ac)}.zdays em{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--ac)}.zdays button.we{background:var(--bg)}.zdays button[disabled]{opacity:.45;cursor:default}
+.zdays button.on{background:var(--ac);border-color:var(--ac)}.zdays button.on span,.zdays button.on b,.zdays button.on span:nth-of-type(2){color:#fff}.zdays button.on>i{background:rgba(255,255,255,.35)}.zdays button.on>i>i,.zdays button.on em{background:#fff}
 .zlist{display:flex;flex-direction:column;gap:8px}
 .zdh{display:flex;justify-content:space-between;align-items:baseline;margin:10px 2px 0;font-size:13px;font-weight:700;color:var(--mu)}.zdh:first-child{margin-top:0}.zdh b{color:var(--tx);font-variant-numeric:tabular-nums}
 .zsug,.zrow{display:flex;align-items:center;gap:10px;border-radius:14px;padding:10px 12px;text-align:left;font:inherit;color:var(--tx)}
-.zsug{border:1.5px dashed var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--card))}.zsug>div,.zrow>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.zsug{border:1.5px dashed var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--card))}.zsug>div,.zrm>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .zsug small{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ac)}.zsug .b{flex:none;min-height:40px;border-color:var(--ac);color:var(--ac);font-weight:600}
-.zrow{border:1px solid var(--ln);background:var(--card);width:100%;min-height:56px}.zrow>b{font-variant-numeric:tabular-nums;font-size:16px}
+.zrow{border:1px solid var(--ln);background:var(--card);width:100%;min-height:56px;padding:0 10px 0 0}.zrm{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 0 10px 12px;border:0;border-radius:14px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}.zrm[aria-disabled]{cursor:default}.zrm>b{font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
 .zrow .sub{overflow-wrap:anywhere}.zrow.zlk{background:var(--bg)}.zrow.zlk .i{width:13px;height:13px;vertical-align:-.15em}
 body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:380px){body.n5 nav button{font-size:11px;letter-spacing:-.01em}}
@@ -644,7 +645,12 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 @media (min-width:600px){.ev{font-size:12.5px}.c .ch{font-size:13px}.adc .ch{font-size:13.5px}}
 .c .ch.wp,.adc .ch.wp{outline-offset:0}.mg .c{padding-left:2px;padding-right:2px}
 .zdi{margin-bottom:12px}
-.zrg{width:100%;margin:2px 0 10px;justify-content:center}
+/* Buchungszeile: links die Zeit, rechts der Regiebericht als Symbolknopf */
+.zrg,.zrx{flex:none;width:44px;height:44px}.zrg{position:relative;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid var(--ln);background:var(--card);color:var(--ac);cursor:pointer}.zrg .i,.zrow.zlk .zrg .i{width:20px;height:20px}
+.zrg:not(.has)::after{content:'+';position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--ac);color:#fff;font-size:13px;font-weight:700;line-height:16px;text-align:center}
+.zrg.has{background:color-mix(in srgb,var(--ac) 14%,var(--card));border-color:transparent}
+.zall{display:block;margin:14px auto 0;min-height:44px;padding:0 16px}
+.b.zrs{min-height:54px;color:var(--ac);border-color:var(--ac);font-weight:600;white-space:nowrap}
 /* Fenster am PC: Scrollleiste folgt den runden Ecken */
 @media (min-width:600px){dialog{clip-path:inset(0 round 22px)}}
 @media (min-width:600px){dialog::-webkit-scrollbar{width:12px}dialog::-webkit-scrollbar-track{background:transparent;margin:20px 0}dialog::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--tx) 24%,transparent);border-radius:8px;border:3px solid transparent;background-clip:padding-box}dialog::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--tx) 40%,transparent)}}

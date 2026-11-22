@@ -39,7 +39,9 @@ document.addEventListener('keydown',function(e){if(e.key=='Enter'&&!e.repeat)msC
 (function(){var o=zNew;zNew=function(){var e=msEntry();var r=o.apply(this,arguments);msStart('dlg','zeit_buchen',e);return r}})();
 (function(){var o=zEdit;zEdit=function(){var e=msEntry();var r=o.apply(this,arguments);if(Z)msStart('dlg','zeit_aendern',e);return r}})();
 (function(){var o=zClose;zClose=function(){MSBACK=true;try{return o.apply(this,arguments)}finally{MSBACK=false}}})();
-(function(){var o=zSave;zSave=async function(){var m=MS.dlg;await o.apply(this,arguments);if(m&&MS.dlg===m&&!Z)msEnd('dlg','ok')}})();
+(function(){var o=zSave;zSave=async function(){var m=MS.dlg,r=await o.apply(this,arguments);if(m&&MS.dlg===m&&!Z)msEnd('dlg','ok');return r}})();
+// Bericht gleich aus dem Buchungsblatt: eigener Ablauf mit eigenem Einstieg
+(function(){var o=zSaveRg;zSaveRg=async function(){MSE='zeit_buchen';try{return await o.apply(this,arguments)}finally{MSE=''}}})();
 (function(){var o=zDel;zDel=async function(){var m=MS.dlg;await o.apply(this,arguments);if(m&&MS.dlg===m&&!Z)msDrop('dlg')}})();
 
 // Regiebericht: Senden = ok; nur gespeicherter Entwurf zählt beim Schließen nicht als Abbruch

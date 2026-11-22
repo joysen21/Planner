@@ -921,7 +921,7 @@ test.describe('Zeiten buchen (ERP)', () => {
     await page.click('nav button[data-t="zeiten"]');
     await expect(page.locator('#hd h1')).toHaveText('Zeiten');
     await expect(page.locator('.zrow.zlk')).toContainText('Im Regiebericht');
-    await expect(page.locator('.zrow.zlk')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('.zrow.zlk .zrm')).toHaveAttribute('aria-disabled', 'true');
   });
 
   test('Reiter „Zeiten“: ohne Termin auf einen Kunden buchen, ändern und löschen', async ({ page }) => {
@@ -935,16 +935,16 @@ test.describe('Zeiten buchen (ERP)', () => {
     await page.getByRole('button', { name: 'Eine Viertelstunde mehr' }).click();
     await page.click('#dlg .zgo');
     await expect(page.locator('.zrow')).toContainText('Ohne Auftrag');
-    await expect(page.locator('.zrow > b')).toHaveText('1,25 h');
+    await expect(page.locator('.zrm > b')).toHaveText('1,25 h');
     let d = await db(page);
     expect(d.erp_time_entries.map((x) => [x.order_id, x.customer_id, x.hours, x.job_id])).toEqual([[null, 'k-huber', 1.25, null]]);
 
-    await page.click('.zrow');
+    await page.click('.zrm');
     await expect(page.locator('#dlg .dt2 b')).toHaveText('Zeit ändern');
     await page.getByRole('button', { name: '4', exact: true }).click();
     await page.click('#dlg .zgo');
-    await expect(page.locator('.zrow > b')).toHaveText('4,0 h');
-    await page.click('.zrow');
+    await expect(page.locator('.zrm > b')).toHaveText('4,0 h');
+    await page.click('.zrm');
     await page.getByRole('button', { name: 'Zeit löschen' }).click();
     await expect(page.locator('.zrow')).toHaveCount(0);
     d = await db(page);
@@ -968,22 +968,22 @@ test.describe('Zeiten buchen (ERP)', () => {
     await page.locator('#z_res button', { hasText: 'Auftrag ordnet das Büro später zu' }).click();
     await page.click('#dlg .zgo');
     await expect(page.locator('.zrg')).toHaveCount(2);
-    await expect(page.locator('.zrg').first()).toHaveText(/Regiebericht schreiben/);
+    await expect(page.locator('.zrg').first()).toHaveAttribute('aria-label', /Regiebericht schreiben/);
 
     // Termin-Zeiten: Bericht übernimmt sie, senden
     const am = await page.evaluate(() => { var e = ZW[ZWK].filter((x) => x.job_id)[0]; return e && e.hours; });
     expect(am).toBe(2);
-    await page.locator('.zrg', { hasNotText: 'öffnen' }).first().click();
+    await page.locator('.zrg:not(.has)').first().click();
     await expect(page.locator('#dlg .dt2 b')).toHaveText('Regiebericht');
     await expect(page.locator('#dlg .rgvb')).toContainText('Aus den gebuchten Zeiten übernommen');
     await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
     await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
     await page.locator('#dlg .rgok .b', { hasText: 'Fertig' }).click();
     await expect(page.locator('.zrow.zlk')).toHaveCount(1);
-    await expect(page.locator('.zrg', { hasText: 'öffnen' })).toHaveCount(1);
+    await expect(page.locator('.zrg.has')).toHaveCount(1);
 
     // ohne Termin: Bericht am Kunden, nur dessen Zeit übernommen
-    await page.locator('.zrg', { hasText: 'schreiben' }).click();
+    await page.locator('.zrg:not(.has)').click();
     await expect(page.locator('#dlg .rgk .k')).toContainText('Fam. Huber');
     await expect(page.locator('#dlg .rgr')).toHaveCount(1);
     await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
@@ -992,6 +992,94 @@ test.describe('Zeiten buchen (ERP)', () => {
     expect(d.erp_regie.map((r) => [r.status, !!r.job_id, r.customer_id]).sort()).toEqual([['eingereicht', false, 'k-huber'], ['eingereicht', true, 'k-huber']]);
     expect(d.erp_time_entries.every((x) => x.regie_id)).toBe(true);
     expect(d.erp_time_entries.find((x) => !x.job_id).regie_id).toBe(d.erp_regie.find((r) => !r.job_id).id);
+  });
+
+  test('Reiter „Zeiten“: Tage filtern die Liste, Punkt zeigt Termine ohne Zeit', async ({ page }) => {
+    await login(page, 'uwe');
+    await app(page, () => {
+      var mon = zAdd(zMon(zToday()), -7), b = { adresse: '', tel: '', wer: [ME.id], tage: 1, notiz: '', status: 'fix', prio: false, done: false, art: 'montage', erp_customer_id: 'k-huber', zeit: '08:00', ende: '12:00' };
+      S.jobs = [['f-mo', 'Montag Kunde', 0], ['f-mi', 'Mittwoch Kunde', 2]].map((x) => Object.assign({}, b, { id: x[0], kunde: x[1], start: zAdd(mon, x[2]) }));
+    });
+    await page.click('nav button[data-t="zeiten"]');
+    await page.getByRole('button', { name: 'Woche zurück' }).click();
+    const tage = page.locator('.zdays button');
+    await expect(page.locator('.zsug')).toHaveCount(2);
+    await expect(page.locator('.zdays em')).toHaveCount(2);
+    await tage.nth(2).click();
+    await expect(tage.nth(2)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.zsug')).toHaveCount(1);
+    await expect(page.locator('.zsug')).toContainText('Mittwoch Kunde');
+    await tage.nth(0).click();                                     // anderer Tag: ein Tipp
+    await expect(page.locator('.zsug')).toContainText('Montag Kunde');
+    await tage.nth(0).click();                                     // nochmals: ganze Woche
+    await expect(page.locator('.zsug')).toHaveCount(2);
+    await tage.nth(1).click();
+    await expect(page.locator('main')).toContainText('noch keine Zeiten');
+    // „Neu“ nimmt den gewählten Tag
+    const di = await app(page, () => ZDS);
+    await page.click('#hd .ib.pl');
+    await expect(page.locator('#z_d')).toHaveValue(di);
+    await page.evaluate(() => zClose());
+    await page.getByRole('button', { name: 'Ganze Woche anzeigen' }).click();
+    await expect(page.locator('.zsug')).toHaveCount(2);
+    await tage.nth(2).click();
+    await page.locator('.zsug .b').click();
+    await page.click('#dlg .zgo');
+    await expect(page.locator('.zrow')).toHaveCount(1);            // gefilterter Tag bleibt
+    await expect(page.locator('.zdays em')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Woche weiter' }).click();
+    expect(await app(page, () => ZDS)).toBeNull();
+  });
+
+  test('Zeit buchen mit „Regiebericht“: bucht und öffnet den Bericht mit den Stunden', async ({ page }) => {
+    await login(page, 'uwe');
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .zbb');
+    await page.getByRole('button', { name: 'Nur Stunden' }).click();
+    await page.getByRole('button', { name: '2', exact: true }).click();
+    await page.click('#dlg .zrs');
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Regiebericht');
+    await expect(page.locator('#dlg .rgvb')).toContainText('Aus den gebuchten Zeiten übernommen');
+    await expect(page.locator('#dlg .rgt')).toHaveText('2,0 h');
+    await page.locator('#dlg .ft .b', { hasText: 'Speichern' }).click();
+    await expect(page.locator('#rg_e')).toHaveText('Gespeichert');
+    await page.evaluate(() => rgClose());
+    // zweite Zeit am selben Tag: kommt in den Entwurf dazu
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .zbb');
+    await expect(page.locator('#dlg .note')).toContainText('Entwurf');
+    await page.getByRole('button', { name: 'Nur Stunden' }).click();
+    await page.getByRole('button', { name: '1', exact: true }).click();
+    await page.click('#dlg .zrs');
+    await expect(page.locator('#dlg .rgt')).toHaveText('3,0 h');
+    await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    let d = await db(page);
+    expect(d.erp_regie.length).toBe(1);
+    expect(d.erp_time_entries.length).toBe(2);
+    expect(d.erp_time_entries.every((x) => x.regie_id === d.erp_regie[0].id)).toBe(true);
+    // gesendet: kein Knopf mehr, nur der Hinweis
+    await page.locator('#dlg .rgok .b', { hasText: 'Fertig' }).click();
+    await oeffne(page, 'Fam. Huber');
+    await page.click('#dlg .zbb');
+    await expect(page.locator('#dlg .note')).toContainText('doppelt verrechnet');
+    await expect(page.locator('#dlg .zrs')).toHaveCount(0);
+    await page.evaluate(() => document.getElementById('dlg').close());
+    // ohne Termin: auf einen Auftrag gebucht, Bericht hängt am Kunden
+    await page.click('nav button[data-t="zeiten"]');
+    await page.click('#hd .ib.pl');
+    await expect(page.locator('#dlg .zrs')).toHaveCount(0);        // erst mit Kunde oder Auftrag
+    await page.fill('#z_q', 'Hub');
+    await page.locator('#z_res button').first().click();
+    await page.click('#dlg .zrs');
+    await expect(page.locator('#dlg .rgk .k')).toHaveText(/Huber/);
+    await expect(page.locator('#dlg .rgt')).toHaveText('1,0 h');
+    await page.locator('#dlg .ft .b', { hasText: 'An Büro senden' }).click();
+    await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
+    d = await db(page);
+    expect(d.erp_regie.length).toBe(2);
+    expect(d.usage_events.filter((x) => x.flow === 'zeit_buchen' && x.outcome === 'ok').length).toBe(3);
+    expect(d.usage_events.filter((x) => x.flow === 'regie_senden' && x.outcome === 'ok').length).toBe(2);
   });
 
   test('Ohne Recht „Regie“ gibt es weder Reiter noch Knopf', async ({ page }) => {

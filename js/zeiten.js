@@ -5,6 +5,7 @@ var ZJ={};      // Zeiten je Termin (alle Kollegen): job_id -> Zeilen
 var ZRG={};     // Regieberichte je Termin: job_id -> [{id, work_date, status}]
 var ZW={};      // eigene Zeiten je Woche: Montag -> Zeilen
 var ZWK=null;   // angezeigte Woche (Montag)
+var ZDS=null;   // Tagesfilter der Woche (null = ganze Woche)
 var ZART=null;  // Verrechnungsartikel (für Zeiten freigeschaltete Leistungen)
 var Z=null;     // offenes Buchungsblatt
 var zSt=null;   // Suche Auftrag/Kunde (Verzögerung)
@@ -60,15 +61,15 @@ function zDefault(j){var a=j&&j.zeit||ORG.allday_start||'08:00',b=j&&j.ende||ORG
 function zBook(id,ds){var j=byId(id);if(!zJobOk(j))return;var td=zToday(),days=span(j);
  var day=ds&&days.indexOf(ds)>-1?ds:days.indexOf(td)>-1?td:(days.filter(function(x){return x<=td}).pop()||j.start);
  var dv=zDefault(j),meOn=wer(j).indexOf(ME.id)>-1;
- Z={job:j,id:null,order_id:j.erp_order_id||null,customer_id:erpCust(j),title:j.kunde||'(ohne Name)',sub:(j.erp_order_id?'Auftrag':'Ohne Auftrag – das Büro ordnet ihn zu')+' · aus dem Termin',
+ Z={job:j,id:null,order_id:j.erp_order_id||null,customer_id:erpCust(j),cust:erpCust(j),title:j.kunde||'(ohne Name)',sub:(j.erp_order_id?'Auftrag':'Ohne Auftrag – das Büro ordnet ihn zu')+' · aus dem Termin',
   date:day,mode:'vb',from:dv.from,to:dv.to,brk:dv.brk,hours:rgDefHours(j)||1,who:meOn?[ME.id]:[],art:null,act:'',back:!!document.querySelector('#dlg #f_k')};
  zOpen()}
 function zNew(){var dv=zDefault(null);
- Z={job:null,id:null,order_id:null,customer_id:null,title:'',sub:'',date:zToday(),mode:'h',from:dv.from,to:dv.to,brk:dv.brk,hours:1,who:[ME.id],art:null,act:'',back:false};
+ Z={job:null,id:null,order_id:null,customer_id:null,cust:null,title:'',sub:'',date:tab=='zeiten'&&ZDS||zToday(),mode:'h',from:dv.from,to:dv.to,brk:dv.brk,hours:1,who:[ME.id],art:null,act:'',back:false};
  zOpen()}
 function zEdit(id){var all=[].concat(ZW[ZWK]||[]);Object.keys(ZJ).forEach(function(k){all=all.concat(ZJ[k])});var x=all.filter(function(r){return r.id==id})[0];if(!x||zLocked(x))return;
  var j=x.job_id?byId(x.job_id):null;
- Z={job:j,id:x.id,order_id:x.order_id,customer_id:x.customer_id,title:x.customer_name||(j&&j.kunde)||'',sub:x.order_number?'Auftrag '+x.order_number:'Ohne Auftrag',
+ Z={job:j,id:x.id,order_id:x.order_id,customer_id:x.customer_id,cust:x.customer_id,name:x.customer_name||'',title:x.customer_name||(j&&j.kunde)||'',sub:x.order_number?'Auftrag '+x.order_number:'Ohne Auftrag',
   date:x.work_date,mode:x.time_from&&x.time_to?'vb':'h',from:x.time_from||zDefault(j).from,to:x.time_to||zDefault(j).to,brk:+x.break_min||0,hours:+x.hours,who:[x.employee_id],art:x.article_id,act:x.activity||'',back:false};
  zOpen()}
 function zOpen(){var d=document.getElementById('dlg');d.innerHTML='<div class="dt2"><b>Zeit buchen</b></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
@@ -119,12 +120,13 @@ function zRender(){var d=document.getElementById('dlg'),st=d.scrollTop,td=zToday
  x+='<label for="z_a">Tätigkeit (optional)</label><input id="z_a" maxlength="300" placeholder="z. B. Oberschränke montiert" value="'+esc(Z.act)+'" oninput="Z.act=this.value">';
  // Hinweis: Bericht am selben Tag
  var rg=Z.job&&(ZRG[Z.job.id]||[]).filter(function(r){return r.work_date==Z.date})[0];
- if(rg&&!Z.id)x+='<div class="note">'+ic('info')+' Für diesen Tag gibt es schon einen Regiebericht. Stunden dort eintragen, sonst werden sie doppelt verrechnet.</div>';
+ if(rg&&!Z.id)x+='<div class="note">'+ic('info')+''+(rg.status=='entwurf'?' Für diesen Tag gibt es schon einen Regiebericht (Entwurf). „Regiebericht“ bucht die Zeit und trägt sie dort ein.':' Für diesen Tag gibt es schon einen Regiebericht. Stunden dort eintragen, sonst werden sie doppelt verrechnet.')+'</div>';
  // Abgerechnet als
  var a0=zArtFor(Z.who[0]||ME.id),same=Z.who.every(function(e){return zArtFor(e)==a0});
  x+='<div class="zart"><span>'+(Z.who.length>1&&!Z.id?'Für: '+esc(Z.who.map(uName).join(', '))+' · ':'')+'Abgerechnet als: '+(same?esc(zArtName(a0)):'je Mitarbeiter')+'</span>'+
   ((ZART||[]).length>1?'<label class="lk">Ändern<select aria-label="Verrechnungsartikel ändern" onchange="zSet(\'art\',this.value)">'+ZART.map(function(a){return '<option value="'+a.id+'"'+(a.id==a0?' selected':'')+'>'+esc(a.name_de||a.name_it||a.number)+'</option>'}).join('')+'</select></label>':'')+'</div>';
  x+='<div id="z_e" class="err" role="alert"></div><div class="row ft">'+(Z.id?'<button class="b d" style="flex:none" onclick="zDel()" aria-label="Zeit löschen">'+ic('trash')+'</button>':'')+
+  (RGOK&&(Z.order_id||Z.customer_id)&&Z.cust&&!(rg&&rg.status!='entwurf')?'<button class="b zrs" onclick="zSaveRg()" aria-label="'+(Z.id?'Speichern':'Zeit buchen')+' und Regiebericht ausfüllen">'+ic('plus')+' Regiebericht</button>':'')+
   '<button class="b p zgo" onclick="zSave()">'+(Z.id?'Speichern':(Z.who.length>1?Z.who.length+' × ':'')+zH(h)+' buchen')+'</button></div>';
  d.innerHTML=x;d.scrollTop=st}
 
@@ -133,8 +135,8 @@ function zHoursFrom(){var m=t2m(Z.to)-t2m(Z.from)-Z.brk;return m>0?Math.round(m/
 function zT(k,dm){zSet(k,m2t(t2m(Z[k])+dm))}
 function zHStep(dh){zSet('hours',Math.round((Z.hours+dh)*4)/4)}
 function zWho(e){var i=Z.who.indexOf(e);if(i>-1)Z.who.splice(i,1);else Z.who.push(e);zRender()}
-function zTarget(t){if(!t){Z.order_id=null;Z.customer_id=null;Z.title='';Z.sub='';zRender();var q=document.getElementById('z_q');if(q)q.focus();return}
- Z.order_id=t.order_id||null;Z.customer_id=t.customer_id||null;Z.title=t.title;Z.sub=t.sub;zRender()}
+function zTarget(t){if(!t){Z.order_id=null;Z.customer_id=null;Z.cust=null;Z.title='';Z.sub='';zRender();var q=document.getElementById('z_q');if(q)q.focus();return}
+ Z.order_id=t.order_id||null;Z.customer_id=t.customer_id||null;Z.cust=t.cust||t.customer_id||null;Z.name=t.name||'';Z.title=t.title;Z.sub=t.sub;zRender()}
 
 // Suche: bestätigte Aufträge und Kunden (ohne Auftrag ordnet das Büro später zu)
 function zSearch(s){clearTimeout(zSt);s=s.trim();var el=document.getElementById('z_res');if(!s){el.innerHTML='';return}
@@ -143,22 +145,36 @@ function zSearch(s){clearTimeout(zSt);s=s.trim();var el=document.getElementById(
   el.innerHTML=(o.length?'<div class="zrh">Aufträge</div>'+o.map(function(x,i){return '<button type="button" onclick="zPickO('+i+')"><b>'+esc(x.number)+' · '+esc(x.customer_name||'')+'</b><small>'+esc(x.title||'')+'</small></button>'}).join(''):'')+
    (c.length?'<div class="zrh">Kunde ohne Auftrag</div>'+c.map(function(x,i){return '<button type="button" onclick="zPickC('+i+')"><b>'+esc(x.name)+'</b><small>'+esc(x.number||'')+' · Auftrag ordnet das Büro später zu</small></button>'}).join(''):'')+
    (o.length||c.length?'':'<div class="empty">Nichts gefunden.</div>')})},250)}
-function zPickO(i){var x=Z.found.o[i];zTarget({order_id:x.id,title:x.number+' · '+(x.customer_name||''),sub:x.title||'Auftrag'})}
-function zPickC(i){var x=Z.found.c[i];zTarget({customer_id:x.id,title:x.name,sub:(x.number?x.number+' · ':'')+'Ohne Auftrag – das Büro ordnet ihn zu'})}
+function zPickO(i){var x=Z.found.o[i];zTarget({order_id:x.id,cust:x.customer_id,name:x.customer_name||'',title:x.number+' · '+(x.customer_name||''),sub:x.title||'Auftrag'})}
+function zPickC(i){var x=Z.found.c[i];zTarget({customer_id:x.id,name:x.name,title:x.name,sub:(x.number?x.number+' · ':'')+'Ohne Auftrag – das Büro ordnet ihn zu'})}
 
 function zErr(t){var el=document.getElementById('z_e');if(el)el.textContent=t}
-async function zSave(){var p=zProblem();if(p){zErr(p);return}
+// rep=true: danach geht der Regiebericht auf (Fenster bleibt offen). Liefert dann die Ids der gebuchten Zeiten.
+async function zSave(rep){var p=zProblem();if(p){zErr(p);return}
  var h=zHours(),j=Z.job,base={work_date:Z.date,time_from:Z.mode=='vb'?Z.from:'',time_to:Z.mode=='vb'?Z.to:'',break_min:Z.mode=='vb'?Z.brk:0,hours:h,activity:(Z.act||'').trim().slice(0,300)};
  if(!Z.id&&j){var dup=(ZJ[j.id]||[]).filter(function(r){return r.work_date==Z.date&&Z.who.indexOf(r.employee_id)>-1}).map(function(r){return uName(r.employee_id)});
   if(dup.length&&!confirm('Für '+dup.filter(function(v,i,a){return a.indexOf(v)==i}).join(' und ')+' ist an diesem Tag schon Zeit gebucht. Trotzdem zusätzlich buchen?'))return}
- var b=document.querySelector('#dlg .zgo');if(b)b.disabled=true;
- try{var q;
+ var bs=document.querySelectorAll('#dlg .ft .b');bs.forEach(function(b){b.disabled=true});
+ try{var q,ids=Z.id?[Z.id]:Z.who.map(function(){return uuid()});
   if(Z.id)q=await sb.from('erp_time_entries').update(Object.assign({article_id:zArtFor(Z.who[0])},base)).eq('id',Z.id);
-  else q=await sb.from('erp_time_entries').insert(Z.who.map(function(e){return Object.assign({order_id:Z.order_id,customer_id:Z.order_id?null:Z.customer_id,employee_id:e,article_id:zArtFor(e),job_id:j?j.id:null},base)}));
+  else q=await sb.from('erp_time_entries').insert(Z.who.map(function(e,i){return Object.assign({id:ids[i],order_id:Z.order_id,customer_id:Z.order_id?null:Z.customer_id,employee_id:e,article_id:zArtFor(e),job_id:j?j.id:null},base)}));
   if(q.error)throw q.error;
   var n=Z.who.length,msg=(Z.id?'Geändert: ':'Gebucht: ')+(n>1?n+' × ':'')+zH(h)+' am '+zDay(Z.date);
-  zForget(j&&j.id,Z.date);if(Z.id&&ZWK)delete ZW[ZWK];zClose();render();zToast(msg)}
- catch(e){zErr('Speichern fehlgeschlagen: '+(e&&e.message||e));if(b)b.disabled=false}}
+  zForget(j&&j.id,Z.date);if(Z.id&&ZWK)delete ZW[ZWK];
+  if(ZDS&&ZDS!=Z.date)ZDS=null;
+  if(rep){Z=null;render();return ids}
+  zClose();render();zToast(msg)}
+ catch(e){zErr('Speichern fehlgeschlagen: '+(e&&e.message||e));bs.forEach(function(b){b.disabled=false})}}
+// „Regiebericht“ im Buchungsblatt: Zeit buchen und gleich den Bericht des Tages öffnen; ein Entwurf bekommt die neue Zeit dazu
+async function zSaveRg(){var p=zProblem();if(p){zErr(p);return}
+ var j=Z.job,c=Z.cust,o=Z.order_id,ds=Z.date,n=Z.name||Z.title,q=await sb.from('erp_regie').select('id,status,job_id,order_id').eq('customer_id',c).eq('work_date',ds);
+ if(!Z)return;
+ if(q.error){zErr('Laden fehlgeschlagen: '+q.error.message);return}
+ var ex=(q.data||[]).filter(function(x){return j?x.job_id==j.id:!x.job_id&&(x.order_id||null)==(o||null)})[0];
+ if(ex&&ex.status!='entwurf'){zErr('Für diesen Tag liegt der Regiebericht schon im Büro. Die Zeit ohne Bericht buchen.');return}
+ var ids=await zSave(true);if(!ids)return;
+ await (j?regie(j.id,ds):rgCust(c,o||'',ds,n));
+ if(ex&&RG&&!RG.ro&&RG.r.id)rgTake(ids)}
 async function zDel(){if(!confirm('Diese Zeit löschen?'))return;var q=await sb.from('erp_time_entries').delete().eq('id',Z.id);
  if(q.error){zErr('Löschen fehlgeschlagen: '+q.error.message);return}zForget(Z.job&&Z.job.id,Z.date);zClose();render();zToast('Zeit gelöscht')}
 function zToast(t){var el=document.getElementById('ztoast');if(!el){el=document.createElement('div');el.id='ztoast';el.className='ztoast';el.setAttribute('role','status');document.body.appendChild(el)}
@@ -175,22 +191,27 @@ function zView(hd,m){var td=zToday(),cw=zMon(td);if(!ZWK)ZWK=cw;var mon=ZWK,sun=
   '<button class="ib" onclick="zWeek(7)" aria-label="Woche weiter"'+(mon>=cw?' disabled':'')+'>'+ic('right')+'</button></div>';
  if(!rows){m.innerHTML=h+'<div class="empty">Wird geladen …</div>';zLoadWeek(mon).then(function(){if(tab=='zeiten'&&ZWK==mon)render()}).catch(function(e){if(tab=='zeiten')m.innerHTML=h+'<div class="err">Laden fehlgeschlagen: '+esc(e.message||String(e))+'</div>'});return}
  var by={};rows.forEach(function(x){(by[x.work_date]=by[x.work_date]||[]).push(x)});
- // Tagesleiste: Summe und Balken gegen die Tagesstunden
- h+='<div class="zdays">'+days.map(function(x){var s=zSum(by[x]||[]),p=parse(x);return '<button class="'+(x==td?'td ':'')+(isWE(x)?'we':'')+'"'+(x>td?' disabled':'')+' onclick="zGo(\''+x+'\')" aria-label="'+zDayLong(x)+': '+zH(s)+'"><span>'+WD[p.getDay()]+'</span><b>'+p.getDate()+'</b><span>'+(s?zNum(s):'–')+'</span><i><i style="width:'+Math.min(100,Math.round(s/dayH()*100))+'%"></i></i></button>'}).join('')+'</div>';
- // Liste: neuester Tag zuerst; Termine ohne eigene Zeit als Vorschlag
- var list='';days.slice().reverse().forEach(function(x){if(x>td)return;var r=by[x]||[],
-   sug=S.jobs.filter(function(j){return zJobOk(j)&&!j.done&&wer(j).indexOf(ME.id)>-1&&span(j).indexOf(x)>-1&&!r.some(function(e){return e.job_id==j.id})});
-  if(!r.length&&!sug.length)return;
+ // Termine ohne eigene Zeit je Tag
+ var sug={};days.forEach(function(x){sug[x]=x>td?[]:S.jobs.filter(function(j){return zJobOk(j)&&!j.done&&wer(j).indexOf(ME.id)>-1&&span(j).indexOf(x)>-1&&!(by[x]||[]).some(function(e){return e.job_id==j.id})})});
+ if(ZDS&&days.indexOf(ZDS)<0)ZDS=null;
+ // Tagesleiste: Summe und Balken gegen die Tagesstunden, Punkt = Termin ohne Zeit; Tipp filtert die Liste
+ h+='<div class="zdays" role="group" aria-label="Tag auswählen">'+days.map(function(x){var s=zSum(by[x]||[]),p=parse(x),on=ZDS==x,o=sug[x].length;return '<button class="'+(x==td?'td ':'')+(isWE(x)?'we ':'')+(on?'on':'')+'" aria-pressed="'+on+'"'+(x>td?' disabled':'')+' onclick="zGo(\''+x+'\')" aria-label="'+zDayLong(x)+': '+zH(s)+(o?', '+o+(o==1?' Termin':' Termine')+' ohne Zeit':'')+'"><span>'+WD[p.getDay()]+'</span><b>'+p.getDate()+'</b><span>'+(s?zNum(s):'–')+'</span><i><i style="width:'+Math.min(100,Math.round(s/dayH()*100))+'%"></i></i>'+(o?'<em></em>':'')+'</button>'}).join('')+'</div>';
+ // Liste: neuester Tag zuerst (oder nur der gewählte); Termine ohne eigene Zeit als Vorschlag
+ var list='';(ZDS?[ZDS]:days.slice().reverse()).forEach(function(x){if(x>td)return;var r=by[x]||[];
+  if(!r.length&&!sug[x].length)return;
   list+='<div class="zdh" id="zd-'+x+'"><span>'+zDayLong(x)+'</span><b>'+zH(zSum(r))+'</b></div>'+
-   sug.map(function(j){return '<div class="zsug"><div><small>Termin ohne Zeit</small><b>'+esc(j.kunde||'(ohne Name)')+'</b><span class="sub">'+(j.zeit?esc(j.zeit)+(j.ende?'–'+esc(j.ende):''):'Ganztags')+'</span></div><button class="b" onclick="zBook(\''+j.id+'\',\''+x+'\')">Buchen</button></div>'}).join('')+
-   zGroups(r).map(function(g){return g.rows.map(function(e){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
-    return '<button class="zrow'+(lk?' zlk':'')+'"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'}).join('')+zRgBtn(g,x)}).join('')});
- m.innerHTML=h+(list?'<div class="zlist">'+list+'</div>':'<div class="empty big">'+ic('zeiten')+'<br><b>Diese Woche noch keine Zeiten</b><br><small>Mit '+ic('plus')+' eine Zeit buchen</small></div>')}
-function zWeek(n){var cw=zMon(zToday()),w=zAdd(ZWK,n);if(w>cw)w=cw;ZWK=w;render()}
-function zGo(ds){var el=document.getElementById('zd-'+ds);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+   sug[x].map(function(j){return '<div class="zsug"><div><small>Termin ohne Zeit</small><b>'+esc(j.kunde||'(ohne Name)')+'</b><span class="sub">'+(j.zeit?esc(j.zeit)+(j.ende?'–'+esc(j.ende):''):'Ganztags')+'</span></div><button class="b" onclick="zBook(\''+j.id+'\',\''+x+'\')">Buchen</button></div>'}).join('')+
+   zGroups(r).map(function(g){return g.rows.map(function(e,i){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
+    return '<div class="zrow'+(lk?' zlk':'')+'"><button class="zrm"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'+(!i&&zRgBtn(g,x)||'<span class="zrx"></span>')+'</div>'}).join('')}).join('')});
+ var all=ZDS?'<button class="lk zall" onclick="zGo(null)">Ganze Woche anzeigen</button>':'';
+ m.innerHTML=h+(list?'<div class="zlist">'+list+'</div>'+all:'<div class="empty big">'+ic('zeiten')+'<br><b>'+(ZDS?zDayLong(ZDS)+': noch keine Zeiten':'Diese Woche noch keine Zeiten')+'</b><br><small>Mit '+ic('plus')+' eine Zeit buchen</small></div>'+all)}
+function zWeek(n){var cw=zMon(zToday()),w=zAdd(ZWK,n);if(w>cw)w=cw;ZWK=w;ZDS=null;render()}
+// Tag antippen = nur diesen Tag zeigen, nochmals = wieder die ganze Woche
+function zGo(ds){ZDS=ds&&ds!=ZDS?ds:null;render()}
 // Zeiten eines Tages je Termin bzw. je Kunde/Auftrag ohne Termin bündeln (für den Regiebericht)
 function zGroups(r){var o=[],m={};r.forEach(function(e){var k=e.job_id?'j'+e.job_id:'c'+e.customer_id+'|'+(e.order_id||'');if(!m[k]){m[k]={rows:[],job:e.job_id||null,cust:e.customer_id,order:e.order_id||null,name:e.customer_name||''};o.push(m[k])}m[k].rows.push(e)});return o}
 function zRgBtn(g,ds){if(!RGOK||!g.cust)return '';var rg=g.rows.filter(function(e){return e.regie_id})[0];
  if(!rg&&g.rows.every(function(e){return e.invoice_id}))return '';
  var a=g.job&&byId(g.job)?'regie(\''+g.job+'\',\''+ds+'\')':'rgCust(\''+g.cust+'\',\''+(g.order||'')+'\',\''+ds+'\',this.dataset.n)';
- return '<button class="b zrg" data-n="'+esc(g.name)+'" onclick="'+a+'">'+ic('regie')+' '+(rg?'Regiebericht'+(rg.regie_number?' '+esc(rg.regie_number):'')+' öffnen':'Regiebericht schreiben')+'</button>'}
+ var t=rg?'Regiebericht'+(rg.regie_number?' '+rg.regie_number:'')+' öffnen':'Regiebericht schreiben';
+ return '<button class="zrg'+(rg?' has':'')+'" data-n="'+esc(g.name)+'" onclick="'+a+'" title="'+esc(t)+'" aria-label="'+esc(t+' · '+g.name)+'">'+ic('regie')+'</button>'}

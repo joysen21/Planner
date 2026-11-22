@@ -37,6 +37,9 @@ async function rgCust(cid,oid,day,name){var d=document.getElementById('dlg');
  var e=q.filter(function(x){return x.error})[0];if(e){d.querySelector('.sub').textContent='Laden fehlgeschlagen: '+e.error.message;return}
  var all=(q[0].data||[]).filter(function(x){return !x.job_id&&(x.order_id||null)==(oid||null)}),zt=(q[1].data||[]).filter(function(x){return x.customer_id==cid&&!x.job_id&&(x.order_id||null)==(oid||null)});
  if(all[0])await rgOpen(j,all[0],all,zt);else rgNew(j,day,all,zt)}
+// Entwurf: gerade gebuchte Zeiten dazunehmen (ein neuer Bericht übernimmt sie von selbst)
+function rgTake(ids){var z=(RG.zt||[]).filter(function(x){return ids.indexOf(x.id)>-1&&!x.regie_id&&!x.invoice_id});if(!z.length)return;
+ z.forEach(function(x){RG.hours.push({employee_id:x.employee_id,hours:+x.hours,article_id:x.article_id,work_date:x.work_date,time_from:x.time_from,time_to:x.time_to,break_min:x.break_min,activity:x.activity,tid:x.id})});RG.dirty=true;rgRender();rgUrls()}
 function rgAgain(){if(RG.job.id)regie(RG.job.id,RG.r.work_date);else rgCust(RG.r.customer_id,RG.r.order_id,RG.r.work_date,RG.job.kunde)}
 // Gebuchte Zeiten des Tages (noch frei) werden übernommen; abgerechnet wird dann nur der Bericht
 function rgNew(j,day,all,zt){var h=rgDefHours(j),take=(zt||[]).filter(function(x){return x.work_date==day&&!x.regie_id&&!x.invoice_id});
@@ -51,7 +54,7 @@ async function rgOpen(j,r,all,zt){
  var q=await Promise.all([sb.from('erp_regie_hours').select('*').eq('regie_id',r.id).order('pos'),sb.from('erp_regie_material').select('*').eq('regie_id',r.id).order('pos'),sb.from('erp_regie_photos').select('*').eq('regie_id',r.id)]);
  var e=q.filter(function(x){return x.error})[0];if(e){alert('Laden fehlgeschlagen: '+e.error.message);return}
  RG={job:j,r:r,hours:q[0].data.map(function(x){return {employee_id:x.employee_id,hours:+x.hours,article_id:x.article_id,work_date:x.work_date,time_from:x.time_from,time_to:x.time_to,break_min:x.break_min,activity:x.activity}}),
-  mat:q[1].data.map(function(x){return {article_id:x.article_id,text:x.text,qty:+x.qty,unit:x.unit}}),photos:q[2].data,urls:{},others:all,ro:r.status!='entwurf',dirty:false,signed:false};
+  mat:q[1].data.map(function(x){return {article_id:x.article_id,text:x.text,qty:+x.qty,unit:x.unit}}),photos:q[2].data,urls:{},others:all,ro:r.status!='entwurf',dirty:false,signed:false,zt:zt||[]};
  // übernommene Zeiten wieder ihren Zeilen zuordnen (je Mitarbeiter der Reihe nach)
  var lk=(zt||[]).filter(function(x){return x.regie_id==r.id});RG.linked=lk.length>0;
  lk.forEach(function(x){var h=RG.hours.filter(function(y){return !y.tid&&y.employee_id==x.employee_id})[0];if(h)h.tid=x.id});
