@@ -577,6 +577,36 @@ test.describe('Leistung aus der ERP', () => {
     await menu(page);
     await expect(page.locator('.lg')).toContainText('Montage vor Ort');
   });
+
+  test('Viele Leistungen: vier und die gewählte sichtbar, „Alle anzeigen“ klappt den Rest auf; im Termin und in „Zeit buchen“ oben', async ({ page }) => {
+    await login(page, 'uwe');
+    await app(page, () => { for (let i = 1; i < 6; i++) SVC.push({ id: 'a-x' + i, number: 'X' + i, name_de: 'Leistung ' + i, name_it: '', plan_color: '', active: true }); });
+    await neuerTermin(page);
+    const rows = page.locator('#s_art .svl button');
+    await expect(rows.filter({ visible: true })).toHaveCount(4);
+    await expect(rows.first()).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Alle 7 anzeigen' }).click();
+    await expect(rows.filter({ visible: true })).toHaveCount(7);
+    await rows.last().click();
+    await expect(rows.last()).toHaveClass(/on/);
+    await expect(page.locator('#s_art button.on')).toHaveCount(1);
+    await page.locator('#s_art button[data-v="kind:termin"]').click();
+    await expect(page.locator('#s_art button.on')).toHaveText(/Termin/);
+    await page.evaluate(() => document.getElementById('dlg').close());
+
+    // Zeit buchen: Leistung direkt unter dem Kunden, vor der Zeit
+    await app(page, () => showDet(S.jobs.find((j) => j.kunde.startsWith('Fam. Huber')).id));
+    await app(page, () => { document.getElementById('dlg').scrollTop = 400; });
+    await page.click('#dlg .zbb');
+    const z = page.locator('#dlg .svl button');
+    await expect(z.filter({ hasText: 'Arbeitsstunde Monteur' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await app(page, () => document.getElementById('dlg').scrollTop)).toBe(0);
+    expect((await page.locator('#dlg .svl').boundingBox()).y).toBeLessThan((await page.locator('#dlg .zmd').boundingBox()).y);
+    await z.filter({ hasText: 'Montage vor Ort' }).click();
+    await expect(page.locator('#dlg .svl button.on')).toHaveText(/Montage vor Ort/);
+    await page.click('#dlg .zgo');
+    await expect.poll(async () => (await app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')))).erp_time_entries.map((x) => x.article_id)).toEqual(['a-mon']);
+  });
 });
 
 test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {

@@ -5,9 +5,9 @@ function edit(id,ds,t,te,emp,pre){
  var j=id?Object.assign({},byId(id)):{id:uuid(),created_by:ME.user_id,kunde:'',adresse:'',tel:'',art:(SVC.length||ds&&isWE(ds)?'termin':'montage'),article_id:(!(ds&&isWE(ds))&&svcList()[0]?svcList()[0].id:null),wer:emp?(emp=='-'?[]:[emp]):[fltNew()],start:ds||'',fix:false,imp:false,tage:1,zeit:t||'',ende:t?(te||m2t(t2m(t)+60)):'',material:true,notiz:'',done:false};
  if(!id&&pre)Object.assign(j,pre);
  var h0=HRS()?rH(j.stunden!=null&&id?j.stunden:hFrom(j)):0;
- j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
+ SVALL=false;j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
  d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+(id?jobBar(byId(id)):'')+
- '<div class="eg"><div><div class="sec">Was</div><div class="seg wrap" id="s_art">'+artOpts(j).map(function(o){return '<button data-v="'+o.v+'">'+o.ic+' '+esc(o.n)+'</button>'}).join('')+'</div><div class="sub">'+(SVC.length?'Leistungen':'Montage, Planung und Werkstatt')+' nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
+ '<div class="eg"><div><div class="sec">Was</div><div id="s_art">'+artBox(j)+'</div><div class="sub">'+(SVC.length?'Leistungen':'Montage, Planung und Werkstatt')+' nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'" oninput="kSug()" autocomplete="off"><div id="ksug" class="ksug"></div>'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+usersSorted().map(function(u){var me=ME&&u.id==ME.id;return '<button data-v="'+u.id+'"'+(me?' class="mew"':'')+'>'+(me?ic('user')+' ':'')+esc(u.display_name)+(me?' (ich)':'')+'</button>'}).join('')+'</div>'+
  '<label>Status</label><div class="seg" id="s_fx"><button data-v="0">'+ic('pv')+' Provisorisch</button><button data-v="1">'+ic('pin')+' Fix</button></div><label class="chk"><input id="f_i" type="checkbox"'+(j.imp?' checked':'')+'> '+ic('starf','starx')+' Wichtiger Termin</label>'+
@@ -28,12 +28,12 @@ function edit(id,ds,t,te,emp,pre){
  '</div></div><div class="row ft">'+(id&&canDel(byId(id))?'<button class="b d" style="flex:none" onclick="if(del(\''+id+'\'))document.getElementById(\'dlg\').close()" title="Auftrag löschen">'+ic('trash')+'</button>':'')+'<button class="b" onclick="document.getElementById(\'dlg\').close()">Abbrechen</button><button class="b p" onclick="sv()">Speichern</button></div>';
  var wb=d.querySelectorAll('#s_wer button');function wv(){wb.forEach(function(b){b.classList.toggle('on',j.wer.indexOf(b.dataset.v)>-1)})}
  wb.forEach(function(b){b.onclick=function(){var i=j.wer.indexOf(b.dataset.v);if(i>-1)j.wer.splice(i,1);else j.wer.push(b.dataset.v);wv();sug()}});wv();
- var sa=d.querySelector('#s_art');sa.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v==artVal(j));b.onclick=function(){artSet(j,b.dataset.v);sa.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x==b)});sug()}});
+ var sa=d.querySelector('#s_art');ab=sa.querySelectorAll('button[data-v]');function av(){ab.forEach(function(b){var on=b.dataset.v==artVal(j);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}ab.forEach(function(b){b.onclick=function(){artSet(j,b.dataset.v);av();sug()}});av();
  var zb=d.querySelectorAll('#s_zt button');
  function zv(){d.querySelector('#tb').style.display=cur.zt&&!hrsJ(j)?'flex':'none';zb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.zt)})}
  zb.forEach(function(b){b.onclick=function(){cur.zt=b.dataset.v=='1';zv();sug()}});zv();
  var fb=d.querySelectorAll('#s_fx button');function fv(){fb.forEach(function(b){b.classList.toggle('on',(b.dataset.v=='1')==cur.fx)})}fb.forEach(function(b){b.onclick=function(){cur.fx=b.dataset.v=='1';fv()}});fv();sug();
- d.showModal();if(id)setTimeout(zFill)}
+ d.showModal();d.scrollTop=0;if(id)setTimeout(zFill)}
 // Mehrtägigen Auftrag aufteilen: k=0 = jeder Tag einzeln, sonst nach Tag k in zwei Teile
 // Anzahl Tage; ohne Datum ("Offen") zählt nur die eingetragene Dauer
 function nDays(j){return j.start?span(j).length:Math.max(1,j.tage||1)}
@@ -67,8 +67,18 @@ function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g(
 function artVal(j){return j.article_id?j.article_id:'kind:'+j.art}
 function artSet(j,v){if(v.indexOf('kind:')==0){j.art=v.slice(5);j.article_id=null}else{j.art='termin';j.article_id=v}}
 function artOpts(j){var dot=function(c){return '<b class="svd" style="background:'+c+'"></b>'};
- return svcList(j.article_id).map(function(a){return {v:a.id,n:a.name_de||a.name_it,ic:dot(a.plan_color||SVC_DEF)}})
+ return svcList(j.article_id).map(function(a){return {v:a.id,n:a.name_de||a.name_it,ic:dot(a.plan_color||SVC_DEF),svc:true}})
   .concat(Object.keys(ART).filter(function(k){return !SVC.length||k=='termin'||k=='urlaub'||(!j.article_id&&j.art==k)}).map(function(k){return {v:'kind:'+k,n:ART[k].n,ic:ART[k].ic}}))}
+// Leistungsartikel als Liste, darunter die übrigen Arten; ohne Leistungsartikel wie bisher Knöpfe
+function artBox(j){var o=artOpts(j),v=artVal(j),s=o.filter(function(x){return x.svc}),k=o.filter(function(x){return !x.svc}),
+  kb=k.length?'<div class="seg wrap">'+k.map(function(x){return '<button type="button" data-v="'+x.v+'">'+x.ic+' '+esc(x.n)+'</button>'}).join('')+'</div>':'';
+ return s.length?svRows(s.map(function(x){return {v:x.v,n:x.n,ic:x.ic,on:x.v==v}}))+kb:kb}
+// Auswahlliste der Leistungen (Termin und „Zeit buchen“): ab 5 Artikeln die ersten 4 und der gewählte, der Rest über „Alle … anzeigen“
+var SVALL=false;
+function svRows(r,click){var hid=0,h=r.map(function(x,i){var z=r.length>4&&i>=4&&!x.on&&!SVALL;if(z)hid++;
+  return '<button type="button" data-v="'+x.v+'" class="'+(x.on?'on':'')+(z?' svz':'')+'" aria-pressed="'+!!x.on+'"'+(click?' onclick="'+click+'(this.dataset.v)"':'')+'>'+x.ic+'<span>'+esc(x.n)+(x.ex?'<small>'+esc(x.ex)+'</small>':'')+'</span>'+ic('check')+'</button>'}).join('');
+ return '<div class="svl" role="group" aria-label="Leistung">'+h+'</div>'+(hid?'<button type="button" class="lk svm" onclick="svMore(this)">Alle '+r.length+' anzeigen '+ic('down')+'</button>':'')}
+function svMore(b){SVALL=true;b.previousElementSibling.querySelectorAll('.svz').forEach(function(x){x.classList.remove('svz')});b.remove()}
 // Dauer in Stunden: Felder ein-/ausblenden (Urlaub bleibt in Tagen), ± in 0,25-Schritten, Vorschau auf Tage und Ende
 function hv(){var d=document.getElementById('dlg'),q=function(s){return d.querySelector(s)};if(!q('#hb'))return;var h=hrsJ(cur.j);
  q('#s_zt').style.display=h?'none':'';q('#tb').style.display=!h&&cur.zt?'flex':'none';q('#db').style.display=h?'none':'';q('#hb').style.display=h?'':'none'}

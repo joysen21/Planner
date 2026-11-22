@@ -72,7 +72,7 @@ function zEdit(id){var all=[].concat(ZW[ZWK]||[]);Object.keys(ZJ).forEach(functi
  Z={job:j,id:x.id,order_id:x.order_id,customer_id:x.customer_id,cust:x.customer_id,name:x.customer_name||'',title:x.customer_name||(j&&j.kunde)||'',sub:x.order_number?'Auftrag '+x.order_number:'Ohne Auftrag',
   date:x.work_date,mode:x.time_from&&x.time_to?'vb':'h',from:x.time_from||zDefault(j).from,to:x.time_to||zDefault(j).to,brk:+x.break_min||0,hours:+x.hours,who:[x.employee_id],art:x.article_id,act:x.activity||'',back:false};
  zOpen()}
-function zOpen(){var d=document.getElementById('dlg');d.innerHTML='<div class="dt2"><b>Zeit buchen</b></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
+function zOpen(){var d=document.getElementById('dlg');SVALL=false;d.scrollTop=0;d.innerHTML='<div class="dt2"><b>Zeit buchen</b></div><div class="sub">Wird geladen …</div>';if(!d.open)d.showModal();
  var w=[zArts()];if(Z.job&&!ZJ[Z.job.id])w.push(zLoadJob(Z.job.id));
  Promise.all(w).then(function(){if(Z)zRender()})}
 function zClose(){var b=Z&&Z.back&&Z.job;Z=null;if(b)edit(b.id);else document.getElementById('dlg').close()}
@@ -89,7 +89,6 @@ function zProblem(){if(!Z.order_id&&!Z.customer_id)return 'Bitte einen Auftrag o
 // Verrechnungsartikel: gewählt, sonst Standard des Mitarbeiters, sonst Leistung des Termins, sonst der erste
 function zArtFor(emp){var ok=function(id){return id&&(ZART||[]).some(function(a){return a.id==id})},u=uById(emp);
  if(ok(Z.art))return Z.art;if(u&&ok(u.erp_labor_article_id))return u.erp_labor_article_id;if(Z.job&&ok(Z.job.article_id))return Z.job.article_id;return (ZART||[])[0]&&ZART[0].id||null}
-function zArtName(id){var a=(ZART||[]).filter(function(x){return x.id==id})[0];return a?(a.name_de||a.name_it||a.number):'–'}
 // Wer auf dem Termin steht (ich zuerst); im Bearbeiten nur die eine Person
 function zPeople(){if(Z.id||!Z.job)return Z.who.slice();var w=wer(Z.job),me=w.indexOf(ME.id)>-1;return (me?[ME.id]:[]).concat(w.filter(function(x){return x!=ME.id}))}
 
@@ -98,6 +97,10 @@ function zRender(){var d=document.getElementById('dlg'),st=d.scrollTop,td=zToday
  // Wofür
  if(Z.order_id||Z.customer_id)x+='<div class="ztg"><div><b>'+esc(Z.title)+'</b><span class="sub">'+esc(Z.sub)+(Z.job&&Z.date?' · '+zDay(Z.date):'')+'</span></div>'+(Z.job||Z.id?'':'<button class="lk" onclick="zTarget(null)">Ändern</button>')+'</div>';
  else x+='<label for="z_q">Kunde oder Auftrag</label><input id="z_q" type="search" placeholder="Name, Nummer oder Titel" autocomplete="off" oninput="zSearch(this.value)"><div id="z_res" class="zres"></div>';
+ // Leistung: der Artikel, nach dem abgerechnet wird; ohne eigene Wahl gilt der Standard je Mitarbeiter (Namen stehen dann dabei)
+ var ds=Z.who.length?Z.who:[ME.id],a0=zArtFor(ds[0]),same=ds.every(function(e){return zArtFor(e)==a0});
+ if((ZART||[]).length)x+='<div class="sec zls">Leistung</div>'+svRows(ZART.map(function(a){var m=ds.filter(function(e){return zArtFor(e)==a.id}),c=SVC.filter(function(s){return s.id==a.id})[0];
+  return {v:a.id,n:a.name_de||a.name_it||a.number,ic:'<b class="svd" style="background:'+(c&&c.plan_color||SVC_DEF)+'"></b>',on:m.length>0,ex:same||!m.length?'':m.map(uName).join(', ')}}),'zArtSet');
  // Wann: am Termin der Tag des Termins (mehrtägig: Tag wählen), sonst ein Datumsfeld
  if(Z.job){var jd=span(Z.job).filter(function(x){return x<=td});
   if(jd.length>1)x+='<div class="zdt" role="group" aria-label="Tag des Termins">'+jd.slice(-5).map(function(x){return '<button class="'+(Z.date==x?'on':'')+'" onclick="zSet(\'date\',\''+x+'\')">'+zDay(x)+'</button>'}).join('')+'</div>'}
@@ -121,15 +124,12 @@ function zRender(){var d=document.getElementById('dlg'),st=d.scrollTop,td=zToday
  // Hinweis: Bericht am selben Tag
  var rg=Z.job&&(ZRG[Z.job.id]||[]).filter(function(r){return r.work_date==Z.date})[0];
  if(rg&&!Z.id)x+='<div class="note">'+ic('info')+''+(rg.status=='entwurf'?' Für diesen Tag gibt es schon einen Regiebericht (Entwurf). „Regiebericht“ bucht die Zeit und trägt sie dort ein.':' Für diesen Tag gibt es schon einen Regiebericht. Stunden dort eintragen, sonst werden sie doppelt verrechnet.')+'</div>';
- // Abgerechnet als
- var a0=zArtFor(Z.who[0]||ME.id),same=Z.who.every(function(e){return zArtFor(e)==a0});
- x+='<div class="zart"><span>'+(Z.who.length>1&&!Z.id?'Für: '+esc(Z.who.map(uName).join(', '))+' · ':'')+'Abgerechnet als: '+(same?esc(zArtName(a0)):'je Mitarbeiter')+'</span>'+
-  ((ZART||[]).length>1?'<label class="lk">Ändern<select aria-label="Verrechnungsartikel ändern" onchange="zSet(\'art\',this.value)">'+ZART.map(function(a){return '<option value="'+a.id+'"'+(a.id==a0?' selected':'')+'>'+esc(a.name_de||a.name_it||a.number)+'</option>'}).join('')+'</select></label>':'')+'</div>';
  x+='<div id="z_e" class="err" role="alert"></div><div class="row ft">'+(Z.id?'<button class="b d" style="flex:none" onclick="zDel()" aria-label="Zeit löschen">'+ic('trash')+'</button>':'')+
   (RGOK&&(Z.order_id||Z.customer_id)&&Z.cust&&!(rg&&rg.status!='entwurf')?'<button class="b zrs" onclick="zSaveRg()" aria-label="'+(Z.id?'Speichern':'Zeit buchen')+' und Regiebericht ausfüllen">'+ic('plus')+' Regiebericht</button>':'')+
   '<button class="b p zgo" onclick="zSave()">'+(Z.id?'Speichern':(Z.who.length>1?Z.who.length+' × ':'')+zH(h)+' buchen')+'</button></div>';
  d.innerHTML=x;d.scrollTop=st}
 
+function zArtSet(v){zSet('art',v)}
 function zSet(k,v){if(k=='hours')v=Math.max(0.25,Math.min(24,v));if(k=='mode'&&v=='h'&&Z.mode=='vb')Z.hours=zHoursFrom();Z[k]=v;zRender()}
 function zHoursFrom(){var m=t2m(Z.to)-t2m(Z.from)-Z.brk;return m>0?Math.round(m/15)/4:Z.hours}
 function zT(k,dm){zSet(k,m2t(t2m(Z[k])+dm))}
