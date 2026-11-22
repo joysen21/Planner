@@ -169,7 +169,7 @@ function gridAvail(){var W=innerWidth>=900,el=document.getElementById('hd'),top=
 function fitW(el,txt,max,min){el.classList.remove('brk');for(var f=max;f>=min;f-=.5){txt.style.fontSize=f+'px';if(txt.scrollWidth<=txt.clientWidth)return}
  txt.style.fontSize=Math.min(max,min+1)+'px';el.classList.add('brk')}
 // Name senkrecht, Buchstabe unter Buchstabe (eigene Zeichen statt writing-mode: in allen Browsern gleich)
-function vtName(s){return '<span class="vtx" aria-hidden="true">'+s.split(' ').map(function(w){return '<span>'+(w.toLocaleUpperCase('de').match(/[^.,][.,]*|[.,]+/gu)||[]).map(function(c){return '<i>'+esc(c)+'</i>'}).join('')+'</span>'}).join('')+'</span>'}
+function vtName(s){return '<span class="vtx" aria-hidden="true">'+s.split(' ').map(function(w){return '<span>'+(w.match(/[^.,][.,]*|[.,]+/gu)||[]).map(function(c){return '<i>'+esc(c)+'</i>'}).join('')+'</span>'}).join('')+'</span>'}
 // Handy-Woche, zwei Termine nebeneinander: senkrecht; ist der Termin dafür zu kurz, klein und waagrecht umgebrochen
 function fitV(e){var v=e.querySelector('.vtx'),k=e.querySelector('.evk');e.classList.add('vt');e.classList.remove('brk');
  for(var f=12.5;f>=8;f-=.5){v.style.fontSize=f+'px';if(v.scrollWidth<=v.clientWidth&&v.scrollHeight<=v.clientHeight)return}

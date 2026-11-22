@@ -762,7 +762,7 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await app(page, () => setMode('woche'));
     const kevin = page.locator('.ev', { hasText: 'Kevin' });
     await expect(kevin).toHaveClass(/vt/);
-    await expect(kevin.locator('.vtx i')).toHaveText(['K', 'E', 'V', 'I', 'N']);
+    await expect(kevin.locator('.vtx i')).toHaveText(['K', 'e', 'v', 'i', 'n']);
     const y = await kevin.locator('.vtx i').evaluateAll((l) => l.map((e) => e.getBoundingClientRect().top));
     expect(y.every((v, i) => !i || v > y[i - 1] + 4)).toBe(true);
     expect(await page.locator('.ev.vt .vtx').evaluateAll((l) => l.every((e) => e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight))).toBe(true);
