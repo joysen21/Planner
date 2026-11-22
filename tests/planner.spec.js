@@ -1135,6 +1135,45 @@ test.describe('Nutzungszählung', () => {
     expect((await ev(page))[1]).toMatchObject({ flow: 'termin_anlegen', outcome: 'abbruch' });
   });
 
+  test('Nur ansehen ist kein Abbruch: Termin, Zeit und Entwurf; nach einer Änderung schon', async ({ page }) => {
+    await login(page, 'uwe');
+    const auf = () => app(page, () => edit(S.jobs.find((j) => j.kunde.startsWith('Fam. Huber')).id));
+    await auf();
+    await page.locator('#dlg .dt2 .ib').click();
+    await auf();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    expect(await ev(page)).toEqual([]);
+    await auf();
+    await page.fill('#f_n', 'geändert');
+    await page.locator('#dlg .dt2 .ib').click();
+    await expect.poll(async () => (await ev(page)).map((x) => x.flow + ':' + x.outcome)).toEqual(['termin_bearbeiten:abbruch']);
+    // Zeit ansehen und ändern
+    await auf();
+    await page.click('#dlg .zbb');
+    await page.click('#dlg .zgo');
+    await page.evaluate(() => document.getElementById('dlg').close());
+    await page.click('nav button[data-t="zeiten"]');
+    await app(page, () => { if (zMon(S.jobs.find((j) => j.kunde.startsWith('Fam. Huber')).start) != ZWK) zWeek(-7); });
+    await page.click('.zrm');
+    await expect(page.locator('#dlg .zgo')).toBeVisible();
+    await page.locator('#dlg .dt2 .ib').click();
+    await page.click('.zrm');
+    await page.getByRole('button', { name: 'Nur Stunden' }).click();
+    await page.locator('#dlg .dt2 .ib').click();
+    await expect.poll(async () => (await ev(page)).map((x) => x.flow + ':' + x.outcome)).toEqual(['termin_bearbeiten:abbruch', 'zeit_buchen:ok', 'zeit_aendern:abbruch']);
+    // Entwurf speichern, wieder öffnen, schließen
+    await page.click('.zrg');
+    await page.locator('#dlg .ft .b', { hasText: 'Speichern' }).click();
+    await expect(page.locator('#rg_e')).toHaveText('Gespeichert');
+    await page.locator('#dlg .dt2 .ib').click();
+    await page.click('.zrg');
+    await expect(page.locator('#dlg .rgt')).toBeVisible();
+    await page.locator('#dlg .dt2 .ib').click();
+    await page.waitForTimeout(200);
+    expect((await ev(page)).length).toBe(3);
+  });
+
   test('Zeit buchen am Termin und Regiebericht senden', async ({ page }) => {
     await login(page, 'uwe');
     await app(page, () => edit(S.jobs.find((j) => j.kunde.startsWith('Fam. Huber')).id));

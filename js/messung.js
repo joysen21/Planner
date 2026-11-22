@@ -16,8 +16,12 @@ function msSend(flow,outcome,clicks,sec,entry){
 function msClick(){Object.keys(MS).forEach(function(k){MS[k].c++})}
 document.addEventListener('pointerdown',msClick,true);
 document.addEventListener('keydown',function(e){if(e.key=='Enter'&&!e.repeat)msClick()},true);
+// Nur Ansehen ist kein Abbruch: Stand des Fensters beim Öffnen merken, beim Schließen vergleichen
+function msForm(){return JSON.stringify([cur&&cur.j,cur&&cur.zt,cur&&cur.fx,[].map.call(document.querySelectorAll('#dlg input,#dlg select,#dlg textarea'),function(e){return e.type=='checkbox'?e.checked:e.value})])}
+function msZ(){return Z?JSON.stringify(Z):''}
+function msSeen(m){if(!m||!m.seen)return false;return m.flow=='termin_bearbeiten'?!!document.querySelector('#dlg #f_k')&&msForm()==m.seen:m.flow=='zeit_aendern'?msZ()==m.seen:false}
 // Fenster ohne Abschluss geschlossen = Abbruch
-['dlg','kdlg'].forEach(function(id){var d=document.getElementById(id);if(d)d.addEventListener('close',function(){var m=MS[id];if(!m)return;if(m.draft)msDrop(id);else msEnd(id,'abbruch')})});
+['dlg','kdlg'].forEach(function(id){var d=document.getElementById(id);if(d)d.addEventListener('close',function(){var m=MS[id];if(!m)return;if(m.draft||msSeen(m))msDrop(id);else msEnd(id,'abbruch')})});
 
 // Einstiege
 (function(){var n=nw;nw=function(){MSE='plus';return n.apply(this,arguments)}})();
@@ -25,7 +29,7 @@ document.addEventListener('keydown',function(e){if(e.key=='Enter'&&!e.repeat)msC
 
 // Termin anlegen / bearbeiten
 (function(){var o=edit;edit=function(id){var back=MSBACK;MSBACK=false;var r=o.apply(this,arguments);
-  if(!back)msStart('dlg',id?'termin_bearbeiten':'termin_anlegen');return r}})();
+  if(!back){msStart('dlg',id?'termin_bearbeiten':'termin_anlegen');if(id)MS.dlg.seen=msForm()}return r}})();
 (function(){var o=sv;sv=function(){var m=MS.dlg,r=o.apply(this,arguments);
   if(m&&/^termin_/.test(m.flow)&&(!document.getElementById('dlg').open||!document.querySelector('#dlg #f_k')))msEnd('dlg','ok');return r}})();
 (function(){var o=del;del=function(){var r=o.apply(this,arguments);if(r)msDrop('dlg');return r}})();
@@ -37,8 +41,8 @@ document.addEventListener('keydown',function(e){if(e.key=='Enter'&&!e.repeat)msC
 // Zeit buchen
 (function(){var o=zBook;zBook=function(){var e=document.querySelector('#dlg #f_k')?'termin':msEntry();var r=o.apply(this,arguments);if(Z)msStart('dlg','zeit_buchen',e);return r}})();
 (function(){var o=zNew;zNew=function(){var e=msEntry();var r=o.apply(this,arguments);msStart('dlg','zeit_buchen',e);return r}})();
-(function(){var o=zEdit;zEdit=function(){var e=msEntry();var r=o.apply(this,arguments);if(Z)msStart('dlg','zeit_aendern',e);return r}})();
-(function(){var o=zClose;zClose=function(){MSBACK=true;try{return o.apply(this,arguments)}finally{MSBACK=false}}})();
+(function(){var o=zEdit;zEdit=function(){var e=msEntry();var r=o.apply(this,arguments);if(Z){msStart('dlg','zeit_aendern',e);MS.dlg.seen=msZ()}return r}})();
+(function(){var o=zClose;zClose=function(){if(msSeen(MS.dlg))MS.dlg.draft=true;MSBACK=true;try{return o.apply(this,arguments)}finally{MSBACK=false}}})();
 (function(){var o=zSave;zSave=async function(){var m=MS.dlg,r=await o.apply(this,arguments);if(m&&MS.dlg===m&&!Z)msEnd('dlg','ok');return r}})();
 // Bericht gleich aus dem Buchungsblatt: eigener Ablauf mit eigenem Einstieg
 (function(){var o=zSaveRg;zSaveRg=async function(){MSE='zeit_buchen';try{return await o.apply(this,arguments)}finally{MSE=''}}})();
@@ -49,6 +53,9 @@ document.addEventListener('keydown',function(e){if(e.key=='Enter'&&!e.repeat)msC
 (function(){var o=rgCust;rgCust=function(){var e=msEntry();msStart('dlg','regie_senden',e+'_ohne_termin');return o.apply(this,arguments)}})();
 (function(){var o=rgSave;rgSave=async function(send){var m=MS.dlg,ok=await o.apply(this,arguments);
   if(ok&&m&&MS.dlg===m&&m.flow=='regie_senden'){if(send)msEnd('dlg','ok');else m.draft=true}return ok}})();
+
+// Gespeicherten Entwurf nur ansehen ist kein Abbruch
+(function(){var o=rgClose;rgClose=function(){if(RG&&RG.r.id&&!RG.dirty&&!RG.signed&&MS.dlg&&MS.dlg.flow=='regie_senden')MS.dlg.draft=true;return o.apply(this,arguments)}})();
 
 // Kunde anlegen (Stammdaten-Fenster)
 (function(){var o=kNeuDlg;kNeuDlg=function(init,then){var e=document.querySelector('#dlg #f_k')?'termin':msEntry();
