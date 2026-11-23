@@ -122,7 +122,7 @@ function hScroll(t){for(var e=t;e&&e.nodeType==1&&e.tagName!='MAIN';e=e.parentNo
 var sw=null;
 document.addEventListener('touchstart',function(e){var t=e.target;
  if(e.touches.length==2){sw=null;if(tab=='plan'&&t.closest&&t.closest('#main .tg'))pzStart(e);return}
- sw=(tab=='plan'&&e.touches.length==1&&!DD&&!(DG&&DG.on)&&t.closest&&t.closest('#main .swp')&&!hScroll(t))?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now(),on:false}:null},{passive:true});
+ sw=((tab=='plan'||tab=='zeiten')&&e.touches.length==1&&!DD&&!(DG&&DG.on)&&t.closest&&t.closest('#main .swp')&&!hScroll(t))?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now(),on:false}:null},{passive:true});
 document.addEventListener('touchmove',function(e){
  if(PZ){if(e.touches.length>=2){e.preventDefault();pzMove(e)}return}
  if(!sw||e.touches.length!=1)return;if(DG&&DG.on||SL&&SL.on||RZ){swBack(sw);sw=null;return}
@@ -131,13 +131,17 @@ document.addEventListener('touchmove',function(e){
  e.preventDefault();sw.dx=dx;if(sw.el)sw.el.style.transform='translateX('+dx+'px)'},{passive:false});
 document.addEventListener('touchend',function(e){if(PZ&&e.touches.length<2)PZ=null;var s0=sw;sw=null;if(s0&&s0.on&&!sup)swEnd(s0);else if(s0)swBack(s0)},{passive:true});
 document.addEventListener('touchcancel',function(){PZ=null;if(sw)swBack(sw);sw=null},{passive:true});
+// Wischen: im Plan der nächste Zeitraum, in den Zeiten die nächste Woche
+function swStep(d){if(tab=='zeiten')zWeek(7*d);else step(d)}
 function swBack(s){var el=s&&s.el;if(!el||!el.style.transform)return;el.style.transition='transform .18s ease-out';el.style.transform='';setTimeout(function(){el.style.transition=''},200)}
 function swEnd(s){var dx=s.dx||0,v=Math.abs(dx)/Math.max(1,Date.now()-s.t),el=s.el;
  if(!(Math.abs(dx)>70||Math.abs(dx)>30&&v>.45)){swBack(s);return}
  var d=dx<0?1:-1,W=innerWidth;
- if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches){if(el)el.style.transform='';step(d);return}
+ // Zeiten: nicht über die aktuelle Woche hinaus (wie der Pfeil)
+ if(tab=='zeiten'&&d>0&&ZWK>=zMon(zToday())){swBack(s);return}
+ if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches){if(el)el.style.transform='';swStep(d);return}
  el.style.transition='transform .15s ease-in';el.style.transform='translateX('+(-d*W)+'px)';
- setTimeout(function(){step(d);var n=document.querySelector('#main .swp');if(!n)return;n.style.transition='none';n.style.transform='translateX('+(d*W*.35)+'px)';
+ setTimeout(function(){swStep(d);var n=document.querySelector('#main .swp');if(!n)return;n.style.transition='none';n.style.transform='translateX('+(d*W*.35)+'px)';
   void n.offsetWidth;n.style.transition='transform .2s ease-out';n.style.transform='';setTimeout(function(){n.style.transition=''},230)},150)}
 
 /* ---------- PC: Seitenleiste, Vollbild, Tastaturkürzel ---------- */

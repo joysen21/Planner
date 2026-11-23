@@ -189,13 +189,14 @@ function zView(hd,m){var td=zToday(),cw=zMon(td);if(!ZWK)ZWK=cw;var mon=ZWK,sun=
  var soll=days.filter(function(x){return !isWE(x)}).length*dayH(),ist=rows?zSum(rows):0;
  var h='<div class="zwk"><button class="ib" onclick="zWeek(-7)" aria-label="Woche zurück">'+ic('left')+'</button><div><b>KW '+zWeekNo(mon)+' · '+rng+'</b><span class="sub">Meine Zeiten'+(rows?' · '+zNum(ist)+' von '+zNum(soll)+' h':'')+'</span></div>'+
   '<button class="ib" onclick="zWeek(7)" aria-label="Woche weiter"'+(mon>=cw?' disabled':'')+'>'+ic('right')+'</button></div>';
- if(!rows){m.innerHTML=h+'<div class="empty">Wird geladen …</div>';zLoadWeek(mon).then(function(){if(tab=='zeiten'&&ZWK==mon)render()}).catch(function(e){if(tab=='zeiten')m.innerHTML=h+'<div class="err">Laden fehlgeschlagen: '+esc(e.message||String(e))+'</div>'});return}
+ if(!rows){m.innerHTML=h+'<div class="swp"><div class="empty">Wird geladen …</div></div>';zLoadWeek(mon).then(function(){if(tab=='zeiten'&&ZWK==mon)render()}).catch(function(e){if(tab=='zeiten')m.innerHTML=h+'<div class="err">Laden fehlgeschlagen: '+esc(e.message||String(e))+'</div>'});return}
  var by={};rows.forEach(function(x){(by[x.work_date]=by[x.work_date]||[]).push(x)});
  // Termine ohne eigene Zeit je Tag
  var sug={};days.forEach(function(x){sug[x]=x>td?[]:S.jobs.filter(function(j){return zJobOk(j)&&!j.done&&wer(j).indexOf(ME.id)>-1&&span(j).indexOf(x)>-1&&!(by[x]||[]).some(function(e){return e.job_id==j.id})})});
  if(ZDS&&days.indexOf(ZDS)<0)ZDS=null;
  // Tagesleiste: Summe und Balken gegen die Tagesstunden, Punkt = Termin ohne Zeit; Tipp filtert die Liste
- h+='<div class="zdays" role="group" aria-label="Tag auswählen">'+days.map(function(x){var s=zSum(by[x]||[]),p=parse(x),on=ZDS==x,o=sug[x].length;return '<button class="'+(x==td?'td ':'')+(isWE(x)?'we ':'')+(on?'on':'')+'" aria-pressed="'+on+'"'+(x>td?' disabled':'')+' onclick="zGo(\''+x+'\')" aria-label="'+zDayLong(x)+': '+zH(s)+(o?', '+o+(o==1?' Termin':' Termine')+' ohne Zeit':'')+'"><span>'+WD[p.getDay()]+'</span><b>'+p.getDate()+'</b><span>'+(s?zNum(s):'–')+'</span><i><i style="width:'+Math.min(100,Math.round(s/dayH()*100))+'%"></i></i>'+(o?'<em></em>':'')+'</button>'}).join('')+'</div>';
+ // Tagesleiste und Liste lassen sich wischen (nächste/vorige Woche); die Kopfzeile mit den Pfeilen bleibt stehen
+ h+='<div class="swp"><div class="zdays" role="group" aria-label="Tag auswählen">'+days.map(function(x){var s=zSum(by[x]||[]),p=parse(x),on=ZDS==x,o=sug[x].length;return '<button class="'+(x==td?'td ':'')+(isWE(x)?'we ':'')+(on?'on':'')+'" aria-pressed="'+on+'"'+(x>td?' disabled':'')+' onclick="zGo(\''+x+'\')" aria-label="'+zDayLong(x)+': '+zH(s)+(o?', '+o+(o==1?' Termin':' Termine')+' ohne Zeit':'')+'"><span>'+WD[p.getDay()]+'</span><b>'+p.getDate()+'</b><span>'+(s?zNum(s):'–')+'</span><i><i style="width:'+Math.min(100,Math.round(s/dayH()*100))+'%"></i></i>'+(o?'<em></em>':'')+'</button>'}).join('')+'</div>';
  // Liste: neuester Tag zuerst (oder nur der gewählte); Termine ohne eigene Zeit als Vorschlag
  var list='';(ZDS?[ZDS]:days.slice().reverse()).forEach(function(x){if(x>td)return;var r=by[x]||[];
   if(!r.length&&!sug[x].length)return;
@@ -204,7 +205,7 @@ function zView(hd,m){var td=zToday(),cw=zMon(td);if(!ZWK)ZWK=cw;var mon=ZWK,sun=
    zGroups(r).map(function(g){return g.rows.map(function(e,i){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
     return '<div class="zrow'+(lk?' zlk':'')+'"><button class="zrm"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'+(!i&&zRgBtn(g,x)||'<span class="zrx"></span>')+'</div>'}).join('')}).join('')});
  var all=ZDS?'<button class="lk zall" onclick="zGo(null)">Ganze Woche anzeigen</button>':'';
- m.innerHTML=h+(list?'<div class="zlist">'+list+'</div>'+all:'<div class="empty big">'+ic('zeiten')+'<br><b>'+(ZDS?zDayLong(ZDS)+': noch keine Zeiten':'Diese Woche noch keine Zeiten')+'</b><br><small>Mit '+ic('plus')+' eine Zeit buchen</small></div>'+all)}
+ m.innerHTML=h+(list?'<div class="zlist">'+list+'</div>'+all:'<div class="empty big">'+ic('zeiten')+'<br><b>'+(ZDS?zDayLong(ZDS)+': noch keine Zeiten':'Diese Woche noch keine Zeiten')+'</b><br><small>Mit '+ic('plus')+' eine Zeit buchen</small></div>'+all)+'</div>'}
 function zWeek(n){var cw=zMon(zToday()),w=zAdd(ZWK,n);if(w>cw)w=cw;ZWK=w;ZDS=null;render()}
 // Tag antippen = nur diesen Tag zeigen, nochmals = wieder die ganze Woche
 function zGo(ds){ZDS=ds&&ds!=ZDS?ds:null;render()}

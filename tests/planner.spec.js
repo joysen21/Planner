@@ -933,6 +933,34 @@ test.describe('Tablet', () => {
 });
 
 test.describe('Zeiten buchen (ERP)', () => {
+  test('Zeiten-Woche wischen: nach rechts die vorige Woche, nach links zurück, nicht über die aktuelle Woche hinaus', async ({ page }, info) => {
+    await login(page, 'uwe');
+    await page.click('nav button[data-t="zeiten"]');
+    await expect(page.locator('#main .swp .zdays')).toBeVisible();
+    const jetzt = await app(page, () => ZWK);
+    const wisch = (dx) => app(page, (d) => swEnd({ el: document.querySelector('#main .swp'), dx: d, t: Date.now() - 200 }), dx);
+    await wisch(-140);
+    await page.waitForTimeout(400);
+    expect(await app(page, () => ZWK)).toBe(jetzt);
+    await wisch(140);
+    const vorher = await app(page, (d) => zAdd(d, -7), jetzt);
+    await expect.poll(() => app(page, () => ZWK)).toBe(vorher);
+    await expect(page.locator('.zwk b')).toContainText('KW ');
+    await expect.poll(() => app(page, () => document.querySelector('#main .swp').style.transform)).toBe('');
+    if (isMobile(info)) {
+      // echter Finger: auf der Liste nach links wischen = wieder die aktuelle Woche
+      await app(page, () => {
+        const el = document.querySelector('#main .swp'), r = el.getBoundingClientRect(), y = r.top + 20;
+        // Touch-Ereignisse nachgebaut (WebKit erlaubt keinen Touch-Konstruktor)
+        const ev = (type, x) => { const e = new Event(type, { bubbles: true, cancelable: true }); const l = x == null ? [] : [{ identifier: 1, target: el, clientX: x, clientY: y }]; Object.defineProperty(e, 'touches', { value: l }); return e; };
+        el.dispatchEvent(ev('touchstart', 300));
+        [270, 220, 150, 100].forEach((x) => el.dispatchEvent(ev('touchmove', x)));
+        el.dispatchEvent(ev('touchend'));
+      });
+      await expect.poll(() => app(page, () => ZWK)).toBe(jetzt);
+    }
+  });
+
   const oeffne = (page, kunde) => app(page, (k) => showDet(S.jobs.find((j) => j.kunde.startsWith(k)).id), kunde);
   const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
 
