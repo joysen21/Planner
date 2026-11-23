@@ -1276,6 +1276,25 @@ test.describe('Nutzungszählung', () => {
   });
 });
 
+test.describe('Termin bearbeiten: Kopf', () => {
+  test('Antippen öffnet direkt Bearbeiten; oben Kunde, Zeit, Team, Adresse und die Notizen von Termin und Kunde', async ({ page }) => {
+    await login(page, 'uwe');
+    const id = await app(page, () => { const j = S.jobs.find((x) => x.kunde.startsWith('Fam. Huber')); j.customer_id = S.cust.find((c) => c.name == 'Fam. Huber').id; j.adresse = 'Bozen, Hauptstraße 12'; j.notiz = 'Duschtasse liefern'; return j.id; });
+    await app(page, (i) => showDet(i), id);
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    const h = page.locator('#dlg .jhd');
+    await expect(h.locator('h2')).toHaveText(/^Fam. Huber/);
+    await expect(h).toContainText('Bozen, Hauptstraße 12');
+    await expect(h.locator('.jnt')).toHaveText([/Duschtasse liefern/, /Hund im Garten/]);
+    // Kopf steht vor dem Formular, das Formular bleibt bearbeitbar
+    expect((await h.boundingBox()).y).toBeLessThan((await page.locator('#s_art').boundingBox()).y);
+    await expect(page.locator('#f_n')).toHaveValue('Duschtasse liefern');
+    // neuer Termin: kein Kopf
+    await app(page, () => { document.getElementById('dlg').close(); edit(null, ''); });
+    await expect(page.locator('#dlg .jhd')).toHaveCount(0);
+  });
+});
+
 test.describe('ToDos (ERP)', () => {
   const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
   const todos = async (page) => { await page.click('nav button[data-t="todos"]'); await expect(page.locator('#hd h1')).toHaveText('ToDos'); };

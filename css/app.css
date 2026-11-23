@@ -715,3 +715,11 @@ span.tdg{cursor:default}.tdg .i{width:13px;height:13px}.tdg.bad{background:color
 .tdei{margin:10px 0 4px}.tdeb{margin-top:14px;align-items:center}.tdeb .sp{flex:1}.tdeb .b{flex:none;padding:0 14px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .tbar.tdf input[type=search]{flex:1 1 0;min-width:120px;width:auto}.tbar.tdf select{flex:none;width:auto}
+
+/* Bearbeiten: Kopf mit Kunde, Zeit, Team und Notizen vor dem Formular */
+.jhd{margin:0 0 12px}
+.jhd h2{margin:0 0 6px;font-size:21px;line-height:1.2;overflow-wrap:anywhere}
+.jw{display:flex;align-items:flex-start;gap:8px;color:var(--tx);font-size:15px;line-height:1.35;margin-top:3px}
+.jw .i{flex:none;width:17px;height:17px;margin-top:1px;color:var(--mu)}.jw span{min-width:0;overflow-wrap:anywhere}
+.jnt{margin-top:8px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--pl) 16%,var(--card));border:1px solid color-mix(in srgb,var(--pl) 45%,var(--ln));font-size:15px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.jnt small{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mu);margin-bottom:1px}

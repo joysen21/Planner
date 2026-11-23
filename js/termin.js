@@ -6,7 +6,7 @@ function edit(id,ds,t,te,emp,pre){
  if(!id&&pre)Object.assign(j,pre);
  var h0=HRS()?rH(j.stunden!=null&&id?j.stunden:hFrom(j)):0;
  SVALL=false;j.wer=wer(j);cur={j:j,isNew:!id,zt:!!j.zeit,fx:j.fix!==false};var d=document.getElementById('dlg');
- d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+(id?jobBar(byId(id)):'')+
+ d.innerHTML='<div class="dt2"><b>'+(id?'Auftrag bearbeiten':'Neuer Termin')+'</b><button class="ib" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+(id?jobHead(byId(id))+jobBar(byId(id)):'')+
  '<div class="eg"><div><div class="sec">Was</div><div id="s_art">'+artBox(j)+'</div><div class="sub">'+(SVC.length?'Leistungen':'Montage, Planung und Werkstatt')+' nur an Werktagen (Mo–Fr, ohne Feiertage)</div>'+
  '<label>Kunde / Titel</label><input id="f_k" placeholder="z. B. Fam. Huber – Küche" value="'+esc(j.kunde)+'" oninput="kSug()" autocomplete="off"><div id="ksug" class="ksug"></div>'+
  '<label>Wer (mehrere möglich)</label><div class="seg wrap" id="s_wer">'+usersSorted().map(function(u){var me=ME&&u.id==ME.id;return '<button data-v="'+u.id+'"'+(me?' class="mew"':'')+'>'+(me?ic('user')+' ':'')+esc(u.display_name)+(me?' (ich)':'')+'</button>'}).join('')+'</div>'+
@@ -100,6 +100,17 @@ function hSum(){var d=document.getElementById('dlg'),el=d.querySelector('#hs');i
   (n>1?'<small>'+dd.map(function(x,i){return f(x)+' '+w(i)}).join(' · ')+'</small>':'')}
 
 // Aktionen oben im Bearbeiten: Regiebericht, Zeit buchen, Anrufen, Route; darunter die gebuchten Zeiten
+// Kopf beim Bearbeiten: auf einen Blick, worum es geht (Kunde, wann, wer, Art) und die Notizen von Termin und Kunde
+function jobHead(j){if(!j)return '';var d=j.start?span(j):[],sv=svcOf(j),
+  wann=j.start?zDayLong(j.start)+(d.length>1?' – '+zDayLong(d[d.length-1]):'')+(j.art=='urlaub'?'':' · '+tLbl(j,j.start)):'Noch ohne Datum',
+  who=wer(j).map(function(id){var u=uById(id);return u?u.display_name:''}).filter(Boolean).join(', '),
+  c=j.customer_id&&kById(j.customer_id)||j.erp_customer_id&&(S.cust||[]).filter(function(x){return x.erp_customer_id==j.erp_customer_id})[0],
+  n=(j.notiz||'').trim(),kn=c&&(c.notiz||'').trim(),nt='';
+ if(n)nt+='<div class="jnt"><small>Notiz</small>'+esc(n)+'</div>';
+ if(kn&&kn!=n)nt+='<div class="jnt"><small>Zum Kunden</small>'+esc(kn)+'</div>';
+ return '<div class="jhd"><h2>'+esc(jTit(j)||'(ohne Name)')+'</h2><div class="jw">'+ic('clock')+'<span>'+esc(wann)+'</span></div>'+
+  '<div class="jw">'+ic('users')+'<span>'+esc([who||'Niemand zugeteilt',sv?sv.name_de||sv.name_it:ART[j.art]&&ART[j.art].n].filter(Boolean).join(' · '))+'</span></div>'+
+  (j.adresse?'<div class="jw">'+ic('place')+'<span>'+esc(j.adresse)+'</span></div>':'')+nt+'</div>'}
 function jobBar(j){if(!j)return '';var b=[];
  if(RGOK&&j.start&&j.art!='urlaub'&&erpCust(j)){b.push('<button type="button" class="b rgb" onclick="regie(\''+j.id+'\')">'+ic('regie')+' Regiebericht</button>','<button type="button" class="b zbb" onclick="zBook(\''+j.id+'\')">'+ic('clock')+' Zeit buchen</button>')}
  if(j.tel)b.push('<a class="b" href="tel:'+esc(j.tel)+'">'+ic('phone')+' Anrufen</a>');
