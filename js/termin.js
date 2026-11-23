@@ -53,6 +53,8 @@ function sv(){var j=cur.j,g=function(i){return document.getElementById(i)},st=g(
  if(hrsJ(j)){var hh=hVal();if(!hh){alert('Bitte eine Dauer in Stunden angeben.');return}j.stunden=hh;j.zeit=g('f_b').value;j.ende='';fit(j)}
  else{if(cur.zt){j.zeit=g('f_z').value||'08:00';j.ende=g('f_e').value;if(!j.ende||j.ende<=j.zeit)j.ende=m2t(t2m(j.zeit)+60)}else{j.zeit='';j.ende=''}
   j.tage=Math.max(1,parseInt(g('f_d').value)||1)}
+ // aus einem ToDo: über erp_todo_to_job, ohne Wiederholen; danach zurück zur ToDo-Liste
+ if(cur.todo){tdJobSave(j).then(function(ok){if(ok){g('dlg').close();tab='todos';render()}});return}
  // Wiederholen: Kopien bis zum Enddatum anlegen (gleiche Serien-ID), höchstens 120
  var rp=g('f_r')&&g('f_r').value,ru=g('f_ru')&&g('f_ru').value,extra=[];
  if(cur.isNew&&rp&&j.start){if(!ru||ru<j.start){alert('Bitte ein Enddatum für die Wiederholung angeben.');return}

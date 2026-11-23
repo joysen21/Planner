@@ -63,6 +63,11 @@
   try { DB = JSON.parse(sessionStorage.getItem(KEY)); } catch (e) {}
   if (!DB) DB = seed();
   DB.erp_time_entries = DB.erp_time_entries || []; DB.erp_orders = DB.erp_orders || [];
+  // ToDos wie in der ERP (erp_todos); Ersteller ist der erste Mitarbeiter
+  function demoTodos() { if (DB.erp_todos) return; var e0 = DB.employees[0] && DB.employees[0].id, ago = function (h) { return new Date(Date.now() - h * 36e5).toISOString(); };
+    DB.erp_todos = [['Silikonfuge Bad Huber erneuern', 'Kunde hat angerufen, Fuge an der Dusche löst sich.', 50], ['Angebot Gamper nachfassen', '', 26], ['Leiter von der Baustelle Adler zurückholen', '', 3]]
+      .map(function (x, i) { return { id: 'td-' + (i + 1), org_id: 'demo-org', title: x[0], body: x[1], created_by: e0, created_at: ago(x[2]), done_at: null, done_by: null, job_id: null, job_linked: false }; }); }
+  demoTodos();
   var persist = function () { try { sessionStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} };
   persist();
 
@@ -103,6 +108,7 @@
         var i = t.findIndex(function (r) { return r[key] === row[key]; });
         var base = { org_id: 'demo-org', created_by: session && session.user.id };
         if (me.t === 'erp_regie') Object.assign(base, { status: 'entwurf', number: '' });   // Vorgaben der Tabelle
+        if (me.t === 'erp_todos') { var te = session && empByUser(session.user.id); Object.assign(base, { created_by: te && te.id, created_at: new Date().toISOString(), done_at: null, done_by: null, job_id: null, job_linked: false, body: '' }); }
         if (me.t === 'erp_time_entries') {
           var o = row.order_id && DB.erp_orders.filter(function (x) { return x.id === row.order_id; })[0];
           Object.assign(base, { regie_id: null, invoice_id: null, created_at: new Date().toISOString(), customer_id: o ? o.customer_id : row.customer_id });
@@ -113,6 +119,11 @@
     }
     if (this.t === 'erp_time_entries' && (this.act === 'update' || this.act === 'delete') && t.some(function (r) { return match(r) && (r.regie_id || r.invoice_id); }))
       return err('Diese Zeit steht in einem Regiebericht und wird dort abgerechnet.');
+    // erp_todos: wer und wann setzt die Datenbank; löschen nur eigene offene (wie Trigger und RLS)
+    if (this.t === 'erp_todos' && this.act === 'update' && 'done_at' in this.p) { var de = session && empByUser(session.user.id);
+      t.forEach(function (r) { if (!match(r)) return; if (me.p.done_at && !r.done_at) { r.done_at = new Date().toISOString(); r.done_by = de && de.id; } else if (!me.p.done_at) { r.done_at = null; r.done_by = null; r.job_id = null; r.job_linked = false; } });
+      this.p = Object.assign({}, this.p); delete this.p.done_at; }
+    if (this.t === 'erp_todos' && this.act === 'delete') { var me2 = session && empByUser(session.user.id); if (t.some(function (r) { return match(r) && (r.done_at || r.created_by !== (me2 && me2.id)); })) { persist(); return ok(null); } }
     if (this.act === 'update') t.forEach(function (r) { if (match(r)) Object.assign(r, me.p); });
     if (this.act === 'delete') DB[this.t] = t.filter(function (r) { return !match(r); });
     persist(); return ok(null);
@@ -179,7 +190,15 @@
         DB.usedInvites = (DB.usedInvites || []).concat([a.p_token]); persist();
         return ok({ licenseId: org.license_id, username: un });
       }
-      if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write' }, isSystem: false } } : null);
+      if (name === 'erp_me') return ok(me ? { employee: { id: me.id, plannerRole: me.role }, org: { id: 'demo-org', modules: DB.organizations[0].modules || [] }, role: me.role === 'admin' ? null : { perms: { regie: 'write', todos: 'write', planung: 'write' }, isSystem: false } } : null);
+      if (name === 'erp_todo_to_job') {
+        var tt = DB.erp_todos.filter(function (x) { return x.id === a.p_todo; })[0], pj = a.p_job || {};
+        if (!tt) return err('ToDo nicht gefunden.'); if (tt.done_at) return err('Dieses ToDo ist schon erledigt.');
+        if (['montage', 'werkstatt', 'planung', 'termin'].indexOf(pj.art || 'termin') < 0) return err('Unbekannte Art.');
+        var nj = uid(), pc = pj.customerId && DB.customers.filter(function (x) { return x.erp_customer_id === pj.customerId; })[0];
+        DB.jobs.push({ id: nj, org_id: 'demo-org', kunde: pj.kunde || '', adresse: pj.adresse || '', tel: pj.tel || '', notiz: pj.notiz || '', art: pj.articleId ? 'termin' : (pj.art || 'termin'), start: pj.start || null, tage: pj.tage || 1, zeit: pj.zeit || '', ende: pj.ende || '', stunden: pj.stunden, wer: pj.wer || [], customer_id: pc ? pc.id : null, erp_customer_id: pj.customerId || null, article_id: pj.articleId || null, created_by: session.user.id, done: false });
+        Object.assign(tt, { done_at: new Date().toISOString(), done_by: me && me.id, job_id: nj, job_linked: true }); persist(); return ok(nj);
+      }
       if (name === 'erp_plan_services') return ok(DB.erp_articles.filter(function (x) { return x.kind === 'leistung'; }).map(function (x) { return { id: x.id, number: x.number, name_de: x.name_de, name_it: x.name_it || '', plan_color: x.plan_color || '', active: x.active !== false }; }));
       if (name === 'erp_regie_articles') { var q = String(a.p_search || '').toLowerCase(); return ok(DB.erp_articles.filter(function (x) { return (!a.p_kind || x.kind === a.p_kind) && (x.name_de + ' ' + x.number).toLowerCase().indexOf(q) > -1; })); }
       if (name === 'erp_planner_customer_create') { if (!me || me.role !== 'admin') return err('Keine Berechtigung.'); var q = a.p; if (q) { DB.erpCustomers = (DB.erpCustomers || []).concat([q]); } var nc = { id: uid(), org_id: 'demo-org', name: q ? [q.name, q.name2].filter(Boolean).join(' ') : a.p_name, adresse: q ? [q.street, [q.zip, q.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : a.p_address || '', tel: q ? q.phone || '' : a.p_phone || '', notiz: '', archived: false, erp_customer_id: 'k-' + uid(), created_by: null }; DB.customers.push(nc); persist(); return ok(nc); }
@@ -200,5 +219,5 @@
   window.supabase = { createClient: function () { return client; } };
   window.PLANER_CONFIG = Object.assign({}, window.PLANER_CONFIG, { url: 'https://demo.invalid', anonKey: 'demo' });
   // Demo zurücksetzen: Adresse mit ?demo=neu öffnen
-  if (/[?&]demo=neu\b/.test(location.search)) { DB = seed(); persist(); setSession(null, 'SIGNED_OUT'); }
+  if (/[?&]demo=neu\b/.test(location.search)) { DB = seed(); demoTodos(); persist(); setSession(null, 'SIGNED_OUT'); }
 })();

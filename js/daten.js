@@ -8,6 +8,7 @@ async function loadAll(){
  CUSTOK=!r[4].error;S.cust=CUSTOK?r[4].data:[];
  await loadServices();
  await regieRights();
+ if(TDR){try{await tdLoad()}catch(e){TD=[];TDE=e&&e.message||String(e)}}else TD=[];
  if(ME){var me=uById(ME.id);if(me){me.email=ME.email;ME=me}
   // Darstellung: laufende Auswahl behalten, sonst Änderung von einem anderen Gerät übernehmen
   if(THP)ME.theme=THP;else if(ME.theme&&ME.theme!=(lsGet('planer_theme')||'auto'))applyTheme(ME.theme)}}

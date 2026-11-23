@@ -156,7 +156,7 @@ document.addEventListener('keydown',function(e){
  if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))||document.querySelector('dialog[open]'))return;
  var k=e.key.length==1?e.key.toLowerCase():e.key,M={a:'liste',d:'tag',e:'team',w:'woche',m:'monat',y:'jahr'};
  if(k=='Escape'){if(DD)ddTog(false);else if(mvId){mvId=null;mvE='';render()}else if(FS)fsTog();return}
- if(k=='?'){keyHelp()}else if(k=='/'){showSearch()}else if(k=='n'&&tab!='mehr'&&tab!='offen'){nw()}
+ if(k=='?'){keyHelp()}else if(k=='/'){showSearch()}else if(k=='n'&&tab=='todos'){var ti=document.getElementById('td_new');if(ti){e.preventDefault();ti.focus()}}else if(k=='n'&&tab!='mehr'&&tab!='offen'){nw()}
  else if(tab!='plan')return;
  else if(k=='t')goToday();else if(k=='ArrowLeft'||k=='k')step(-1);else if(k=='ArrowRight'||k=='j')step(1);
  else if(M[k])setMode(M[k]);else if(k=='+'||k=='=')zoomBy(1.25);else if(k=='-')zoomBy(.8);

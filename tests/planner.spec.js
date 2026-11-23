@@ -811,7 +811,8 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     await filter(page, 'Alle');
     const mo = await app(page, () => fmt(monday(new Date())));
     await ansicht(page, 'Monat');
-    await page.click(`.mg .c[data-drop="${mo}"]`);
+    // ist der Montag heute, ist er schon gewählt
+    if (!(await page.locator(`.mg .c.sel[data-drop="${mo}"]`).count())) await page.click(`.mg .c[data-drop="${mo}"]`);
     await expect(page.locator(`.mg .c.sel[data-drop="${mo}"]`)).toHaveCount(1);
     await expect(page.locator('.mdl .agr', { hasText: 'Huber' })).toBeVisible();
     await page.locator('.mdl .agr', { hasText: 'Huber' }).click();
@@ -938,7 +939,7 @@ test.describe('Zeiten buchen (ERP)', () => {
   test('Am Termin: von–bis mit Pause, für den Kollegen mit, Kasten zeigt die Zeiten', async ({ page }) => {
     await login(page, 'uwe');
     await oeffne(page, 'Fam. Huber');
-    await expect(page.locator('#dlg .zbox')).toContainText('Noch nichts gebucht');
+    await expect(page.locator('#dlg .zbox')).toContainText(/noch nichts gebucht/i);
     await page.click('#dlg .zbb');
     await expect(page.locator('#dlg .dt2 b')).toHaveText('Zeit buchen');
     // aus dem Termin vorbelegt: 08:00–12:00, ich bin gewählt, der Kollege nicht
@@ -1244,5 +1245,92 @@ test.describe('Nutzungszählung', () => {
     await expect(page.locator('#dlg .rgok h2')).toHaveText('Bericht übermittelt');
     await page.locator('#dlg .rgok .b', { hasText: 'Fertig' }).click();
     await expect.poll(async () => (await ev(page)).map((x) => x.flow + ':' + x.outcome)).toEqual(['zeit_buchen:ok', 'regie_senden:ok']);
+  });
+});
+
+test.describe('ToDos (ERP)', () => {
+  const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
+  const todos = async (page) => { await page.click('nav button[data-t="todos"]'); await expect(page.locator('#hd h1')).toHaveText('ToDos'); };
+  const zeile = (page, t) => page.locator('.td', { hasText: t });
+
+  test('Eigener Reiter: anlegen mit Text, abhaken, wieder öffnen, Filter und Zähler', async ({ page }) => {
+    await login(page, 'uwe');
+    await expect(page.locator('#tdc')).toHaveText('3');
+    await todos(page);
+    await expect(page.locator('.td')).toHaveCount(3);
+    await expect(page.locator('#td_add')).toBeDisabled();
+    await page.fill('#td_new', 'Fliesenkleber kaufen');
+    await page.click('.tdtx');
+    await expect(page.locator('#td_new')).toHaveValue('Fliesenkleber kaufen');
+    await page.fill('#td_body', 'Flexkleber, 2 Säcke');
+    await page.click('#td_add');
+    await expect(zeile(page, 'Fliesenkleber kaufen')).toContainText('Flexkleber, 2 Säcke');
+    await expect(zeile(page, 'Fliesenkleber kaufen')).toContainText('Erstellt');
+    await expect(zeile(page, 'Fliesenkleber kaufen')).toContainText('Uwe');
+    await expect(page.locator('#tdc')).toHaveText('4');
+    // abhaken: bleibt sichtbar (Versehen sofort zurücknehmen), Zähler sinkt
+    await zeile(page, 'Angebot Gamper').locator('.tdc').click();
+    await expect(zeile(page, 'Angebot Gamper')).toHaveClass(/dn/);
+    await expect(zeile(page, 'Angebot Gamper').locator('.tdc')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#tdc')).toHaveText('3');
+    await expect(page.locator('#hd .tdsum')).toHaveText('3 offen · 1 heute erledigt');
+    await page.getByRole('button', { name: 'Erledigt', exact: true }).click();
+    await expect(page.locator('.td')).toHaveCount(1);
+    await zeile(page, 'Angebot Gamper').locator('.tdc').click();
+    await expect(zeile(page, 'Angebot Gamper')).not.toHaveClass(/dn/);
+    expect((await db(page)).erp_todos.find((t) => t.title.startsWith('Angebot')).done_at).toBeNull();
+    await page.getByRole('button', { name: 'Offen', exact: true }).click();
+    await page.fill('#td_q', 'silikon');
+    await expect(page.locator('.td')).toHaveCount(1);
+    await page.fill('#td_q', '');
+    await page.locator('.tdm input').check();
+    await expect(page.locator('.td')).toHaveText([/Fliesenkleber/]);
+  });
+
+  test('Bearbeiten; löschen nur eigene offene', async ({ page }) => {
+    await login(page, 'uwe');
+    await todos(page);
+    await page.fill('#td_new', 'Eigenes ToDo');
+    await page.click('#td_add');
+    await zeile(page, 'Silikonfuge').locator('.tdt').click();
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('ToDo bearbeiten');
+    await expect(page.locator('#dlg .b.d')).toHaveCount(0);
+    await page.fill('#td_et', 'Silikonfuge Bad Huber erneuern (dringend)');
+    await page.click('#dlg .b.p');
+    await expect(zeile(page, '(dringend)')).toBeVisible();
+    await zeile(page, 'Eigenes ToDo').locator('.tdt').click();
+    await page.click('#dlg .b.d');
+    await expect(zeile(page, 'Eigenes ToDo')).toHaveCount(0);
+    expect((await db(page)).erp_todos.some((t) => t.title == 'Eigenes ToDo')).toBe(false);
+  });
+
+  test('Termin daraus machen: Termin-Dialog vorbelegt, ToDo danach erledigt mit Verweis', async ({ page }) => {
+    await login(page, 'uwe');
+    await todos(page);
+    await zeile(page, 'Silikonfuge').locator('.tdj').click();
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Termin aus ToDo');
+    await expect(page.locator('#f_k')).toHaveValue('Silikonfuge Bad Huber erneuern');
+    await expect(page.locator('#f_n')).toHaveValue(/Fuge an der Dusche/);
+    await expect(page.locator('#f_r')).toBeHidden();
+    const tag = await app(page, () => { let d = new Date(); while (isWE(fmt(d))) d.setDate(d.getDate() + 1); return fmt(d); });
+    await page.fill('#f_s', tag);
+    await page.click('#dlg .b.p:has-text("Speichern")');
+    await expect(page.locator('#hd h1')).toHaveText('ToDos');
+    const d = await db(page), t = d.erp_todos.find((x) => x.title.startsWith('Silikon'));
+    expect(t.done_at).not.toBeNull();
+    const j = d.jobs.find((x) => x.id == t.job_id);
+    expect(j.kunde).toBe('Silikonfuge Bad Huber erneuern');
+    expect(j.start).toBe(tag);
+    await page.getByRole('button', { name: 'Alle', exact: true }).click();
+    await zeile(page, 'Silikonfuge').locator('.tdg').click();
+    await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
+    expect(await app(page, () => [tab, an])).toEqual(['plan', tag]);
+  });
+
+  test('Ohne ERP-Modul kein Reiter', async ({ page }) => {
+    await login(page, 'uwe');
+    await expect(page.locator('#ntd')).toBeVisible();
+    await app(page, async () => { ORG.modules = ['planner']; await regieRights(); render(); });
+    await expect(page.locator('#ntd')).toBeHidden();
   });
 });
