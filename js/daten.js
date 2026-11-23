@@ -3,7 +3,7 @@
 async function loadAll(){
  var r=await Promise.all([sb.from('employees').select('*').order('display_name'),sb.from('jobs').select('*'),sb.from('holidays').select('d,n').order('d'),sb.from('organizations').select('*').single(),sb.from('customers').select('*').order('name')]);
  r.slice(0,4).forEach(function(x){if(x.error)throw x.error});
- USERS=r[0].data;ORG=r[3].data;S.jobs=r[1].data.map(fromRow).map(fit);S.hol=r[2].data;
+ USERS=r[0].data;ORG=r[3].data;S.jobs=r[1].data.map(fromRow).map(fit);S.hol=r[2].data;rememberAll();
  // Kundenstamm (fehlt die Tabelle noch, läuft die App ohne ihn weiter)
  CUSTOK=!r[4].error;S.cust=CUSTOK?r[4].data:[];
  await loadServices();
@@ -21,12 +21,15 @@ function fromRow(r){return {erp_customer_id:r.erp_customer_id||null,erp_order_id
 function toRow(j){if(HRS()){if(j.art=='urlaub')j.stunden=Math.max(1,j.tage||1)*dayH();else fit(j)}
  var o={id:j.id,kunde:j.kunde||'',adresse:j.adresse||'',tel:j.tel||'',art:j.art,wer:j.wer||[],start:j.start||null,tage:Math.min(366,Math.max(1,j.tage||1)),zeit:j.zeit||'',ende:j.ende||'',fix:j.fix!==false,imp:!!j.imp,material:j.material!==false,notiz:j.notiz||'',done:!!j.done};if(j.series)o.series=j.series;if(j.customer_id)o.customer_id=j.customer_id;if(SVCOK)o.article_id=j.article_id||null;if(HRS())o.stunden=j.stunden;return o}
 function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c=='x'?r:(r&3|8)).toString(16)})}
-function fail(e){alert('Speichern fehlgeschlagen: '+(e&&e.message||e)+'\nDie Daten werden neu geladen.');reload()}
+// Fehler beim Speichern: kein Neuladen mehr (das verwarf die Eingaben); mit retry lässt sich die Änderung erneut senden
+function fail(e,retry,key){if(retry)PEND[key||('x'+Date.now())]=retry;failShow(e)}
 function reload(){return loadAll().then(render).catch(function(e){alert('Laden fehlgeschlagen: '+(e.message||e))})}
-function save(j){if(j)sb.from('jobs').upsert(toRow(j)).then(function(r){if(r.error)fail(r.error)})}
+// Speichern im Hintergrund; schlägt es fehl, bleibt die Änderung sichtbar und lässt sich erneut senden (Meldeleiste unten)
+function save(j){if(!j)return;var id=j.id,again=function(){var x=byId(id);if(x)save(x)};
+ sb.from('jobs').upsert(toRow(j)).then(function(r){if(r.error)fail(r.error,again,'j'+id);else{SAVED[id]=jClone(j);delete PEND['j'+id]}},function(e){fail(e,again,'j'+id)})}
 function subscribe(){if(CH)sb.removeChannel(CH);CH=sb.channel('planer');[['jobs','org_id'],['holidays','org_id'],['employees','org_id'],['organizations','id']].concat(CUSTOK?[['customers','org_id']]:[]).forEach(function(t){CH.on('postgres_changes',{event:'*',schema:'public',table:t[0],filter:t[1]+'=eq.'+ORG.id},rt)});CH.subscribe()}
 // Änderungen anderer Benutzer nachladen, aber nicht mitten im Ziehen oder im offenen Dialog
-function rt(){clearTimeout(rtT);rtT=setTimeout(function(){if(DG||RZ||document.getElementById('dlg').open||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('main input,main textarea')){rt();return}reload()},500)}
+function rt(){clearTimeout(rtT);rtT=setTimeout(function(){if(DG||RZ||pendN()||document.getElementById('dlg').open||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('main input,main textarea')){rt();return}reload()},500)}
 // Reihenfolge der Mitarbeiter: zuerst der angemeldete Benutzer, dann die übrigen alphabetisch
 function usersSorted(){return USERS.filter(function(u){return ME&&u.id==ME.id}).concat(USERS.filter(function(u){return !ME||u.id!=ME.id}).sort(function(a,b){return a.display_name.localeCompare(b.display_name,'de')}))}
 function uById(id){return USERS.filter(function(u){return u.id==id})[0]}

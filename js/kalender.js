@@ -105,7 +105,7 @@ function cell(ds){if(mvId)drop(ds);else if(mode=='monat'&&innerWidth<600&&an!=ds
 var mvE='';
 function drop(ds){var j=byId(mvId);if(ds&&R(j)&&isWE(ds)){alert(WEMSG);return}
  if(ds){var st=ds,i=!j.start?0:Math.max(0,span(j).indexOf(mvG));for(;i>0;i--)st=R(j)?nextWork(st,-1):addDays(st,-1);j.start=st}else j.start='';
- mvG='';mvE='';if(ds&&(mode=='tag'||mode=='team'))an=j.start;mvId=null;save(j);render()}
+ mvG='';mvE='';if(ds&&(mode=='tag'||mode=='team'))an=j.start;mvId=null;moved(j);save(j);render()}
 // Team-Ansicht: in eine andere Mitarbeiter-Spalte gezogen = statt der Ausgangsperson die Zielperson zuteilen
 function reassign(j,from,to){if(!to||!from||from==to)return;
  var w=(j.wer||[]).filter(function(x){return x!=from});if(to!='-'&&w.indexOf(to)<0)w.push(to);j.wer=w}
@@ -233,7 +233,7 @@ function conflict(ds,c){return S.jobs.some(function(o){
  return false})}
 function sug(){
  var d=document.getElementById('dlg'),el=d.querySelector('#sg'),j=cur.j;if(!el)return;
- hv();var c={id:j.id,art:j.art,article_id:j.article_id,wer:j.wer,tage:Math.max(1,parseInt(d.querySelector('#f_d').value)||1),zeit:'',ende:'',start:''};
+ hv();cfl();var c={id:j.id,art:j.art,article_id:j.article_id,wer:j.wer,tage:Math.max(1,parseInt(d.querySelector('#f_d').value)||1),zeit:'',ende:'',start:''};
  if(hrsJ(j)){var hh=hVal()||1,L=lay(hh,d.querySelector('#f_b').value);c.stunden=hh;c.tage=L.tage;c.zeit=L.zeit;c.ende=L.ende}
  else if(cur.zt){c.zeit=d.querySelector('#f_z').value||'08:00';c.ende=d.querySelector('#f_e').value;if(!c.ende||c.ende<=c.zeit)c.ende=m2t(t2m(c.zeit)+60)}
  var out=[],ds=fmt(new Date());
@@ -349,7 +349,7 @@ document.addEventListener('pointermove',function(e){
  if(RZ.side=='b')RZ.e=Math.max(RZ.s+STEP,Math.min(H1*60,RZ.mx,m));else RZ.s=Math.min(RZ.e-STEP,Math.max(H0*60,m));
  RZ.ev.style.top=((RZ.s/60-H0)*HH+1)+'px';RZ.ev.style.height=((RZ.e-RZ.s)/60*HH-2)+'px'});
 function rzEnd(ok){if(RZP){clearTimeout(RZP.tm);RZP=null}if(!RZ)return;var z=RZ,j=z.j;RZ=null;setTimeout(function(){sup=false},80);
- if(ok){if(hrsJ(j)){j.stunden=rH((j.stunden==null?hFrom(j):j.stunden)+((z.e-z.e0)-(z.s-z.s0))/60);if(z.side=='t')j.zeit=m2t(z.s);fit(j)}else{j.zeit=m2t(z.s);j.ende=m2t(z.e)}save(j)}render()}
+ if(ok){if(hrsJ(j)){j.stunden=rH((j.stunden==null?hFrom(j):j.stunden)+((z.e-z.e0)-(z.s-z.s0))/60);if(z.side=='t')j.zeit=m2t(z.s);fit(j)}else{j.zeit=m2t(z.s);j.ende=m2t(z.e)}moved(j);save(j)}render()}
 document.addEventListener('pointerup',function(){rzEnd(true)});
 document.addEventListener('pointercancel',function(){rzEnd(false)});
 // Zeitraum markieren wie in Outlook: in freier Zeit drücken und ziehen → neuer Termin mit dieser Zeit.

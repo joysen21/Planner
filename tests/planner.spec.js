@@ -1295,6 +1295,61 @@ test.describe('Termin bearbeiten: Kopf', () => {
   });
 });
 
+test.describe('Überschneidungen und Speicherfehler', () => {
+  // zwei Termine für Uwe an einem freien Montag in 9 Wochen, 08–12 und 13–15
+  const zwei = (page) => app(page, () => {
+    const mo = addDays(fmt(monday(new Date())), 63), base = S.jobs.find((j) => j.zeit) || S.jobs[0];
+    const mk = (k, z, e) => { const j = { ...base, id: uuid(), kunde: k, notiz: '', art: 'termin', article_id: null, stunden: null, series: null, done: false, start: mo, tage: 1, zeit: z, ende: e, wer: [ME.id] }; S.jobs.push(fit(j)); save(j); return j.id; };
+    return { mo, a: mk('Kunde A', '08:00', '12:00'), b: mk('Kunde B', '13:00', '15:00') };
+  });
+
+  test('Termin-Dialog: Hinweis bei Überschneidung, verschwindet bei freier Zeit; Speichern bleibt möglich', async ({ page }) => {
+    await login(page, 'uwe');
+    const t = await zwei(page);
+    await app(page, (id) => edit(id), t.b);
+    await expect(page.locator('#cfl')).toBeEmpty();
+    // B auf 10:00 legen: überschneidet sich mit A
+    await app(page, () => { const d = document.getElementById('dlg'); if (HRS()) { d.querySelector('#f_b').value = '10:00'; } else { d.querySelector('#f_z').value = '10:00'; d.querySelector('#f_e').value = '11:00'; } sug(); });
+    await expect(page.locator('#cfl .cfl')).toContainText('Überschneidung');
+    await expect(page.locator('#cfl .cfl')).toContainText(/Uwe ist .* schon bei Kunde A/);
+    await expect(page.locator('#dlg .ft .b.p')).toBeEnabled();
+    // ohne Uwe: kein Hinweis mehr
+    await page.locator('#s_wer button.mew').click();
+    await expect(page.locator('#cfl')).toBeEmpty();
+  });
+
+  test('Ziehen auf belegte Zeit: Meldung unten mit „Rückgängig“', async ({ page }) => {
+    await login(page, 'uwe');
+    const t = await zwei(page);
+    const vorher = await app(page, (id) => ({ zeit: byId(id).zeit, ende: byId(id).ende }), t.b);
+    await app(page, (id) => { const j = byId(id); j.zeit = '09:00'; if (HRS()) fit(j); else j.ende = '10:00'; mvId = id; drop(j.start); }, t.b);
+    const m = page.locator('#toast');
+    await expect(m).toBeVisible();
+    await expect(m).toContainText(/Uwe ist .* schon bei Kunde A/);
+    await m.getByRole('button', { name: 'Rückgängig' }).click();
+    await expect(m).toBeHidden();
+    expect(await app(page, (id) => ({ zeit: byId(id).zeit, ende: byId(id).ende }), t.b)).toEqual(vorher);
+    // ohne Überschneidung: keine Meldung
+    await app(page, (id) => { mvId = id; drop(byId(id).start); }, t.b);
+    await expect(m).toBeHidden();
+  });
+
+  test('Speichern ohne Verbindung: Änderung bleibt, Meldung mit „Erneut versuchen“, kein Neuladen', async ({ page }) => {
+    await login(page, 'uwe');
+    const t = await zwei(page);
+    await app(page, () => { window.__from = sb.from; sb.from = (tb) => tb === 'jobs' ? { upsert: () => Promise.resolve({ data: null, error: { message: 'TypeError: Failed to fetch' } }) } : window.__from(tb); });
+    await app(page, (id) => { byId(id).kunde = 'Kunde B neu'; save(byId(id)); render(); }, t.b);
+    const m = page.locator('#toast');
+    await expect(m).toContainText('Nicht gespeichert: Keine Verbindung zum Server.');
+    expect(await app(page, (id) => byId(id).kunde, t.b)).toBe('Kunde B neu');
+    await app(page, () => { sb.from = window.__from; });
+    await m.getByRole('button', { name: 'Erneut versuchen' }).click();
+    await expect(m).toBeHidden();
+    await expect.poll(() => app(page, (id) => JSON.parse(sessionStorage.getItem('planner_demo_db')).jobs.find((j) => j.id == id).kunde, t.b)).toBe('Kunde B neu');
+    expect(await app(page, () => pendN())).toBe(0);
+  });
+});
+
 test.describe('ToDos (ERP)', () => {
   const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
   const todos = async (page) => { await page.click('nav button[data-t="todos"]'); await expect(page.locator('#hd h1')).toHaveText('ToDos'); };
