@@ -1251,13 +1251,13 @@ test.describe('Nutzungszählung', () => {
 test.describe('ToDos (ERP)', () => {
   const db = (page) => app(page, () => JSON.parse(sessionStorage.getItem('planner_demo_db')));
   const todos = async (page) => { await page.click('nav button[data-t="todos"]'); await expect(page.locator('#hd h1')).toHaveText('ToDos'); };
-  const zeile = (page, t) => page.locator('.td', { hasText: t });
+  const zeile = (page, t) => page.locator('.tdo', { hasText: t });
 
   test('Eigener Reiter: anlegen mit Text, abhaken, wieder öffnen, Filter und Zähler', async ({ page }) => {
     await login(page, 'uwe');
     await expect(page.locator('#tdc')).toHaveText('3');
     await todos(page);
-    await expect(page.locator('.td')).toHaveCount(3);
+    await expect(page.locator('.tdo')).toHaveCount(3);
     await expect(page.locator('#td_add')).toBeDisabled();
     await page.fill('#td_new', 'Fliesenkleber kaufen');
     await page.click('.tdtx');
@@ -1269,22 +1269,22 @@ test.describe('ToDos (ERP)', () => {
     await expect(zeile(page, 'Fliesenkleber kaufen')).toContainText('Uwe');
     await expect(page.locator('#tdc')).toHaveText('4');
     // abhaken: bleibt sichtbar (Versehen sofort zurücknehmen), Zähler sinkt
-    await zeile(page, 'Angebot Gamper').locator('.tdc').click();
+    await zeile(page, 'Angebot Gamper').locator('.tdck').click();
     await expect(zeile(page, 'Angebot Gamper')).toHaveClass(/dn/);
-    await expect(zeile(page, 'Angebot Gamper').locator('.tdc')).toHaveAttribute('aria-checked', 'true');
+    await expect(zeile(page, 'Angebot Gamper').locator('.tdck')).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('#tdc')).toHaveText('3');
     await expect(page.locator('#hd .tdsum')).toHaveText('3 offen · 1 heute erledigt');
     await page.getByRole('button', { name: 'Erledigt', exact: true }).click();
-    await expect(page.locator('.td')).toHaveCount(1);
-    await zeile(page, 'Angebot Gamper').locator('.tdc').click();
+    await expect(page.locator('.tdo')).toHaveCount(1);
+    await zeile(page, 'Angebot Gamper').locator('.tdck').click();
     await expect(zeile(page, 'Angebot Gamper')).not.toHaveClass(/dn/);
     expect((await db(page)).erp_todos.find((t) => t.title.startsWith('Angebot')).done_at).toBeNull();
     await page.getByRole('button', { name: 'Offen', exact: true }).click();
     await page.fill('#td_q', 'silikon');
-    await expect(page.locator('.td')).toHaveCount(1);
+    await expect(page.locator('.tdo')).toHaveCount(1);
     await page.fill('#td_q', '');
     await page.locator('.tdm input').check();
-    await expect(page.locator('.td')).toHaveText([/Fliesenkleber/]);
+    await expect(page.locator('.tdo')).toHaveText([/Fliesenkleber/]);
   });
 
   test('Bearbeiten; löschen nur eigene offene', async ({ page }) => {
@@ -1325,6 +1325,18 @@ test.describe('ToDos (ERP)', () => {
     await zeile(page, 'Silikonfuge').locator('.tdg').click();
     await expect(page.locator('#dlg .dt2 b')).toHaveText('Auftrag bearbeiten');
     expect(await app(page, () => [tab, an])).toEqual(['plan', tag]);
+  });
+
+  test('Haken der ToDos stört den Kalender nicht (heutige Spalte ohne Kreis)', async ({ page }) => {
+    await login(page, 'uwe');
+    await ansicht(page, 'Woche');
+    const c = page.locator('.dcol.tdc');
+    await expect(c).toHaveCount(1);
+    expect(await c.evaluate((e) => getComputedStyle(e, '::before').content)).toBe('none');
+    await ansicht(page, 'Monat');
+    // heutige Zelle im Monat sieht aus wie die anderen (nur der Rahmen ist anders)
+    const st = (sel) => page.locator(sel).first().evaluate((e) => { const c = getComputedStyle(e); return [c.display, c.paddingLeft, c.gap]; });
+    expect(await st('.mg .c.td')).toEqual(await st('.mg .c:not(.td):not(.o)'));
   });
 
   test('Ohne ERP-Modul kein Reiter', async ({ page }) => {

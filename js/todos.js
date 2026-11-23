@@ -36,7 +36,7 @@ function tdList(l){
  if(!TD.length)return '<div class="empty big">'+ic('todo')+'<br><b>Noch keine ToDos</b><br><small>Kleine Arbeiten hier schnell notieren und abhaken.</small></div>';
  if(!l.length)return '<div class="empty big">'+ic('todo')+'<br><b>Nichts gefunden</b><br><small>Für diese Auswahl gibt es keine ToDos.</small></div>';
  return '<ul class="tdl" aria-label="ToDos">'+l.map(function(t){var d=!!t.done_at;
-  return '<li class="td'+(d?' dn':'')+'"><button type="button" class="tdc" role="checkbox" aria-checked="'+d+'"'+(TDW?'':' disabled')+' aria-label="'+esc(t.title)+(d?' wieder öffnen':' erledigen')+'" onclick="tdDone(\''+t.id+'\')">'+ic('check')+'</button>'+
+  return '<li class="tdo'+(d?' dn':'')+'"><button type="button" class="tdck" role="checkbox" aria-checked="'+d+'"'+(TDW?'':' disabled')+' aria-label="'+esc(t.title)+(d?' wieder öffnen':' erledigen')+'" onclick="tdDone(\''+t.id+'\')">'+ic('check')+'</button>'+
    '<div class="tdx">'+(TDW?'<button type="button" class="tdt" onclick="tdEdit(\''+t.id+'\')">'+esc(t.title)+'</button>':'<span class="tdt">'+esc(t.title)+'</span>')+
    (t.body?'<div class="tdb">'+esc(t.body)+'</div>':'')+
    '<div class="tdi"><span>Erstellt '+tdDate(t.created_at)+' · '+esc(tdName(t.created_by))+'</span>'+(d?'<span>Erledigt '+tdDate(t.done_at)+' · '+esc(tdName(t.done_by))+'</span>':'')+tdTerm(t)+'</div></div>'+
@@ -57,7 +57,7 @@ function tdAdd(e){e.preventDefault();var i=document.getElementById('td_new'),b=d
   TDB=false;if(TDF.st=='erledigt')TDF.st='offen';return tdLoad().then(function(){render();var n=document.getElementById('td_new');if(n)n.focus()})}).catch(fail)}
 function tdDone(id){var t=(TD||[]).filter(function(x){return x.id==id})[0];if(!t||!TDW)return;var was=!!t.done_at;
  sb.from('erp_todos').update({done_at:was?null:new Date().toISOString()}).eq('id',id).then(function(r){if(r.error){fail(r.error);return}
-  TDK[id]=1;return tdLoad().then(function(){render();var c=document.querySelector('.tdc[onclick*="'+id+'"]');if(c)c.focus()})}).catch(fail)}
+  TDK[id]=1;return tdLoad().then(function(){render();var c=document.querySelector('.tdck[onclick*="'+id+'"]');if(c)c.focus()})}).catch(fail)}
 // Bearbeiten: Titel und Text; löschen nur, wer es erstellt hat, und nur solange es offen ist
 function tdEdit(id){var t=(TD||[]).filter(function(x){return x.id==id})[0];if(!t)return;var d=document.getElementById('dlg'),mine=t.created_by==ME.id&&!t.done_at;
  d.innerHTML='<div class="dt2"><b>ToDo bearbeiten</b><button class="ib" aria-label="Schließen" onclick="document.getElementById(\'dlg\').close()">'+ic('x')+'</button></div>'+
