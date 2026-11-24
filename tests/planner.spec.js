@@ -1010,6 +1010,10 @@ test.describe('Zeiten buchen (ERP)', () => {
     await expect(page.locator('#hd h1')).toHaveText('Zeiten');
     await expect(page.locator('.zrow.zlk')).toContainText('Im Regiebericht');
     await expect(page.locator('.zrow.zlk .zrm')).toHaveAttribute('aria-disabled', 'true');
+
+    // Büro rechnet den Bericht ab: die Zeit zeigt „Abgerechnet mit Regiebericht“
+    await app(page, async (id) => { await sb.from('erp_regie').update({ status: 'abgerechnet' }).eq('id', id); ZW = {}; render(); }, d.erp_regie[0].id);
+    await expect(page.locator('.zrow.zlk')).toContainText('Abgerechnet mit Regiebericht');
   });
 
   test('Reiter „Zeiten“: ohne Termin auf einen Kunden buchen, ändern und löschen', async ({ page }) => {

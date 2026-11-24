@@ -8,6 +8,7 @@ var ZWK=null;   // angezeigte Woche (Montag)
 var ZDS=null;   // Tagesfilter der Woche (null = ganze Woche)
 var ZART=null;  // Verrechnungsartikel (für Zeiten freigeschaltete Leistungen)
 var Z=null;     // offenes Buchungsblatt
+var ZRS={};     // Stand der Regieberichte, an denen Zeiten hängen: regie_id -> status
 var zSt=null;   // Suche Auftrag/Kunde (Verzögerung)
 
 function zNum(h){return (Math.round((+h||0)*100)/100).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:2})}
@@ -21,15 +22,19 @@ function zDayLong(ds){var d=parse(ds);return WDL[d.getDay()]+', '+d.getDate()+'.
 function zWeekNo(ds){var d=parse(ds);d.setDate(d.getDate()+3-((d.getDay()+6)%7));var y=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-y)/864e5-3+((y.getDay()+6)%7))/7)}
 function zSum(rows){return rows.reduce(function(s,x){return s+(+x.hours||0)},0)}
 function zLocked(x){return !!(x.invoice_id||x.regie_id)}
-function zState(x){return x.invoice_id?'Abgerechnet'+(x.invoice_number?' · '+x.invoice_number:''):x.regie_id?'Im Regiebericht'+(x.regie_number?' '+x.regie_number:''):''}
+// Abgerechnet wird entweder die Zeit selbst oder der Regiebericht, in dem sie steht
+function zState(x){return x.invoice_id?'Abgerechnet'+(x.invoice_number?' · '+x.invoice_number:''):x.regie_id?(ZRS[x.regie_id]=='abgerechnet'?'Abgerechnet mit Regiebericht':'Im Regiebericht')+(x.regie_number?' '+x.regie_number:''):''}
+// Stand der Berichte nachladen (abgerechnet oder nicht); ohne Leserecht bleibt es bei „Im Regiebericht“
+function zRgState(rows){var ids=(rows||[]).map(function(x){return x.regie_id}).filter(function(id,i,a){return id&&a.indexOf(id)==i});if(!ids.length)return Promise.resolve(rows);
+ return sb.from('erp_regie').select('id,status').in('id',ids).then(function(r){(r.data||[]).forEach(function(x){ZRS[x.id]=x.status});return rows},function(){return rows})}
 // Termin, auf den gebucht werden kann: mit Datum, kein Urlaub, Kunde mit der ERP verknüpft
 function zJobOk(j){return RGOK&&j&&j.start&&j.art!='urlaub'&&!!erpCust(j)}
 
 // ---------------------------------------------------------------- Laden
 
 function zLoadJob(id){return Promise.all([sb.rpc('erp_time_planner',{p_job:id}),sb.from('erp_regie').select('id,work_date,status').eq('job_id',id)]).then(function(q){
- if(!q[0].error)ZJ[id]=q[0].data||[];if(!q[1].error)ZRG[id]=q[1].data||[];return ZJ[id]||[]})}
-function zLoadWeek(mon){return sb.rpc('erp_time_planner',{p_from:mon,p_to:zAdd(mon,6)}).then(function(r){if(r.error)throw r.error;ZW[mon]=r.data||[];return ZW[mon]})}
+ if(!q[0].error)ZJ[id]=q[0].data||[];if(!q[1].error)ZRG[id]=q[1].data||[];return zRgState(ZJ[id]||[])})}
+function zLoadWeek(mon){return sb.rpc('erp_time_planner',{p_from:mon,p_to:zAdd(mon,6)}).then(function(r){if(r.error)throw r.error;ZW[mon]=r.data||[];return zRgState(ZW[mon])})}
 function zArts(){if(ZART)return Promise.resolve(ZART);return sb.rpc('erp_regie_articles',{p_search:'',p_kind:'leistung'}).then(function(r){ZART=r.error?[]:(r.data||[]);return ZART})}
 // Nach dem Speichern: Termin und Woche neu laden
 function zForget(jobId,ds){if(jobId)delete ZJ[jobId];if(ds)delete ZW[zMon(ds)]}
