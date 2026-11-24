@@ -178,9 +178,12 @@ function vtName(s){return '<span class="vtx" aria-hidden="true">'+s.split(' ').m
 // Handy-Woche, zwei Termine nebeneinander: senkrecht; ist der Termin dafür zu kurz, waagrecht umgebrochen.
 // Untergrenze 10 px: was dann nicht passt, schneidet der Rand ab (ohne „…“, ganzer Name im Termin)
 function fitV(e){var v=e.querySelector('.vtx'),k=e.querySelector('.evk');e.classList.add('vt');e.classList.remove('brk','clp');
+ [].forEach.call(v.children,function(w){w.style.display=''});v.style.alignContent='';
  for(var f=12.5;f>=10;f-=.5){v.style.fontSize=f+'px';if(v.scrollWidth<=v.clientWidth&&v.scrollHeight<=v.clientHeight)return}
  // hoher Termin: senkrecht bleiben und unten abschneiden; kurzer: waagrecht, zwei Zeilen, ganze Wörter
- if(e.clientHeight>=64){v.style.fontSize='10px';e.classList.add('clp');return}
+ // Wörter, die seitlich nicht mehr ganz hineinpassen, weglassen: vorne beginnen, keine angeschnittenen Buchstaben am Rand
+ if(e.clientHeight>=64){v.style.fontSize='10px';e.classList.add('clp');v.style.alignContent='flex-start';var r=v.children[0].getBoundingClientRect().left+e.getBoundingClientRect().width+1;
+  [].forEach.call(v.children,function(w,i){if(i&&w.getBoundingClientRect().right>r)w.style.display='none'});v.style.alignContent='';return}
  e.classList.remove('vt');e.classList.add('clp');k.style.fontSize='10px'}
 function fitNames(){if(tab!='plan'||innerWidth>=600)return;
  document.querySelectorAll('#main .mg.bars .ch.mn').forEach(function(c){fitW(c,c.querySelector('b'),11,10)});
