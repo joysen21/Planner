@@ -54,7 +54,7 @@ h2{font-size:16px;margin:16px 0 6px}
 .c{background:var(--card);border:1px solid var(--ln);border-radius:8px;min-height:62px;padding:3px;overflow:hidden}
 .c.td{border-color:var(--ac);border-width:2px}
 .c i{font-style:normal;font-size:11px;color:var(--mu);display:block}
-.ch{display:block;font-size:11px;line-height:1.25;padding:1px 3px;margin-top:2px;border-radius:4px;background:color-mix(in srgb,var(--c,var(--mo)) 15%,var(--card));color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch{display:block;font-size:11px;line-height:1.25;padding:1px 3px;margin-top:2px;border-radius:4px;background:color-mix(in oklab,var(--c,var(--mo)) 60%,#716a62);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch.dn{opacity:.4}.ch.sel{outline:2px solid var(--tx)}
 .bars .c{min-height:46px}.bar{display:block;height:5px;border-radius:3px;margin-top:3px;background:var(--mo);text-decoration:none}.bar.werkstatt{background:var(--we)}
 .yr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -78,7 +78,8 @@ h2{font-size:16px;margin:16px 0 6px}
 .ev{position:absolute;margin:0;white-space:normal;overflow:hidden;font-size:9px;border:1px solid var(--bg);box-sizing:border-box}
 .montage{--c:var(--mo)}.werkstatt{--c:var(--we)}.planung{--c:var(--pl)}.termin{--c:var(--tm)}.urlaub{--c:var(--ur)}
 .job.a-montage{--c:var(--mo)}.job.a-werkstatt{--c:var(--we)}.job.a-planung{--c:var(--pl)}.job.a-termin{--c:var(--tm)}.job.a-urlaub{--c:var(--ur)}
-.ch{box-sizing:border-box}.ch:not(.pv){font-weight:700;box-shadow:inset 3px 0 0 var(--c,var(--mo))}
+.ch{box-sizing:border-box}.ch:not(.pv){font-weight:700;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.ch.planung:not(.pv){background:color-mix(in oklab,var(--pl) 70%,#b5aa9c);color:#2b2620}
 .ch.pv{background:var(--card);color:var(--tx);border:1px dashed var(--c);font-weight:400;box-shadow:none}
 .bar.pv{background:transparent;border:1px dashed var(--c);box-sizing:border-box;height:6px}
 .job.fx{border-left-width:9px}
@@ -253,8 +254,8 @@ html:has(dialog[open]){overflow:hidden}
 .bars .c i.more{font-size:11px;margin-top:2px}
 /* Dunkelmodus: kräftigere Terminfarben, damit weiße Schrift gut lesbar ist */
 :root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
-:root[data-theme="dark"] .ch:not(.pv){background:color-mix(in srgb,var(--c,var(--mo)) 24%,var(--card))}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}:root:not([data-theme="light"]) .ch:not(.pv){background:color-mix(in srgb,var(--c,var(--mo)) 24%,var(--card))}}
+:root[data-theme="dark"] .ch:not(.pv):not(.planung){background:color-mix(in oklab,var(--c,var(--mo)) 55%,#3a352f)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}:root:not([data-theme="light"]) .ch:not(.pv):not(.planung){background:color-mix(in oklab,var(--c,var(--mo)) 55%,#3a352f)}}
 .thm button .i{width:16px;height:16px}
 /* Bearbeiten-Dialog im Breitbild zweispaltig */
 @media (min-width:900px){dialog:has(.eg){max-width:920px}.eg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}.eg>div>.sec:first-child{border-top:0;padding-top:0;margin-top:8px}}
@@ -490,7 +491,7 @@ kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radiu
 .agm{align-self:center;flex:none;padding:0 18px;margin-top:4px}
 /* Farbe nach Mitarbeiter */
 .cm-ma .bar:not(.pv){background:var(--cb,var(--c))!important}
-.cm-ma .ch:not(.pv){background:var(--cl,var(--card))!important;color:var(--tx)}
+.cm-ma .ch:not(.pv){background:var(--cb,var(--c))!important;color:#fff;filter:saturate(.7)}
 .cm-ma .ch.pv{background:var(--pvh)!important;color:var(--tx)}
 .cm-ma .bar.pv{background:var(--cl,transparent)!important}
 .cm-ma .job{border-left-color:var(--c)!important}
@@ -660,7 +661,6 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 .mg.bars .c .ch.mn{position:relative;display:block;margin:2px 0 0;padding:2px;line-height:1.15;white-space:normal;word-break:normal;border-radius:4px;overflow:visible}
 .mg.bars .ch.mn b{display:block;font-size:11px;font-weight:600;letter-spacing:-.015em}.mg.bars .ch.mn.pv b{font-weight:500}
 .mg.bars .c .ch.mn.wp{outline:0;box-shadow:inset 0 0 0 1px var(--pc)}
-.mg.bars .c .ch.mn.wp:not(.pv){box-shadow:inset 3px 0 0 var(--c),inset 0 0 0 1px var(--pc)}
 .mg.bars .ch.mn .starx{position:absolute;top:-4px;right:-1px;width:11px;height:11px;stroke:var(--card);stroke-width:1.5}
 .ch.brk,.ev small.brk{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
 /* Handy-Woche: überschneidende Termine mit senkrechtem Namen, Buchstabe unter Buchstabe; nirgends „…“ */
@@ -668,7 +668,7 @@ body.n5 nav button{font-size:12px;padding:10px 2px;min-width:0;white-space:nowra
 .ev[data-vt]{padding:2px 1px}.ev[data-vt] .evk{display:block;white-space:normal;overflow:visible;-webkit-line-clamp:none;line-clamp:none;line-height:1.1}
 .ev[data-vt]>svg.starx{position:absolute;top:1px;right:1px;width:9px;height:9px;margin:0;float:none}
 .ev[data-vt]:not(.vt) .vtx,.ev.vt .evk{display:none}
-.vtx{display:flex;flex-direction:column;flex-wrap:wrap;align-content:center;height:100%;gap:.45em .1em;overflow:hidden;font-weight:700;line-height:1.06}
+.vtx{display:flex;flex-direction:column;flex-wrap:wrap;align-content:center;height:100%;gap:.45em .1em;overflow:hidden;font-weight:400;line-height:1.06}
 .vtx>span{display:block;text-align:center;min-width:.9em}.vtx i{display:block;font-style:normal}.ev.vt>svg.starx~.vtx{padding-top:9px;box-sizing:border-box}}
 
 /* Leistungsartikel als Liste (Termin und „Zeit buchen“) */
@@ -752,7 +752,7 @@ span.tdg{cursor:default}.tdg .i{width:13px;height:13px}.tdg.bad{background:color
  .hn,.wh2 .hn,.mini .c i{font-size:10px}
 }
 
-/* Offene Termine in Woche/Tag: weiß mit gestricheltem Rand (fixe Termine sind getönt) */
+/* Offene Termine in Woche/Tag: gestrichelter Rand (fixe Termine sind gedämpft gefüllt) */
 .tg .ev.pv{border:1.5px dashed var(--c,var(--mo))}
 .tg .ev.pv.wp{outline-offset:1px}
 
