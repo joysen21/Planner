@@ -740,3 +740,13 @@ span.tdg{cursor:default}.tdg .i{width:13px;height:13px}.tdg.bad{background:color
 
 /* Platzhalter: lesbar wie gedämpfte Schrift (Kontrast >= 4,5:1) */
 ::placeholder{color:var(--mu);opacity:1}
+
+/* Handy-Kalender: Schrift mindestens 10 px; was nicht passt, schneidet der Rand ab (ohne „…“) */
+@media (max-width:599px){
+ .ch,.ev .evk,.ev small,.ev.nar.cmp,.hn{text-overflow:clip}
+ .ev.nar:not(.vt) .evk{display:block;-webkit-line-clamp:none;line-clamp:none;max-height:2.4em}
+ .clp,.ev.nar.clp .evk,.clp b{overflow-wrap:normal;word-break:normal;hyphens:manual;-webkit-hyphens:manual}
+ .ev.vt.clp .vtx{overflow:hidden;max-height:100%}
+ .ch small{font-size:max(10px,.9em)}
+ .hn,.wh2 .hn,.mini .c i{font-size:10px}
+}

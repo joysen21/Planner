@@ -170,17 +170,21 @@ document.addEventListener('keydown',function(e){
 function gridAvail(){var W=innerWidth>=900,el=document.getElementById('hd'),top=(el?el.getBoundingClientRect().height:56)+(W?12:6)+56+(mvId?110:0);
  return Math.max(0,innerHeight-top-(W?16:68))}
 // Handy: Namen ohne „…“. Schrift so groß, dass kein Wort zerrissen wird; reicht das nicht, wird umgebrochen (Klasse brk)
-function fitW(el,txt,max,min){el.classList.remove('brk');for(var f=max;f>=min;f-=.5){txt.style.fontSize=f+'px';if(txt.scrollWidth<=txt.clientWidth)return}
- txt.style.fontSize=Math.min(max,min+1)+'px';el.classList.add('brk')}
+// Reicht die kleinste Größe nicht, bleibt sie stehen und der Rand schneidet das lange Wort ab (Klasse clp, kein Trennen mitten im Wort)
+function fitW(el,txt,max,min){el.classList.remove('brk','clp');for(var f=max;f>=min;f-=.5){txt.style.fontSize=f+'px';if(txt.scrollWidth<=txt.clientWidth)return}
+ txt.style.fontSize=min+'px';el.classList.add('clp')}
 // Name senkrecht, Buchstabe unter Buchstabe (eigene Zeichen statt writing-mode: in allen Browsern gleich)
 function vtName(s){return '<span class="vtx" aria-hidden="true">'+s.split(' ').map(function(w){return '<span>'+(w.match(/[^.,][.,]*|[.,]+/gu)||[]).map(function(c){return '<i>'+esc(c)+'</i>'}).join('')+'</span>'}).join('')+'</span>'}
-// Handy-Woche, zwei Termine nebeneinander: senkrecht; ist der Termin dafür zu kurz, klein und waagrecht umgebrochen
-function fitV(e){var v=e.querySelector('.vtx'),k=e.querySelector('.evk');e.classList.add('vt');e.classList.remove('brk');
- for(var f=12.5;f>=8;f-=.5){v.style.fontSize=f+'px';if(v.scrollWidth<=v.clientWidth&&v.scrollHeight<=v.clientHeight)return}
- e.classList.remove('vt');e.classList.add('brk');for(f=10;f>=7;f-=.5){k.style.fontSize=f+'px';if(e.scrollHeight<=e.clientHeight)return}}
+// Handy-Woche, zwei Termine nebeneinander: senkrecht; ist der Termin dafür zu kurz, waagrecht umgebrochen.
+// Untergrenze 10 px: was dann nicht passt, schneidet der Rand ab (ohne „…“, ganzer Name im Termin)
+function fitV(e){var v=e.querySelector('.vtx'),k=e.querySelector('.evk');e.classList.add('vt');e.classList.remove('brk','clp');
+ for(var f=12.5;f>=10;f-=.5){v.style.fontSize=f+'px';if(v.scrollWidth<=v.clientWidth&&v.scrollHeight<=v.clientHeight)return}
+ // hoher Termin: senkrecht bleiben und unten abschneiden; kurzer: waagrecht, zwei Zeilen, ganze Wörter
+ if(e.clientHeight>=64){v.style.fontSize='10px';e.classList.add('clp');return}
+ e.classList.remove('vt');e.classList.add('clp');k.style.fontSize='10px'}
 function fitNames(){if(tab!='plan'||innerWidth>=600)return;
- document.querySelectorAll('#main .mg.bars .ch.mn').forEach(function(c){fitW(c,c.querySelector('b'),11,8.5)});
- if(mode=='woche')document.querySelectorAll('#main .ev').forEach(function(e){if(e.dataset.vt)fitV(e);else{fitW(e,e.querySelector('.evk')||e,11,8);var w=e.querySelector('.evw');if(w)fitW(w,w,10,8)}})}
+ document.querySelectorAll('#main .mg.bars .ch.mn').forEach(function(c){fitW(c,c.querySelector('b'),11,10)});
+ if(mode=='woche')document.querySelectorAll('#main .ev').forEach(function(e){if(e.dataset.vt)fitV(e);else{fitW(e,e.querySelector('.evk')||e,11,10);var w=e.querySelector('.evw');if(w)fitW(w,w,10,10)}})}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){if(window.ME)fitNames()});
 // Monat: Zellen so hoch, dass der Monat den Bildschirm füllt
 function fitMonth(){var gr=tab=='plan'&&mode=='monat'&&innerWidth>=600&&document.querySelector('#main .swp>.mg>.gr:last-child');if(!gr)return;

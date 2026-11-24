@@ -209,7 +209,8 @@ test.describe('Termine', () => {
     await expect(l).toHaveClass(/nar/);
     await expect(l).toHaveAttribute('title', /E2E Links · 09:00–11:00/);
     expect(await l.evaluate((el) => getComputedStyle(el).writingMode)).toBe('horizontal-tb');
-    expect(await l.locator('.evk').evaluate((el) => getComputedStyle(el).webkitLineClamp)).toBe('2');
+    // höchstens 2 Zeilen, ohne „…“ (Handy: der Rand schneidet ab), Schrift mindestens 10 px
+    expect(await l.locator('.evk').evaluate((el) => { const c = getComputedStyle(el); return { two: c.webkitLineClamp === '2' || Math.round(parseFloat(c.maxHeight) / parseFloat(c.fontSize) * 10) === 24, fs: parseFloat(c.fontSize) >= 10 }; })).toEqual({ two: true, fs: true });
     // „Danach“ beginnt, wenn „Rechts“ endet: es nutzt dieselbe rechte Spalte, „Links“ bleibt links
     const [bl, br, bd] = [await l.boundingBox(), await ev('E2E Rechts').boundingBox(), await ev('E2E Danach').boundingBox()];
     expect(br.x).toBeGreaterThan(bl.x + bl.width - 2);
@@ -789,15 +790,17 @@ test.describe('Kalender: mehr Platz und Bedienung wie in Kalender-Apps', () => {
     });
     const mn = page.locator('.mg .ch.mn');
     await expect(mn).toHaveText(['Fam. Unterholzner', 'Kevin', 'Angebot schreiben', 'Gemeinde Kastelruth']);
-    // ganz sichtbar: nichts abgeschnitten, keine Auslassungspunkte
-    expect(await mn.evaluateAll((l) => l.every((e) => { const b = e.querySelector('b'); return b.scrollWidth <= b.clientWidth + 1 && e.scrollHeight <= e.clientHeight + 1 && e.getBoundingClientRect().bottom <= e.parentNode.getBoundingClientRect().bottom; }))).toBe(true);
+    // mindestens 10 px, keine Auslassungspunkte, Wörter nicht mitten getrennt; zu lange Wörter schneidet der Rand ab
+    expect(await mn.evaluateAll((l) => l.every((e) => { const b = e.querySelector('b'), c = getComputedStyle(b), ce = getComputedStyle(e); return parseFloat(c.fontSize) >= 10 && c.textOverflow !== 'ellipsis' && ce.textOverflow !== 'ellipsis' && c.overflowWrap !== 'anywhere' && e.getBoundingClientRect().bottom <= e.parentNode.getBoundingClientRect().bottom; }))).toBe(true);
     await app(page, () => setMode('woche'));
     const kevin = page.locator('.ev', { hasText: 'Kevin' });
     await expect(kevin).toHaveClass(/vt/);
     await expect(kevin.locator('.vtx i')).toHaveText(['K', 'e', 'v', 'i', 'n']);
     const y = await kevin.locator('.vtx i').evaluateAll((l) => l.map((e) => e.getBoundingClientRect().top));
     expect(y.every((v, i) => !i || v > y[i - 1] + 4)).toBe(true);
-    expect(await page.locator('.ev.vt .vtx').evaluateAll((l) => l.every((e) => e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight))).toBe(true);
+    // senkrecht ganz sichtbar; passt es auch mit 10 px nicht, schneidet der Rand unten ab (clp), nie kleiner als 10 px
+    expect(await page.locator('.ev.vt:not(.clp) .vtx').evaluateAll((l) => l.every((e) => e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight))).toBe(true);
+    expect(await page.locator('.ev.vt .vtx').evaluateAll((l) => l.every((e) => parseFloat(getComputedStyle(e).fontSize) >= 10))).toBe(true);
     // eine Stunde ist zu kurz für „Gemeinde Kastelruth“ senkrecht: waagrecht umgebrochen
     await expect(page.locator('.ev', { hasText: 'Kastelruth' }).locator('.evk')).toBeVisible();
     // Tagesansicht bleibt waagrecht
