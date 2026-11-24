@@ -1300,6 +1300,20 @@ test.describe('Termin bearbeiten: Kopf', () => {
     // neuer Termin: kein Kopf
     await app(page, () => { document.getElementById('dlg').close(); edit(null, ''); });
     await expect(page.locator('#dlg .jhd')).toHaveCount(0);
+    // neuer Termin ist standardmäßig fix
+    await expect(page.locator('#s_fx button[data-v="1"]')).toHaveClass(/on/);
+    await expect(page.locator('#s_fx button[data-v="0"]')).not.toHaveClass(/on/);
+  });
+
+  test('Provisorische Termine: Streifen im Kalender, Etikett „Provisorisch“ in der Liste', async ({ page }) => {
+    await login(page, 'uwe');
+    await app(page, () => { const t = new Date().toISOString().slice(0, 10), j = S.jobs.find((x) => x.zeit && x.start >= t && x.art != 'urlaub'); j.fix = false; j.kunde = 'Prov Kunde'; an = j.start; tab = 'plan'; setMode('woche'); render(); });
+    const bg = await app(page, () => { const e = document.querySelector('.ch.pv'); return e ? getComputedStyle(e).backgroundImage : ''; });
+    expect(bg).toContain('repeating-linear-gradient');
+    await app(page, () => { setMode('liste'); render(); });
+    const r = page.locator('.agr.pv', { hasText: 'Prov Kunde' });
+    await expect(r.locator('.pvt')).toHaveText('Provisorisch');
+    await expect(page.locator('.agr:not(.pv) .pvt')).toHaveCount(0);
   });
 });
 

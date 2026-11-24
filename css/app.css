@@ -491,7 +491,7 @@ kbd{font:600 12px/1 ui-monospace,Consolas,monospace;padding:3px 6px;border-radiu
 /* Farbe nach Mitarbeiter */
 .cm-ma .bar:not(.pv){background:var(--cb,var(--c))!important}
 .cm-ma .ch:not(.pv){background:var(--cl,var(--card))!important;color:var(--tx)}
-.cm-ma .ch.pv{background:var(--card)!important;color:var(--tx)}
+.cm-ma .ch.pv{background:var(--pvh)!important;color:var(--tx)}
 .cm-ma .bar.pv{background:var(--cl,transparent)!important}
 .cm-ma .job{border-left-color:var(--c)!important}
 
@@ -765,3 +765,13 @@ nav .nl-s{display:none}
 :root[data-theme="dark"] .b.p{box-shadow:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .b.p{box-shadow:none}}
 nav button span.nl-l,nav button span.nl-s{font-size:inherit;margin:0}
+
+/* Provisorische Termine: schräge Streifen in der Terminfarbe (wie „vorläufig“ in Outlook), Rand gestrichelt;
+   im Monat zusätzlich ein „?“, in der Liste das Etikett „Provisorisch“ */
+.ch.pv,.agr.pv{--pvh:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c,var(--mo)) 22%,var(--card)) 0 5px,var(--card) 5px 10px)}
+.ch.pv{background:var(--pvh)}
+.agr.pv{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c,var(--mo)) 12%,var(--card)) 0 7px,var(--card) 7px 14px)}
+.agr.pv .agc{background:var(--pvh);border-width:1.5px}
+.mg.bars .ch.mn.pv b::before{content:"?";display:inline-block;width:1.15em;height:1.15em;line-height:1.15em;text-align:center;border-radius:50%;background:var(--c,var(--mo));color:var(--card);font-weight:800;font-size:.85em;margin-right:2px;vertical-align:.05em}
+.pvt{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:99px;border:1px dashed var(--c,var(--mo));background:var(--card);font-size:12px;font-weight:600;line-height:1.3;vertical-align:2px;white-space:nowrap}
+.mg.bars .ch.mn.pv.planung b::before{color:#2b2620}
