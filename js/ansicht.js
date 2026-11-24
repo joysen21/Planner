@@ -82,7 +82,7 @@ function agenda(){var td=fmt(new Date()),out='',any=false;
   '<button class="b agm" onclick="LD+=30;render()">Weitere 30 Tage</button></div>'}
 function agRow(j,ds){var tl=tLbl(j,ds).split('–');
  return '<button class="agr a-'+j.art+(PV(j)?' pv':'')+(j.done?' dn':'')+(mvId==j.id?' sel':'')+'" style="'+wS(j)+'" onclick="evClick(\''+j.id+'\',\''+ds+'\')">'+
-  '<span class="agt">'+tl[0]+(tl[1]?'<small>'+tl[1]+'</small>':'')+'</span><i class="agc"></i><span class="agx"><b>'+(j.imp?ic('starf','starx')+' ':'')+esc(j.kunde||'(ohne Name)')+'</b>'+
+  '<span class="agt">'+tl[0]+(tl[1]?'<small>'+tl[1]+'</small>':'')+'</span><i class="agc"></i><span class="agx"><b>'+(j.imp?ic('starf','starx')+' ':'')+esc(jTit(j)||'(ohne Name)')+'</b>'+
   '<small>'+jName(j)+' · '+icPpl(j)+esc(who(j))+(j.adresse?' · '+esc(j.adresse):'')+'</small></span></button>'}
 
 /* ---------- Raster füllt den Bildschirm und scrollt in sich; Bildlauf bleibt beim Neuzeichnen erhalten ---------- */

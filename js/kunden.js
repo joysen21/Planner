@@ -12,7 +12,7 @@ function kNew(){return !kErp()||KWR}
 // ---------------------------------------------------------------- Reiter „Kunden“
 function kundenView(hd,m){hd.innerHTML='<h1>Kunden</h1>';
  if(!CUSTOK){m.innerHTML='<div class="empty big">'+ic('kunde')+'<br><b>Kundenstamm noch nicht verfügbar</b><br><small>Bitte das Datenbank-Update ausführen.</small></div>';return}
- m.innerHTML='<div class="tbar"><input id="kf" type="search" placeholder="Kunden suchen (Name, Adresse, Telefon, Notiz) …" value="'+esc(KF)+'" oninput="KF=this.value;kListe()"'+NC+' style="flex:1 1 220px;width:auto">'+
+ m.innerHTML='<div class="tbar"><input id="kf" type="search" placeholder="Kunden suchen …" aria-label="Kunden suchen nach Name, Adresse, Telefon oder Notiz" title="Sucht in Name, Adresse, Telefon und Notiz" value="'+esc(KF)+'" oninput="KF=this.value;kListe()"'+NC+' style="flex:1 1 220px;width:auto">'+
   '</div><div id="kl">'+kListHtml()+'</div>'}
 function kListHtml(){var f=KF.trim().toLowerCase(),td=fmt(new Date());
  var ls=S.cust.filter(function(c){return !f||[c.name,c.adresse,c.tel,c.notiz].join(' ').toLowerCase().indexOf(f)>-1}).sort(function(a,b){return a.name.localeCompare(b.name,'de')});
@@ -20,7 +20,7 @@ function kListHtml(){var f=KF.trim().toLowerCase(),td=fmt(new Date());
  return '<div class="ol">'+ls.map(function(c){var js=kJobs(c),up=js.filter(function(j){return j.start&&j.start>=td&&!j.done}).length;
   return '<div class="job kc" onclick="kEdit(\''+c.id+'\')"><div class="k">'+esc(c.name)+'</div>'+
    '<div class="sub">'+esc([c.adresse,c.tel].filter(Boolean).join(' · ')||'keine Adresse')+'</div>'+
-   '<div class="tags"><span class="tag">'+ic('plan')+js.length+' Termin'+(js.length==1?'':'e')+'</span>'+(up?'<span class="tag fx">'+up+' kommend</span>':'')+(c.erp_customer_id?'<span class="tag kerp">Aus der ERP</span>':kErp()?'<span class="tag bad">Nicht verknüpft</span>':'')+'</div>'+
+   '<div class="tags"><span class="tag">'+ic('plan')+js.length+' Termin'+(js.length==1?'':'e')+'</span>'+(up?'<span class="tag fx">'+up+' kommend</span>':'')+(c.erp_customer_id?'<span class="tag kerp">Aus der ERP</span>':kErp()?'<span class="tag bad nv">Nicht verknüpft</span>':'')+'</div>'+
    (c.notiz?'<div class="sub nt">'+esc(c.notiz.length>120?c.notiz.slice(0,120)+' …':c.notiz)+'</div>':'')+'</div>'}).join('')+'</div>'}
 function kListe(){var l=document.getElementById('kl');if(l)l.innerHTML=kListHtml()}
 

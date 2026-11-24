@@ -1204,7 +1204,8 @@ test('Offen wie in der ERP-Plantafel: nur nicht eingeplante Termine, kein „Neu
   await expect(page.locator('#main')).not.toContainText('Schon Erledigt');
   await expect(page.locator('#main')).not.toContainText('Urlaub Ohne Datum');
   const n = await app(page, () => S.jobs.filter(offenJob).length);
-  await expect(page.locator('#oc')).toHaveText('Offen (' + n + ')');
+  await expect(page.locator('[data-t="offen"]')).toHaveAttribute('aria-label', 'Offen (' + n + ')');
+  await expect(page.locator('#oc')).toHaveText(n ? String(n) : '');
   await expect(page.locator('#hd .ib.pl')).toHaveCount(0);
   await page.keyboard.press('n');
   await expect(page.locator('#dlg')).not.toBeVisible();

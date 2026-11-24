@@ -93,7 +93,7 @@ function hSum(){var d=document.getElementById('dlg'),el=d.querySelector('#hs');i
  d.querySelectorAll('.hch .b').forEach(function(b){b.classList.toggle('on',+b.dataset.h==h)});
  if(!h){el.textContent='Bitte eine Dauer in Stunden angeben.';return}
  var L=lay(h,d.querySelector('#f_b').value),st=d.querySelector('#f_s').value;
- if(!st){el.textContent='≈ '+String(Math.round(h/dayH()*10)/10).replace('.',',')+' Arbeitstage ('+hTxt(dayH())+' pro Tag)';return}
+ if(!st){var at=Math.round(h/dayH()*10)/10;el.textContent='≈ '+String(at).replace('.',',')+(at==1?' Arbeitstag (':' Arbeitstage (')+hTxt(dayH())+' pro Tag)';return}
  var t={art:cur.j.art,article_id:cur.j.article_id,start:st,tage:L.tage,zeit:L.zeit,ende:L.ende},dd=span(t),n=dd.length,
   f=function(x){var a=parse(x);return WD[a.getDay()]+' '+a.getDate()+'.'+(a.getMonth()+1)+'.'},w=function(i){var x=hWin(t,i,n);return m2t(x.s)+'–'+m2t(x.e)};
  el.innerHTML='<b>'+n+(n==1?' Arbeitstag':' Arbeitstage')+'</b> · endet '+f(dd[n-1])+' um '+m2t(hWin(t,n-1,n).e)+

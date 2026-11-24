@@ -8,7 +8,7 @@ function render(){if(tab=='zeiten'&&!RGOK||tab=='todos'&&!TDR)tab='plan';render0
 function offenJob(j){return !j.start&&!j.done&&j.art!='urlaub'}
 function render0(){mkH();
  var hd=document.getElementById('hd'),m=document.getElementById('main');hd.className='';document.body.classList.remove('ddo');
- document.getElementById('oc').textContent='Offen ('+S.jobs.filter(offenJob).length+')';
+ var oc=document.getElementById('oc'),on=S.jobs.filter(offenJob).length;oc.textContent=on?String(on):'';oc.hidden=!on;oc.parentNode.setAttribute('aria-label','Offen ('+on+')');
  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t==tab)});document.getElementById('nzt').hidden=!RGOK;document.getElementById('ntd').hidden=!TDR;tdCount();document.body.classList.toggle('n5',RGOK||TDR);document.body.classList.toggle('n6',RGOK&&TDR);
  if(tab=='plan'){plan(hd,m)}else if(tab=='zeiten'){zView(hd,m)}else if(tab=='kunden'){kundenView(hd,m)}else if(tab=='todos'){tdView(hd,m)}else if(tab=='offen'){
   hd.innerHTML='<h1>Noch ohne Termin</h1>';

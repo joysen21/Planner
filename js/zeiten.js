@@ -206,7 +206,7 @@ function zView(hd,m){var td=zToday(),cw=zMon(td);if(!ZWK)ZWK=cw;var mon=ZWK,sun=
  var list='';(ZDS?[ZDS]:days.slice().reverse()).forEach(function(x){if(x>td)return;var r=by[x]||[];
   if(!r.length&&!sug[x].length)return;
   list+='<div class="zdh" id="zd-'+x+'"><span>'+zDayLong(x)+'</span><b>'+zH(zSum(r))+'</b></div>'+
-   sug[x].map(function(j){return '<div class="zsug"><div><small>Termin ohne Zeit</small><b>'+esc(j.kunde||'(ohne Name)')+'</b><span class="sub">'+(j.zeit?esc(j.zeit)+(j.ende?'–'+esc(j.ende):''):'Ganztags')+'</span></div><button class="b" onclick="zBook(\''+j.id+'\',\''+x+'\')">Buchen</button></div>'}).join('')+
+   sug[x].map(function(j){return '<div class="zsug"><div><small>Termin ohne Zeit</small><b>'+esc(jTit(j)||'(ohne Name)')+'</b><span class="sub">'+(j.zeit?esc(j.zeit)+(j.ende?'–'+esc(j.ende):''):'Ganztags')+'</span></div><button class="b" onclick="zBook(\''+j.id+'\',\''+x+'\')">Buchen</button></div>'}).join('')+
    zGroups(r).map(function(g){return g.rows.map(function(e,i){var lk=zLocked(e),sub=[e.time_from&&e.time_to?e.time_from+'–'+e.time_to:'',+e.break_min?e.break_min+' Min. Pause':'',e.order_number||'Ohne Auftrag',e.activity||''].filter(Boolean).join(' · ');
     return '<div class="zrow'+(lk?' zlk':'')+'"><button class="zrm"'+(lk?' aria-disabled="true"':' onclick="zEdit(\''+e.id+'\')"')+'><div><b>'+esc(e.customer_name||'')+'</b><span class="sub">'+(lk?ic('lock')+' '+esc(zState(e))+' · ':'')+esc(sub)+'</span></div><b>'+zH(e.hours)+'</b></button>'+(!i&&zRgBtn(g,x)||'<span class="zrx"></span>')+'</div>'}).join('')}).join('')});
  var all=ZDS?'<button class="lk zall" onclick="zGo(null)">Ganze Woche anzeigen</button>':'';

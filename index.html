@@ -29,11 +29,11 @@
 <main id="main"></main>
 <nav>
 <button data-t="plan" class="on"><span data-i="plan"></span>Plan</button>
-<button data-t="offen"><span data-i="auftraege"></span><b id="oc">Offen</b></button>
+<button data-t="offen" aria-label="Offen"><span data-i="auftraege"></span>Offen<i id="oc" class="nbd" hidden></i></button>
 <button data-t="todos" id="ntd" hidden><span data-i="todo"></span>ToDos<i id="tdc" class="nbd" hidden></i></button>
 <button data-t="zeiten" id="nzt" hidden><span data-i="zeiten"></span>Zeiten</button>
 <button data-t="kunden"><span data-i="kunde"></span>Kunden</button>
-<button data-t="mehr"><span data-i="einstellungen"></span>Einstellungen</button>
+<button data-t="mehr"><span data-i="einstellungen"></span><span class="nl-l">Einstellungen</span><span class="nl-s">Mehr</span></button>
 </nav>
 <dialog id="dlg"></dialog>
 <dialog id="kdlg" aria-label="Neuer Kunde"></dialog>

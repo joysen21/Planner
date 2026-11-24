@@ -40,7 +40,7 @@ function tdList(l){
    '<div class="tdx">'+(TDW?'<button type="button" class="tdt" onclick="tdEdit(\''+t.id+'\')">'+esc(t.title)+'</button>':'<span class="tdt">'+esc(t.title)+'</span>')+
    (t.body?'<div class="tdb">'+esc(t.body)+'</div>':'')+
    '<div class="tdi"><span>Erstellt '+tdDate(t.created_at)+' · '+esc(tdName(t.created_by))+'</span>'+(d?'<span>Erledigt '+tdDate(t.done_at)+' · '+esc(tdName(t.done_by))+'</span>':'')+tdTerm(t)+'</div></div>'+
-   (TDP&&!d?'<button type="button" class="b tdj" onclick="tdJob(\''+t.id+'\')" aria-label="Termin daraus machen: '+esc(t.title)+'">'+ic('plan')+'<span>Termin</span></button>':'')+'</li>'}).join('')+'</ul>'}
+   (TDP&&!d?'<button type="button" class="b tdj" onclick="tdJob(\''+t.id+'\')" aria-label="Termin daraus machen: '+esc(t.title)+'" title="Termin daraus machen">'+ic('plan')+'<span>Termin</span></button>':'')+'</li>'}).join('')+'</ul>'}
 // Verweis auf den Termin, der daraus entstanden ist
 function tdTerm(t){if(!t.job_id)return t.job_linked?'<span class="tdg bad">Termin gelöscht</span>':'';
  var j=byId(t.job_id),lb=j&&j.start?'Termin am '+tdDate(j.start+'T12:00'):j?'Termin ohne Datum':'Termin';

@@ -259,8 +259,7 @@ html:has(dialog[open]){overflow:hidden}
 /* Bearbeiten-Dialog im Breitbild zweispaltig */
 @media (min-width:900px){dialog:has(.eg){max-width:920px}.eg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px;align-items:start}.eg>div>.sec:first-child{border-top:0;padding-top:0;margin-top:8px}}
 /* Termin-Dialog „Wer“: angemeldeter Benutzer als großer Knopf, die übrigen kleiner */
-#s_wer .mew{flex:1 1 100%;min-height:52px;font-size:16px;font-weight:700}
-#s_wer button:not(.mew){flex:1 1 28%;min-height:38px;font-size:14px}
+#s_wer{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}#s_wer button{min-height:40px;font-size:14px}#s_wer .mew{font-weight:700}
 /* Wochenende (Sa/So) leicht grau – Woche, Monat, Jahr */
 .dcol.wkd,.wh2.wkd:not(.today){background-color:color-mix(in srgb,var(--mu) 11%,var(--card))}
 .dcol.wkd.tdc{background-color:color-mix(in srgb,var(--ac) 8%,var(--card))}.dcol.wkd.hol{background-color:color-mix(in srgb,var(--ur) 9%,var(--card))}
@@ -756,3 +755,13 @@ span.tdg{cursor:default}.tdg .i{width:13px;height:13px}.tdg.bad{background:color
 /* Offene Termine in Woche/Tag: weiß mit gestricheltem Rand (fixe Termine sind getönt) */
 .tg .ev.pv{border:1.5px dashed var(--c,var(--mo))}
 .tg .ev.pv.wp{outline-offset:1px}
+
+/* Feinschliff: „Nicht verknüpft“ ist ein Hinweis, kein Fehler */
+.tag.bad.nv{border-color:var(--ln);color:var(--mu)}
+/* Handy-Leiste unten: „Mehr“ statt abgeschnittenem „Einstellungen“ */
+nav .nl-s{display:none}
+@media (max-width:599px){nav .nl-l{display:none}nav .nl-s{display:inline}}
+/* Dunkelmodus: kein brauner Schein unter Hauptknöpfen */
+:root[data-theme="dark"] .b.p{box-shadow:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .b.p{box-shadow:none}}
+nav button span.nl-l,nav button span.nl-s{font-size:inherit;margin:0}
